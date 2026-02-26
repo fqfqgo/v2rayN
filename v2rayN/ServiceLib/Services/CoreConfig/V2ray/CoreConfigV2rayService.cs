@@ -94,18 +94,8 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
                 ret.Msg = ResUI.FailedGenDefaultConfiguration;
                 return ret;
             }
-            List<IPEndPoint> lstIpEndPoints = new();
-            List<TcpConnectionInformation> lstTcpConns = new();
-            try
-            {
-                lstIpEndPoints.AddRange(IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners());
-                lstIpEndPoints.AddRange(IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners());
-                lstTcpConns.AddRange(IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpConnections());
-            }
-            catch (Exception ex)
-            {
-                Logging.SaveLog(_tag, ex);
-            }
+
+            var (lstIpEndPoints, lstTcpConns) = Utils.GetActiveNetworkInfo();
 
             GenLog();
             _coreConfig.inbounds.Clear();

@@ -68,6 +68,7 @@ public partial class CoreConfigV2rayService
             case EConfigType.PolicyGroup:
                 proxyOutboundList.AddRange(BuildOutboundsList(baseTagName));
                 break;
+
             case EConfigType.ProxyChain:
                 proxyOutboundList.AddRange(BuildChainOutboundsList(baseTagName));
                 break;

@@ -72,7 +72,8 @@ public class CoreManager
         {
             context = context with
             {
-                TunProtectSsPort = preContext.TunProtectSsPort, ProxyRelaySsPort = preContext.ProxyRelaySsPort,
+                TunProtectSsPort = preContext.TunProtectSsPort,
+                ProxyRelaySsPort = preContext.ProxyRelaySsPort,
             };
         }
         var result = await CoreConfigHandler.GenerateClientConfig(context, fileName);
