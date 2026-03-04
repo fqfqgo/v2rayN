@@ -90,14 +90,23 @@
                         <MenuItem x:Name="menuOpenTheFileLocation" Header="{x:Static resx:ResUI.menuOpenTheFileLocation}" />
                     </MenuItem>
 
+                    <!-- 帮助菜单已隐藏 -->
+                    <!--
                     <MenuItem x:Name="menuHelp" Header="{x:Static resx:ResUI.menuHelp}">
                         <MenuItem x:Name="menuCheckUpdate" Header="{x:Static resx:ResUI.menuCheckUpdate}" />
                         <Separator />
                     </MenuItem>
+                    -->
 
                     <MenuItem x:Name="menuReload" Header="{x:Static resx:ResUI.menuReload}" />
 
-                    <MenuItem x:Name="menuPromotion" Header="{x:Static resx:ResUI.menuPromotion}" />
+                    <MenuItem
+                        x:Name="menuStartBrowser"
+                        Header="{x:Static resx:ResUI.menuStartBrowser}"
+                        IsVisible="{Binding BlIsWindows}" />
+
+                    <!-- 推广菜单已隐藏 -->
+                    <!-- <MenuItem x:Name="menuPromotion" Header="{x:Static resx:ResUI.menuPromotion}" /> -->
 
                     <MenuItem x:Name="menuClose" Header="{x:Static resx:ResUI.menuExit}" />
                 </Menu>

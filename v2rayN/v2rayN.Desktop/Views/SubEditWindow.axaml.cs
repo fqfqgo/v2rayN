@@ -4,14 +4,17 @@ namespace v2rayN.Desktop.Views;
 
 public partial class SubEditWindow : WindowBase<SubEditViewModel>
 {
+    private readonly bool _focusLoginPassword;
+
     public SubEditWindow()
     {
         InitializeComponent();
     }
 
-    public SubEditWindow(SubItem subItem)
+    public SubEditWindow(SubItem subItem, bool focusLoginPassword = false)
     {
         InitializeComponent();
+        _focusLoginPassword = focusLoginPassword;
 
         Loaded += Window_Loaded;
         btnCancel.Click += (s, e) => Close();
@@ -25,6 +28,7 @@ public partial class SubEditWindow : WindowBase<SubEditViewModel>
             this.Bind(ViewModel, vm => vm.SelectedSource.Remarks, v => v.txtRemarks.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.Url, v => v.txtUrl.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.MoreUrl, v => v.txtMoreUrl.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.SelectedSource.LoginPassword, v => v.txtLoginPassword.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.Enabled, v => v.togEnable.IsChecked).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.AutoUpdateInterval, v => v.txtAutoUpdateInterval.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.UserAgent, v => v.txtUserAgent.Text).DisposeWith(disposables);
@@ -53,6 +57,12 @@ public partial class SubEditWindow : WindowBase<SubEditViewModel>
 
     private void Window_Loaded(object? sender, RoutedEventArgs e)
     {
+        if (_focusLoginPassword)
+        {
+            txtLoginPassword.Focus();
+            txtLoginPassword.SelectAll();
+            return;
+        }
         txtRemarks.Focus();
     }
 

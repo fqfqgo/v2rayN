@@ -845,7 +845,11 @@ public class ProfilesViewModel : MyReactiveObject
         SubItem item;
         if (blNew)
         {
-            item = new();
+            item = new()
+            {
+                Remarks = "v2free",
+                AutoUpdateInterval = 1688
+            };
         }
         else
         {

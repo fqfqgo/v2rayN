@@ -2,12 +2,18 @@ namespace v2rayN.Views;
 
 public partial class SubEditWindow
 {
-    public SubEditWindow(SubItem subItem)
+    private readonly bool _focusLoginPassword;
+
+    public SubEditWindow(SubItem subItem, bool focusLoginPassword = false)
     {
         InitializeComponent();
+        _focusLoginPassword = focusLoginPassword;
 
         Owner = Application.Current.MainWindow;
         Loaded += Window_Loaded;
+        chkShowPassword.Checked += ChkShowPassword_Changed;
+        chkShowPassword.Unchecked += ChkShowPassword_Changed;
+        pwdLoginPassword.PasswordChanged += PwdLoginPassword_PasswordChanged;
 
         ViewModel = new SubEditViewModel(subItem, UpdateViewHandler);
 
@@ -18,6 +24,8 @@ public partial class SubEditWindow
             this.Bind(ViewModel, vm => vm.SelectedSource.Remarks, v => v.txtRemarks.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.Url, v => v.txtUrl.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.MoreUrl, v => v.txtMoreUrl.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.SelectedSource.LoginPassword, v => v.txtLoginPassword.Text).DisposeWith(disposables);
+
             this.Bind(ViewModel, vm => vm.SelectedSource.Enabled, v => v.togEnable.IsChecked).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.AutoUpdateInterval, v => v.txtAutoUpdateInterval.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.UserAgent, v => v.txtUserAgent.Text).DisposeWith(disposables);
@@ -47,8 +55,47 @@ public partial class SubEditWindow
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
+        pwdLoginPassword.Password = ViewModel?.SelectedSource?.LoginPassword ?? "";
+        if (_focusLoginPassword)
+        {
+            if (chkShowPassword.IsChecked == true)
+            {
+                txtLoginPassword.Focus();
+                txtLoginPassword.SelectAll();
+            }
+            else
+            {
+                pwdLoginPassword.Focus();
+            }
+            return;
+        }
         txtRemarks.Focus();
     }
+
+    private void ChkShowPassword_Changed(object sender, RoutedEventArgs e)
+    {
+        if (chkShowPassword.IsChecked == true)
+        {
+            txtLoginPassword.Text = pwdLoginPassword.Password;
+            txtLoginPassword.Visibility = Visibility.Visible;
+            pwdLoginPassword.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            pwdLoginPassword.Password = txtLoginPassword.Text ?? "";
+            pwdLoginPassword.Visibility = Visibility.Visible;
+            txtLoginPassword.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void PwdLoginPassword_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel != null && pwdLoginPassword.Visibility == Visibility.Visible)
+        {
+            ViewModel.SelectedSource.LoginPassword = pwdLoginPassword.Password;
+        }
+    }
+
 
     private async void BtnSelectPrevProfile_Click(object sender, RoutedEventArgs e)
     {

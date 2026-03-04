@@ -232,6 +232,8 @@
                             </MenuItem>
                         </Menu>
                         <Separator />
+                        <!-- 帮助菜单已隐藏 -->
+                        <!--
                         <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
                             <MenuItem
                                 x:Name="menuHelp"
@@ -250,6 +252,7 @@
                                 <Separator Margin="-40,5" />
                             </MenuItem>
                         </Menu>
+                        -->
                         <Separator />
                         <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
                             <MenuItem
@@ -268,6 +271,25 @@
                             </MenuItem>
                         </Menu>
                         <Separator />
+                        <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}" Visibility="{Binding BlIsWindows, Converter={StaticResource BoolToVisConverter}}">
+                            <MenuItem
+                                x:Name="menuStartBrowser"
+                                Padding="{StaticResource MarginLeftRight8}"
+                                AutomationProperties.Name="{x:Static resx:ResUI.menuStartBrowser}">
+                                <MenuItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon
+                                            Margin="{StaticResource MarginRight8}"
+                                            VerticalAlignment="Center"
+                                            Kind="Web" />
+                                        <TextBlock Text="{x:Static resx:ResUI.menuStartBrowser}" />
+                                    </StackPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </Menu>
+                        <Separator />
+                        <!-- 推广菜单已隐藏 -->
+                        <!--
                         <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
                             <MenuItem
                                 x:Name="menuPromotion"
@@ -284,6 +306,7 @@
                                 </MenuItem.Header>
                             </MenuItem>
                         </Menu>
+                        -->
                         <Separator />
                         <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
                             <MenuItem

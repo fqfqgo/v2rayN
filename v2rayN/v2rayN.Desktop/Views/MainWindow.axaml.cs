@@ -23,8 +23,8 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
 
         KeyDown += MainWindow_KeyDown;
         menuSettingsSetUWP.Click += MenuSettingsSetUWP_Click;
-        menuPromotion.Click += MenuPromotion_Click;
-        menuCheckUpdate.Click += MenuCheckUpdate_Click;
+        // menuPromotion.Click += MenuPromotion_Click; // 推广菜单已隐藏
+        // menuCheckUpdate.Click += MenuCheckUpdate_Click; // 帮助菜单已隐藏
         menuBackupAndRestore.Click += MenuBackupAndRestore_Click;
         menuClose.Click += MenuClose_Click;
 
@@ -101,6 +101,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
 
             this.BindCommand(ViewModel, vm => vm.ReloadCmd, v => v.menuReload).DisposeWith(disposables);
             this.OneWayBind(ViewModel, vm => vm.BlReloadEnabled, v => v.menuReload.IsEnabled).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.StartBrowserCmd, v => v.menuStartBrowser).DisposeWith(disposables);
 
             switch (_config.UiItem.MainGirdOrientation)
             {
@@ -149,6 +150,12 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
              .ObserveOn(RxApp.MainThreadScheduler)
              .Subscribe(blShow => ShowHideWindow(blShow))
              .DisposeWith(disposables);
+
+            AppEvents.SubscriptionDecryptFailedRequested
+             .AsObservable()
+             .ObserveOn(RxApp.MainThreadScheduler)
+             .Subscribe(async subId => await OpenSubEditForDecryptFailed(subId))
+             .DisposeWith(disposables);
         });
 
         if (Utils.IsWindows())
@@ -169,7 +176,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
             WindowState = WindowState.Minimized;
         }
 
-        AddHelpMenuItem();
+        // AddHelpMenuItem(); // 帮助菜单已隐藏
     }
 
     #region Event
@@ -185,6 +192,21 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
     {
         _manager?.Show(new Notification(null, content, NotificationType.Information));
         await Task.CompletedTask;
+    }
+
+    private async Task OpenSubEditForDecryptFailed(string subId)
+    {
+        if (subId.IsNullOrEmpty())
+        {
+            return;
+        }
+        var subItem = await AppManager.Instance.GetSubItem(subId);
+        if (subItem == null)
+        {
+            return;
+        }
+        ShowHideWindow(true);
+        await new SubEditWindow(subItem, true).ShowDialog(this);
     }
 
     private async Task<bool> UpdateViewHandler(EViewAction action, object? obj)
@@ -314,10 +336,13 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         }
     }
 
+    // 推广菜单已隐藏
+    /*
     private void MenuPromotion_Click(object? sender, RoutedEventArgs e)
     {
         ProcUtils.ProcessStart($"{Utils.Base64Decode(Global.PromotionUrl)}?t={DateTime.Now.Ticks}");
     }
+    */
 
     private void MenuSettingsSetUWP_Click(object? sender, RoutedEventArgs e)
     {
@@ -362,11 +387,14 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         }
     }
 
+    // 帮助菜单已隐藏
+    /*
     private void MenuCheckUpdate_Click(object? sender, RoutedEventArgs e)
     {
         _checkUpdateView ??= new CheckUpdateView();
         DialogHost.Show(_checkUpdateView);
     }
+    */
 
     private void MenuBackupAndRestore_Click(object? sender, RoutedEventArgs e)
     {
@@ -482,6 +510,8 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
 
     private void AddHelpMenuItem()
     {
+        // 官网子菜单已隐藏
+        /*
         var coreInfo = CoreInfoManager.Instance.GetCoreInfo();
         foreach (var it in coreInfo
             .Where(t => t.CoreType is not ECoreType.v2fly
@@ -495,6 +525,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
             item.Click += MenuItem_Click;
             menuHelp.Items.Add(item);
         }
+        */
     }
 
     private void MenuItem_Click(object? sender, RoutedEventArgs e)

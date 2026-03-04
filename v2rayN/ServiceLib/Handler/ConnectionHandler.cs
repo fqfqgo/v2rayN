@@ -82,16 +82,33 @@ public static class ConnectionHandler
             List<int> oneTime = new();
             for (var i = 0; i < 2; i++)
             {
-                var timer = Stopwatch.StartNew();
-                await client.GetAsync(url, cts.Token).ConfigureAwait(false);
-                timer.Stop();
-                oneTime.Add((int)timer.Elapsed.TotalMilliseconds);
+                try
+                {
+                    var timer = Stopwatch.StartNew();
+                    var response = await client.GetAsync(url, cts.Token).ConfigureAwait(false);
+                    timer.Stop();
+                    
+                    // 只有成功响应才记录时间
+                    if (response.IsSuccessStatusCode)
+                    {
+                        oneTime.Add((int)timer.Elapsed.TotalMilliseconds);
+                    }
+                }
+                catch
+                {
+                    // 忽略单次请求失败，继续下一次
+                }
                 await Task.Delay(100);
             }
-            responseTime = oneTime.Where(x => x > 0).OrderBy(x => x).FirstOrDefault();
+            
+            // 修复：如果没有成功的结果，返回 -1
+            responseTime = oneTime.Count > 0 
+                ? oneTime.OrderBy(x => x).First() 
+                : -1;
         }
         catch
         {
+            // 异常时返回 -1
         }
         return responseTime;
     }

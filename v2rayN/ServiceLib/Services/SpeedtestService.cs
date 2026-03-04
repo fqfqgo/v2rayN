@@ -201,7 +201,26 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
             {
                 return false;
             }
-            await Task.Delay(1000);
+            
+            // 增加等待时间，确保端口完全就绪
+            await Task.Delay(1500);
+            
+            // 检查端口是否真的可用
+            var allPortsReady = true;
+            foreach (var it in selecteds.Where(x => x.AllowTest))
+            {
+                if (!await SocketCheck(Global.Loopback, it.Port))
+                {
+                    allPortsReady = false;
+                    break;
+                }
+            }
+            
+            // 如果端口未就绪，再等待一段时间
+            if (!allPortsReady)
+            {
+                await Task.Delay(1000);
+            }
 
             List<Task> tasks = new();
             foreach (var it in selecteds)
@@ -304,12 +323,46 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
 
     private async Task<int> DoRealPing(ServerTestItem it)
     {
-        var webProxy = new WebProxy($"socks5://{Global.Loopback}:{it.Port}");
-        var responseTime = await ConnectionHandler.GetRealPingTime(_config.SpeedTestItem.SpeedPingTestUrl, webProxy, 10);
+        var maxRetries = 2; // 最多重试2次
+        var retryDelay = 500; // 重试延迟500ms
+        
+        for (int retry = 0; retry <= maxRetries; retry++)
+        {
+            try
+            {
+                var webProxy = new WebProxy($"socks5://{Global.Loopback}:{it.Port}");
+                var responseTime = await ConnectionHandler.GetRealPingTime(
+                    _config.SpeedTestItem.SpeedPingTestUrl, webProxy, 10);
 
-        ProfileExManager.Instance.SetTestDelay(it.IndexId, responseTime);
-        await UpdateFunc(it.IndexId, responseTime.ToString());
-        return responseTime;
+                // 如果成功（>0），立即返回
+                if (responseTime > 0)
+                {
+                    ProfileExManager.Instance.SetTestDelay(it.IndexId, responseTime);
+                    await UpdateFunc(it.IndexId, responseTime.ToString());
+                    return responseTime;
+                }
+                
+                // 如果失败且还有重试机会，等待后重试
+                if (retry < maxRetries)
+                {
+                    await Task.Delay(retryDelay);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logging.SaveLog(_tag, ex);
+                if (retry < maxRetries)
+                {
+                    await Task.Delay(retryDelay);
+                }
+            }
+        }
+        
+        // 所有重试都失败，返回 -1
+        var finalDelay = -1;
+        ProfileExManager.Instance.SetTestDelay(it.IndexId, finalDelay);
+        await UpdateFunc(it.IndexId, finalDelay.ToString());
+        return finalDelay;
     }
 
     private async Task DoSpeedTest(DownloadService downloadHandle, ServerTestItem it)
@@ -363,19 +416,76 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
     private List<List<ServerTestItem>> GetTestBatchItem(List<ServerTestItem> lstSelected, int pageSize)
     {
         List<List<ServerTestItem>> lstTest = new();
-        var lst1 = lstSelected.Where(t => t.CoreType == ECoreType.Xray).ToList();
-        var lst2 = lstSelected.Where(t => t.CoreType == ECoreType.sing_box).ToList();
-
-        for (var num = 0; num < (int)Math.Ceiling(lst1.Count * 1.0 / pageSize); num++)
+        
+        // 优先提取 anytls 节点，先测试它们（保留我方修改）
+        var lstAnytls = lstSelected.Where(t => t.ConfigType == EConfigType.Anytls).ToList();
+        var lstOthers = lstSelected.Where(t => t.ConfigType != EConfigType.Anytls).ToList();
+        
+        // 先分批 anytls 节点
+        for (var num = 0; num < (int)Math.Ceiling(lstAnytls.Count * 1.0 / pageSize); num++)
         {
-            lstTest.Add(lst1.Skip(num * pageSize).Take(pageSize).ToList());
+            var batch = lstAnytls.Skip(num * pageSize).Take(pageSize).ToList();
+            if (batch.Count > 0)
+            {
+                lstTest.Add(batch);
+            }
         }
-        for (var num = 0; num < (int)Math.Ceiling(lst2.Count * 1.0 / pageSize); num++)
+        
+        // 然后处理其他节点
+        var lst1 = lstOthers.Where(t => Global.XraySupportConfigType.Contains(t.ConfigType)).ToList();
+        var lst2 = lstOthers.Where(t => Global.SingboxOnlyConfigType.Contains(t.ConfigType)).ToList();
+
+        // 交替添加 Xray 和 SingboxOnly 批次
+        var maxBatches = Math.Max(
+            (int)Math.Ceiling(lst1.Count * 1.0 / pageSize),
+            (int)Math.Ceiling(lst2.Count * 1.0 / pageSize)
+        );
+
+        for (var num = 0; num < maxBatches; num++)
         {
-            lstTest.Add(lst2.Skip(num * pageSize).Take(pageSize).ToList());
+            // 优先添加 Xray 批次（如果还有）
+            if (num < (int)Math.Ceiling(lst1.Count * 1.0 / pageSize))
+            {
+                var batch = lst1.Skip(num * pageSize).Take(pageSize).ToList();
+                if (batch.Count > 0)
+                {
+                    lstTest.Add(batch);
+                }
+            }
+            
+            // 然后添加 SingboxOnly 批次（如果还有）
+            if (num < (int)Math.Ceiling(lst2.Count * 1.0 / pageSize))
+            {
+                var batch = lst2.Skip(num * pageSize).Take(pageSize).ToList();
+                if (batch.Count > 0)
+                {
+                    lstTest.Add(batch);
+                }
+            }
         }
 
         return lstTest;
+    }
+
+    private async Task<bool> SocketCheck(string ip, int port)
+    {
+        try
+        {
+            using var client = new TcpClient();
+            var connectTask = client.ConnectAsync(ip, port);
+            var timeoutTask = Task.Delay(TimeSpan.FromMilliseconds(500));
+            var completedTask = await Task.WhenAny(connectTask, timeoutTask);
+            
+            if (completedTask == connectTask && client.Connected)
+            {
+                return true;
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private async Task UpdateFunc(string indexId, string delay, string speed = "")

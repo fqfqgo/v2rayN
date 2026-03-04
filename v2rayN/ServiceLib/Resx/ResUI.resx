@@ -312,6 +312,21 @@
   <data name="LvUrl" xml:space="preserve">
     <value>URL (optional)</value>
   </data>
+  <data name="SubUrlLinkHint" xml:space="preserve">
+    <value>Enter subscription link here</value>
+  </data>
+  <data name="LvLoginPassword" xml:space="preserve">
+    <value>Login password</value>
+  </data>
+  <data name="SubLoginPasswordTips" xml:space="preserve">
+    <value>Please enter the website login password</value>
+  </data>
+  <data name="PleaseFillLoginPassword" xml:space="preserve">
+    <value>Please enter the website login password</value>
+  </data>
+  <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
+    <value>Subscription decryption failed</value>
+  </data>
   <data name="LvCount" xml:space="preserve">
     <value>Count</value>
   </data>
@@ -422,6 +437,9 @@
   </data>
   <data name="menuReload" xml:space="preserve">
     <value>Reload</value>
+  </data>
+  <data name="menuStartBrowser" xml:space="preserve">
+    <value>Start Browser</value>
   </data>
   <data name="menuRoutingSetting" xml:space="preserve">
     <value>Routing Setting</value>
@@ -1469,6 +1487,9 @@
   </data>
   <data name="TbSelectProfile" xml:space="preserve">
     <value>Select Profile</value>
+  </data>
+  <data name="TbShowPassword" xml:space="preserve">
+    <value>Show Password</value>
   </data>
   <data name="TbFakeIPTips" xml:space="preserve">
     <value>Applies globally by default, with built-in FakeIP filtering (sing-box only).</value>

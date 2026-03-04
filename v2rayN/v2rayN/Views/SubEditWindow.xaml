@@ -109,7 +109,7 @@
                     Grid.Column="1"
                     Margin="{StaticResource Margin4}"
                     VerticalAlignment="Center"
-                    materialDesign:HintAssist.Hint="{x:Static resx:ResUI.SubUrlTips}"
+                    materialDesign:HintAssist.Hint="{x:Static resx:ResUI.SubUrlLinkHint}"
                     AcceptsReturn="True"
                     Style="{StaticResource MyOutlinedTextBox}"
                     TextWrapping="Wrap" />
@@ -145,10 +145,46 @@
                     Margin="{StaticResource Margin4}"
                     VerticalAlignment="Center"
                     Style="{StaticResource ToolbarTextBlock}"
+                    Text="{x:Static resx:ResUI.LvLoginPassword}" />
+                <Grid Grid.Row="3" Grid.Column="1" Margin="{StaticResource Margin4}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <PasswordBox
+                        x:Name="pwdLoginPassword"
+                        Grid.Column="0"
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        materialDesign:HintAssist.Hint="{x:Static resx:ResUI.SubLoginPasswordTips}"
+                        Style="{StaticResource MaterialDesignOutlinedPasswordBox}" />
+                    <TextBox
+                        x:Name="txtLoginPassword"
+                        Grid.Column="0"
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        materialDesign:HintAssist.Hint="{x:Static resx:ResUI.SubLoginPasswordTips}"
+                        AcceptsReturn="True"
+                        Style="{StaticResource MyOutlinedTextBox}"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+                    <CheckBox
+                        x:Name="chkShowPassword"
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Content="{x:Static resx:ResUI.TbShowPassword}" />
+                </Grid>
+
+                <TextBlock
+                    Grid.Row="4"
+                    Grid.Column="0"
+                    Margin="{StaticResource Margin4}"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource ToolbarTextBlock}"
                     Text="{x:Static resx:ResUI.LvEnabled}" />
 
                 <DockPanel
-                    Grid.Row="3"
+                    Grid.Row="4"
                     Grid.Column="1"
                     Margin="{StaticResource Margin4}">
                     <ToggleButton
