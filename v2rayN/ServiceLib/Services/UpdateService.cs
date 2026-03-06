@@ -131,23 +131,6 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
 
     private async Task<UpdateResult> GetRemoteVersion(DownloadService downloadHandle, ECoreType type, bool preRelease)
     {
-        // v2rayN 通过本站 CDN 更新：从 version.json 读取最新版本号
-        if (type == ECoreType.v2rayN)
-        {
-            var result = await downloadHandle.TryDownloadString(Global.V2freeUpdateVersionUrl, true, Global.AppName);
-            if (result.IsNullOrEmpty())
-            {
-                return new UpdateResult(false, "");
-            }
-            var versionInfo = JsonUtils.Deserialize<V2freeVersionInfo>(result);
-            var versionStr = versionInfo?.Version?.Trim();
-            if (string.IsNullOrEmpty(versionStr))
-            {
-                return new UpdateResult(false, "");
-            }
-            return new UpdateResult(true, new SemanticVersion(versionStr));
-        }
-
         var coreInfo = CoreInfoManager.Instance.GetCoreInfo(type);
         var tagName = string.Empty;
         if (preRelease)
@@ -269,9 +252,7 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
                     {
                         curVersion = new SemanticVersion(Utils.GetVersionInfo());
                         message = string.Format(ResUI.IsLatestN, type, curVersion);
-                        // 通过本站 CDN 更新：zip 文件名与上游一致，路径为 V2freeUpdateBaseUrl + zip文件名
-                        var zipFileName = string.Format(coreUrl, "v1").Split('/').LastOrDefault() ?? "v2rayN-windows-64.zip";
-                        url = Global.V2freeUpdateBaseUrl + zipFileName;
+                        url = string.Format(coreUrl, version.ToVersionString("v"));
                         break;
                     }
                 default:

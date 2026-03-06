@@ -9,10 +9,6 @@ public class Global
     public const string AppDisplayName = "v2rayN for V2free";
     /// <summary>帮助菜单中 V2free 官网链接</summary>
     public const string V2freeWebsiteUrl = "https://cdn.v2ai.top/auth/register?code=PLwV";
-    /// <summary>v2rayN 通过本站更新：zip 下载根路径，zip 文件名与上游一致</summary>
-    public const string V2freeUpdateBaseUrl = "https://cdn.v2ai.top/ssr-download/";
-    /// <summary>v2rayN 通过本站更新：版本号文件（JSON 格式 {"version":"x.y.z"}）</summary>
-    public const string V2freeUpdateVersionUrl = "https://cdn.v2ai.top/ssr-download/v2rayn-version.json";
     public const string GithubUrl = "https://github.com";
     public const string GithubApiUrl = "https://api.github.com/repos";
     public const string GeoUrl = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/{0}.dat";
@@ -608,7 +604,7 @@ public class Global
         { ECoreType.overtls, "ShadowsocksR-Live/overtls" },
         { ECoreType.shadowquic, "spongebob888/shadowquic" },
         { ECoreType.mieru, "enfein/mieru" },
-        { ECoreType.v2rayN, "2dust/v2rayN" },
+        { ECoreType.v2rayN, "fqfqgo/v2rayN" },
     };
 
     public static readonly List<string> OtherGeoUrls =
