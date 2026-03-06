@@ -416,11 +416,11 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
     private List<List<ServerTestItem>> GetTestBatchItem(List<ServerTestItem> lstSelected, int pageSize)
     {
         List<List<ServerTestItem>> lstTest = new();
-        
+
         // 优先提取 anytls 节点，先测试它们（保留我方修改）
         var lstAnytls = lstSelected.Where(t => t.ConfigType == EConfigType.Anytls).ToList();
         var lstOthers = lstSelected.Where(t => t.ConfigType != EConfigType.Anytls).ToList();
-        
+
         // 先分批 anytls 节点
         for (var num = 0; num < (int)Math.Ceiling(lstAnytls.Count * 1.0 / pageSize); num++)
         {
