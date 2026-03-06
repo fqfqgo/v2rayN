@@ -828,6 +828,9 @@
   <data name="menuWebsiteItem" xml:space="preserve">
     <value>{0} Website</value>
   </data>
+  <data name="menuWebsiteV2free" xml:space="preserve">
+    <value>V2free Website</value>
+  </data>
   <data name="menuRoutingAdvancedAdd" xml:space="preserve">
     <value>Add</value>
   </data>
@@ -920,6 +923,15 @@
   </data>
   <data name="TbEnableTunAs" xml:space="preserve">
     <value>Enable Tun</value>
+  </data>
+  <data name="BtnStartConnection" xml:space="preserve">
+    <value>Start connection</value>
+  </data>
+  <data name="BtnConnected" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="BtnStopConnection" xml:space="preserve">
+    <value>Stop connection</value>
   </data>
   <data name="TbSettingsNewPort4LAN" xml:space="preserve">
     <value>New Port for LAN</value>

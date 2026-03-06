@@ -90,6 +90,20 @@ public class StatusBarViewModel : MyReactiveObject
     [Reactive]
     public bool BlIsNonWindows { get; set; }
 
+    /// <summary>底栏「启动连接」：true=已连接（启用 Tun / 自动配置系统代理 / PAC）</summary>
+    [Reactive]
+    public bool BlConnectionOn { get; set; }
+
+    /// <summary>底栏按钮文案：启动连接 / 停止连接</summary>
+    [Reactive]
+    public string ConnectionButtonText { get; set; } = "";
+
+    /// <summary>底栏「启动连接/停止连接」按钮是否可点（恒为 true，两种状态均可点击）</summary>
+    [Reactive]
+    public bool BlStartConnectionEnabled { get; set; } = true;
+
+    public ReactiveCommand<Unit, Unit> StartConnectionCmd { get; }
+
     #endregion UI
 
     public StatusBarViewModel(Func<EViewAction, object?, Task<bool>>? updateView)
@@ -123,6 +137,9 @@ public class StatusBarViewModel : MyReactiveObject
             .Subscribe(ServerSelectedChanged);
 
         SystemProxySelected = (int)_config.SystemProxyItem.SysProxyType;
+        ConnectionButtonText = ResUI.BtnStartConnection;
+        BlStartConnectionEnabled = true;
+
         this.WhenAnyValue(
                 x => x.SystemProxySelected,
                 y => y >= 0)
@@ -132,6 +149,29 @@ public class StatusBarViewModel : MyReactiveObject
                 x => x.EnableTun,
                 y => y == true)
             .Subscribe(async c => await DoEnableTun(c));
+
+        this.WhenAnyValue(
+                x => x.EnableTun,
+                x => x.BlSystemProxySet,
+                x => x.BlSystemProxyPac)
+            .Subscribe(t =>
+            {
+                BlConnectionOn = t.Item1 || t.Item2 || t.Item3;
+                BlStartConnectionEnabled = true;
+                ConnectionButtonText = BlConnectionOn ? ResUI.BtnStopConnection : ResUI.BtnStartConnection;
+            });
+
+        StartConnectionCmd = ReactiveCommand.CreateFromTask(async () =>
+        {
+            if (BlConnectionOn)
+            {
+                await DoStopConnection();
+            }
+            else
+            {
+                await SetListenerType(ESysProxyType.ForcedChange);
+            }
+        });
 
         CopyProxyCmdToClipboardCmd = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -390,6 +430,19 @@ public class StatusBarViewModel : MyReactiveObject
 
         SystemProxySelected = (int)_config.SystemProxyItem.SysProxyType;
         await ConfigHandler.SaveConfig(_config);
+    }
+
+    /// <summary>底栏「停止连接」：清除系统代理并关闭 Tun</summary>
+    private async Task DoStopConnection()
+    {
+        await SetListenerType(ESysProxyType.ForcedClear);
+        if (EnableTun)
+        {
+            _config.TunModeItem.EnableTun = false;
+            EnableTun = false;
+            await ConfigHandler.SaveConfig(_config);
+            AppEvents.ReloadRequested.Publish();
+        }
     }
 
     public async Task ChangeSystemProxyAsync(ESysProxyType type, bool blChange)

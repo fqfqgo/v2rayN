@@ -825,6 +825,9 @@
   <data name="menuWebsiteItem" xml:space="preserve">
     <value>{0} 官网</value>
   </data>
+  <data name="menuWebsiteV2free" xml:space="preserve">
+    <value>V2free 官网</value>
+  </data>
   <data name="menuRoutingAdvancedAdd" xml:space="preserve">
     <value>添加规则集</value>
   </data>
@@ -920,6 +923,15 @@
   </data>
   <data name="TbEnableTunAs" xml:space="preserve">
     <value>启用 Tun</value>
+  </data>
+  <data name="BtnStartConnection" xml:space="preserve">
+    <value>启动连接</value>
+  </data>
+  <data name="BtnConnected" xml:space="preserve">
+    <value>已连接</value>
+  </data>
+  <data name="BtnStopConnection" xml:space="preserve">
+    <value>停止连接</value>
   </data>
   <data name="TbSettingsNewPort4LAN" xml:space="preserve">
     <value>为局域网开启新的端口</value>

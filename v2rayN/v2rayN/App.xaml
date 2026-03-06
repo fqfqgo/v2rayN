@@ -122,6 +122,15 @@
                 <Setter Property="FontSize" Value="{DynamicResource StdFontSize}" />
             </Style>
             <Style
+                x:Key="AccentButton"
+                BasedOn="{StaticResource MaterialDesignRaisedButton}"
+                TargetType="{x:Type ButtonBase}">
+                <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Primary}" />
+                <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Primary.Foreground}" />
+                <Setter Property="FontSize" Value="{DynamicResource StdFontSize1}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+            <Style
                 x:Key="DefContextMenu"
                 BasedOn="{StaticResource MaterialDesignContextMenu}"
                 TargetType="{x:Type ContextMenu}">

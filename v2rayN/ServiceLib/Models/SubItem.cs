@@ -12,7 +12,9 @@ public class SubItem
 
     public string MoreUrl { get; set; }
 
-    public string? LoginPassword { get; set; }
+    private string? _loginPassword;
+    /// <summary>网站登录/订阅解密密码，读写时自动去除首尾空格</summary>
+    public string? LoginPassword { get => _loginPassword; set => _loginPassword = value?.Trim(); }
 
     public bool Enabled { get; set; } = true;
 

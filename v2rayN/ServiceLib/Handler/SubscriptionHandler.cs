@@ -135,11 +135,12 @@ public static class SubscriptionHandler
         var (result, mainHeaders) = await DownloadMainSubscriptionWithHeaders(config, item, blProxy, downloadHandle);
         if (IsAesEncrypted(mainHeaders))
         {
-            if (item.LoginPassword.IsNullOrEmpty())
+            var loginPwd = (item.LoginPassword ?? string.Empty).Trim();
+            if (loginPwd.IsNullOrEmpty())
             {
                 return (string.Empty, true);
             }
-            if (!TryDecryptSubscription(item, result, out var decrypted))
+            if (!TryDecryptSubscription(loginPwd, result, out var decrypted))
             {
                 return (string.Empty, true);
             }
@@ -217,11 +218,12 @@ public static class SubscriptionHandler
                 // Check header for encryption; decrypt only when Subscription-Encryption present
                 if (IsAesEncrypted(additionalHeaders))
                 {
-                    if (item.LoginPassword.IsNullOrEmpty())
+                    var loginPwd = (item.LoginPassword ?? string.Empty).Trim();
+                    if (loginPwd.IsNullOrEmpty())
                     {
                         return (string.Empty, true);
                     }
-                    if (!TryDecryptSubscription(item, additionalContent, out var decrypted))
+                    if (!TryDecryptSubscription(loginPwd, additionalContent, out var decrypted))
                     {
                         return (string.Empty, true);
                     }
@@ -241,7 +243,7 @@ public static class SubscriptionHandler
         return (result, false);
     }
 
-    private static bool TryDecryptSubscription(SubItem item, string base64Data, out string decrypted)
+    private static bool TryDecryptSubscription(string loginPassword, string base64Data, out string decrypted)
     {
         decrypted = string.Empty;
         if (base64Data.IsNullOrEmpty())
@@ -249,7 +251,7 @@ public static class SubscriptionHandler
             return false;
         }
 
-        var pass = Utils.GetMd5(item.LoginPassword ?? string.Empty);
+        var pass = Utils.GetMd5(loginPassword);
         if (pass.Length != 32)
         {
             return false;

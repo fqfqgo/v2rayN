@@ -10,7 +10,7 @@
     xmlns:resx="clr-namespace:ServiceLib.Resx;assembly=ServiceLib"
     xmlns:view="clr-namespace:v2rayN.Views"
     xmlns:vms="clr-namespace:ServiceLib.ViewModels;assembly=ServiceLib"
-    Title="v2rayN"
+    Title="v2rayN for V2free"
     Width="1200"
     Height="800"
     MinWidth="800"
@@ -232,8 +232,6 @@
                             </MenuItem>
                         </Menu>
                         <Separator />
-                        <!-- 帮助菜单已隐藏 -->
-                        <!--
                         <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
                             <MenuItem
                                 x:Name="menuHelp"
@@ -252,7 +250,6 @@
                                 <Separator Margin="-40,5" />
                             </MenuItem>
                         </Menu>
-                        -->
                         <Separator />
                         <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
                             <MenuItem

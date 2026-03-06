@@ -544,30 +544,44 @@ public class MainWindowViewModel : MyReactiveObject
 
     private async Task StartBrowser()
     {
-        if (!Utils.IsWindows())
-        {
-            NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
-            await Task.CompletedTask;
-            return;
-        }
-
         try
         {
             var v2rayNPath = Utils.StartupPath();
             var port = AppManager.Instance.GetLocalPort(EInboundProtocol.socks);
-            var edgeDataDir = Path.Combine(v2rayNPath, "edge-data");
+            const string defaultUrl = "https://www.google.com/";
 
-            var process = new System.Diagnostics.Process
+            if (Utils.IsWindows())
             {
-                StartInfo = new System.Diagnostics.ProcessStartInfo
+                var edgeDataDir = Path.Combine(v2rayNPath, "edge-data");
+                var process = new System.Diagnostics.Process
                 {
-                    FileName = "msedge.exe",
-                    Arguments = $"--user-data-dir=\"{edgeDataDir}\" --proxy-server=127.0.0.1:{port} https://www.google.com/",
-                    WorkingDirectory = v2rayNPath,
-                    UseShellExecute = true
-                }
-            };
-            process.Start();
+                    StartInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "msedge.exe",
+                        Arguments = $"--user-data-dir=\"{edgeDataDir}\" --proxy-server=127.0.0.1:{port} {defaultUrl}",
+                        WorkingDirectory = v2rayNPath,
+                        UseShellExecute = true
+                    }
+                };
+                process.Start();
+            }
+            else if (Utils.IsLinux())
+            {
+                var chromeDataDir = Path.Combine(v2rayNPath, "chrome-data");
+                var args = $"--user-data-dir=\"{chromeDataDir}\" --proxy-server=127.0.0.1:{port} {defaultUrl}";
+                _ = ProcUtils.ProcessStart("google-chrome", args) ?? ProcUtils.ProcessStart("chromium", args);
+            }
+            else if (Utils.IsMacOS())
+            {
+                var chromeDataDir = Path.Combine(v2rayNPath, "chrome-data");
+                var chromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+                var args = $"--user-data-dir=\"{chromeDataDir}\" --proxy-server=127.0.0.1:{port} {defaultUrl}";
+                ProcUtils.ProcessStart(chromePath, args);
+            }
+            else
+            {
+                NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
+            }
         }
         catch (Exception ex)
         {

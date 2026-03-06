@@ -24,7 +24,7 @@ public partial class MainWindow
         menuSettingsSetUWP.Click += MenuSettingsSetUWP_Click;
         // menuPromotion.Click += MenuPromotion_Click; // 推广菜单已隐藏
         menuClose.Click += MenuClose_Click;
-        // menuCheckUpdate.Click += MenuCheckUpdate_Click; // 帮助菜单已隐藏
+        menuCheckUpdate.Click += MenuCheckUpdate_Click;
         menuBackupAndRestore.Click += MenuBackupAndRestore_Click;
 
         ViewModel = new MainWindowViewModel(UpdateViewHandler);
@@ -168,7 +168,7 @@ public partial class MainWindow
             RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
         }
 
-        // AddHelpMenuItem(); // 帮助菜单已隐藏
+        AddHelpMenuItem();
         WindowsManager.Instance.RegisterGlobalHotkey(_config, OnHotkeyHandler, null);
     }
 
@@ -383,14 +383,11 @@ public partial class MainWindow
         await ViewModel?.ScanImageResult(fileName);
     }
 
-    // 帮助菜单已隐藏
-    /*
     private void MenuCheckUpdate_Click(object sender, RoutedEventArgs e)
     {
         _checkUpdateView ??= new CheckUpdateView();
         DialogHost.Show(_checkUpdateView, "RootDialog");
     }
-    */
 
     private void MenuBackupAndRestore_Click(object sender, RoutedEventArgs e)
     {
@@ -465,22 +462,31 @@ public partial class MainWindow
 
     private void AddHelpMenuItem()
     {
-        // 官网子菜单已隐藏
-        /*
         var coreInfo = CoreInfoManager.Instance.GetCoreInfo();
         foreach (var it in coreInfo
             .Where(t => t.CoreType is not ECoreType.v2fly
                         and not ECoreType.hysteria))
         {
+            string header;
+            string tag;
+            if (it.CoreType == ECoreType.v2rayN)
+            {
+                header = ResUI.menuWebsiteV2free;
+                tag = Global.V2freeWebsiteUrl;
+            }
+            else
+            {
+                header = string.Format(ResUI.menuWebsiteItem, it.CoreType.ToString().Replace("_", " ")).UpperFirstChar();
+                tag = it.Url.Replace(@"/releases", "");
+            }
             var item = new MenuItem()
             {
-                Tag = it.Url.Replace(@"/releases", ""),
-                Header = string.Format(ResUI.menuWebsiteItem, it.CoreType.ToString().Replace("_", " ")).UpperFirstChar()
+                Tag = tag,
+                Header = header
             };
             item.Click += MenuItem_Click;
             menuHelp.Items.Add(item);
         }
-        */
     }
 
     private void MenuItem_Click(object sender, RoutedEventArgs e)

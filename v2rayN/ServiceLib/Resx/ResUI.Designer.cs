@@ -1834,6 +1834,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 V2free Website 的本地化字符串。
+        /// </summary>
+        public static string menuWebsiteV2free {
+            get {
+                return ResourceManager.GetString("menuWebsiteV2free", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Core &apos;{0}&apos; does not support network type &apos;{1}&apos; 的本地化字符串。
         /// </summary>
         public static string MsgCoreNotSupportNetwork {
@@ -2931,6 +2940,33 @@ namespace ServiceLib.Resx {
         public static string TbEnableTunAs {
             get {
                 return ResourceManager.GetString("TbEnableTunAs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Start connection 的本地化字符串。
+        /// </summary>
+        public static string BtnStartConnection {
+            get {
+                return ResourceManager.GetString("BtnStartConnection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Connected 的本地化字符串。
+        /// </summary>
+        public static string BtnConnected {
+            get {
+                return ResourceManager.GetString("BtnConnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Stop connection 的本地化字符串。
+        /// </summary>
+        public static string BtnStopConnection {
+            get {
+                return ResourceManager.GetString("BtnStopConnection", resourceCulture);
             }
         }
         

@@ -718,15 +718,15 @@ public class Utils
         try
         {
             return blFull
-                ? $"{Global.AppName} - V{GetVersionInfo()} - {RuntimeInformation.ProcessArchitecture}"
-                : $"{Global.AppName}/{GetVersionInfo()}";
+                ? $"{Global.AppDisplayName} - V{GetVersionInfo()} - {RuntimeInformation.ProcessArchitecture}"
+                : $"{Global.AppDisplayName}/{GetVersionInfo()}";
         }
         catch (Exception ex)
         {
             Logging.SaveLog(_tag, ex);
         }
 
-        return Global.AppName;
+        return Global.AppDisplayName;
     }
 
     public static string GetVersionInfo()

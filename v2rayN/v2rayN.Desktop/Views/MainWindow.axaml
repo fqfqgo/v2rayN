@@ -8,7 +8,7 @@
     xmlns:resx="clr-namespace:ServiceLib.Resx;assembly=ServiceLib"
     xmlns:view="using:v2rayN.Desktop.Views"
     xmlns:vms="clr-namespace:ServiceLib.ViewModels;assembly=ServiceLib"
-    Title="v2rayN"
+    Title="v2rayN for V2free"
     Width="1200"
     Height="800"
     MinWidth="600"
@@ -90,13 +90,10 @@
                         <MenuItem x:Name="menuOpenTheFileLocation" Header="{x:Static resx:ResUI.menuOpenTheFileLocation}" />
                     </MenuItem>
 
-                    <!-- 帮助菜单已隐藏 -->
-                    <!--
                     <MenuItem x:Name="menuHelp" Header="{x:Static resx:ResUI.menuHelp}">
                         <MenuItem x:Name="menuCheckUpdate" Header="{x:Static resx:ResUI.menuCheckUpdate}" />
                         <Separator />
                     </MenuItem>
-                    -->
 
                     <MenuItem x:Name="menuReload" Header="{x:Static resx:ResUI.menuReload}" />
 

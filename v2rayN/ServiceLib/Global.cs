@@ -5,6 +5,14 @@ public class Global
     #region const
 
     public const string AppName = "v2rayN";
+    /// <summary>用于标题栏等界面显示，文件名与路径仍使用 AppName</summary>
+    public const string AppDisplayName = "v2rayN for V2free";
+    /// <summary>帮助菜单中 V2free 官网链接</summary>
+    public const string V2freeWebsiteUrl = "https://cdn.v2ai.top/auth/register?code=PLwV";
+    /// <summary>v2rayN 通过本站更新：zip 下载根路径，zip 文件名与上游一致</summary>
+    public const string V2freeUpdateBaseUrl = "https://cdn.v2ai.top/ssr-download/";
+    /// <summary>v2rayN 通过本站更新：版本号文件（JSON 格式 {"version":"x.y.z"}）</summary>
+    public const string V2freeUpdateVersionUrl = "https://cdn.v2ai.top/ssr-download/v2rayn-version.json";
     public const string GithubUrl = "https://github.com";
     public const string GithubApiUrl = "https://api.github.com/repos";
     public const string GeoUrl = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/{0}.dat";
