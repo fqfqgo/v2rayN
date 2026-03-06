@@ -56,26 +56,27 @@ jobs:
         path: |
           ${{ github.workspace }}/v2rayN/Release/linux*
 
-    # release debian package
+    # release debian package (run on workflow_dispatch with release_tag OR on tag push)
     - name: Package debian
-      if: github.event.inputs.release_tag != ''
+      if: github.event.inputs.release_tag != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
       run: |
+        RELEASE_TAG="${{ github.event.inputs.release_tag || github.ref_name }}"
         chmod 755 package-debian.sh
-        ./package-debian.sh "$OutputArch" "$OutputPath64" "${{ github.event.inputs.release_tag }}"
-        ./package-debian.sh "$OutputArchArm" "$OutputPathArm64" "${{ github.event.inputs.release_tag }}"
+        ./package-debian.sh "$OutputArch" "$OutputPath64" "$RELEASE_TAG"
+        ./package-debian.sh "$OutputArchArm" "$OutputPathArm64" "$RELEASE_TAG"
 
     - name: Upload deb to release
       uses: svenstaro/upload-release-action@v2
-      if: github.event.inputs.release_tag != ''
+      if: github.event.inputs.release_tag != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
       with:
         file: ${{ github.workspace }}/v2rayN*.deb
-        tag: ${{ github.event.inputs.release_tag }}
+        tag: ${{ github.event.inputs.release_tag || github.ref_name }}
         file_glob: true
         prerelease: true
 
     # release zip archive
     - name: Package release zip archive
-      if: github.event.inputs.release_tag != ''
+      if: github.event.inputs.release_tag != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
       run: |
         chmod 755 package-release-zip.sh
         ./package-release-zip.sh "$OutputArch" "$OutputPath64"
@@ -83,10 +84,10 @@ jobs:
     
     - name: Upload zip archive to release
       uses: svenstaro/upload-release-action@v2
-      if: github.event.inputs.release_tag != ''
+      if: github.event.inputs.release_tag != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
       with:
         file: ${{ github.workspace }}/v2rayN*.zip
-        tag: ${{ github.event.inputs.release_tag }}
+        tag: ${{ github.event.inputs.release_tag || github.ref_name }}
         file_glob: true
         prerelease: true
 

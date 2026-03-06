@@ -9,6 +9,9 @@ on:
   push:
     branches:
       - master
+    tags:
+      - 'v*'
+      - 'V*'
 
 env:
   OutputArch: "windows-64"
@@ -48,9 +51,9 @@ jobs:
         path: |
           ${{ github.workspace }}/v2rayN/Release/windows*
     
-    # release zip archive
+    # release zip archive (run on workflow_dispatch with release_tag OR on tag push)
     - name: Package release zip archive
-      if: github.event.inputs.release_tag != ''
+      if: github.event.inputs.release_tag != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
       run: |
         chmod 755 package-release-zip.sh
         ./package-release-zip.sh $OutputArch $OutputPath64
@@ -58,9 +61,9 @@ jobs:
     
     - name: Upload zip archive to release
       uses: svenstaro/upload-release-action@v2
-      if: github.event.inputs.release_tag != ''
+      if: github.event.inputs.release_tag != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
       with:
         file: ${{ github.workspace }}/v2rayN*.zip
-        tag: ${{ github.event.inputs.release_tag }}
+        tag: ${{ github.event.inputs.release_tag || github.ref_name }}
         file_glob: true
         prerelease: true

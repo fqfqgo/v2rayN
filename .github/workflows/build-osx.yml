@@ -9,6 +9,9 @@ on:
   push:
     branches:
       - master
+    tags:
+      - 'v*'
+      - 'V*'
 
 env:
   OutputArch: "macos-64"
@@ -51,27 +54,28 @@ jobs:
         path: |
           ${{ github.workspace }}/v2rayN/Release/macos*
     
-    # release osx package
+    # release osx package (run on workflow_dispatch with release_tag OR on tag push)
     - name: Package osx
-      if: github.event.inputs.release_tag != ''
+      if: github.event.inputs.release_tag != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
       run: |
+        RELEASE_TAG="${{ github.event.inputs.release_tag || github.ref_name }}"
         brew install create-dmg
         chmod 755 package-osx.sh
-        ./package-osx.sh $OutputArch $OutputPath64 ${{ github.event.inputs.release_tag }}
-        ./package-osx.sh $OutputArchArm $OutputPathArm64 ${{ github.event.inputs.release_tag }}
+        ./package-osx.sh $OutputArch $OutputPath64 "$RELEASE_TAG"
+        ./package-osx.sh $OutputArchArm $OutputPathArm64 "$RELEASE_TAG"
     
     - name: Upload dmg to release
       uses: svenstaro/upload-release-action@v2
-      if: github.event.inputs.release_tag != ''
+      if: github.event.inputs.release_tag != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
       with:
         file: ${{ github.workspace }}/v2rayN*.dmg
-        tag: ${{ github.event.inputs.release_tag }}
+        tag: ${{ github.event.inputs.release_tag || github.ref_name }}
         file_glob: true
         prerelease: true
 
     # release zip archive
     - name: Package release zip archive
-      if: github.event.inputs.release_tag != ''
+      if: github.event.inputs.release_tag != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
       run: |
         chmod 755 package-release-zip.sh
         ./package-release-zip.sh $OutputArch $OutputPath64
@@ -79,9 +83,9 @@ jobs:
     
     - name: Upload zip archive to release
       uses: svenstaro/upload-release-action@v2
-      if: github.event.inputs.release_tag != ''
+      if: github.event.inputs.release_tag != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
       with:
         file: ${{ github.workspace }}/v2rayN*.zip
-        tag: ${{ github.event.inputs.release_tag }}
+        tag: ${{ github.event.inputs.release_tag || github.ref_name }}
         file_glob: true
         prerelease: true
