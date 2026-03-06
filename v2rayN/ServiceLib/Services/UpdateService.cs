@@ -261,7 +261,14 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
                     {
                         curVersion = new SemanticVersion(Utils.GetVersionInfo());
                         message = string.Format(ResUI.IsLatestN, type, curVersion);
-                        url = string.Format(coreUrl, version.ToVersionString("v"));
+                        var versionStr = version.ToString();
+                        // 二次防护：若版本串像 URL 则不再拼下载地址
+                        if (versionStr.Contains("://", StringComparison.Ordinal) ||
+                            versionStr.Contains("github.com", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return new UpdateResult(false, "");
+                        }
+                        url = string.Format(coreUrl, versionStr);
                         break;
                     }
                 default:

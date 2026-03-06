@@ -24,11 +24,12 @@ public class SemanticVersion
                 major = 0;
                 minor = 0;
                 patch = 0;
+                this.version = "0.0.0";
                 return;
             }
-            this.version = version.RemovePrefix('v');
 
-            var parts = this.version.Split('.');
+            var trimmed = version.RemovePrefix('v');
+            var parts = trimmed.Split('.');
             if (parts.Length == 2)
             {
                 major = int.Parse(parts.First());
@@ -45,12 +46,14 @@ public class SemanticVersion
             {
                 throw new ArgumentException("Invalid version string");
             }
+            this.version = trimmed;
         }
         catch
         {
             major = 0;
             minor = 0;
             patch = 0;
+            this.version = "0.0.0";
         }
     }
 
