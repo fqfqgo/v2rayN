@@ -149,7 +149,7 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
         }
         else
         {
-            var url = Path.Combine(coreInfo.Url, "latest");
+            var url = $"{coreInfo.Url.TrimEnd('/')}/latest";
             var lastUrl = await downloadHandle.UrlRedirectAsync(url, true);
             if (lastUrl == null)
             {
@@ -158,6 +158,15 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
 
             tagName = lastUrl?.Split("/tag/").LastOrDefault();
         }
+
+        // 防御：若 tag 像整段 URL（解析异常），不当作版本号，避免拼出错误下载地址
+        if (string.IsNullOrEmpty(tagName) ||
+            tagName.Contains("://", StringComparison.Ordinal) ||
+            tagName.Contains("github.com", StringComparison.OrdinalIgnoreCase))
+        {
+            return new UpdateResult(false, "");
+        }
+
         return new UpdateResult(true, new SemanticVersion(tagName));
     }
 
