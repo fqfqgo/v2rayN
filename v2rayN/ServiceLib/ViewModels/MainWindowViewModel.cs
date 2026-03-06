@@ -569,7 +569,10 @@ public class MainWindowViewModel : MyReactiveObject
             {
                 var chromeDataDir = Path.Combine(v2rayNPath, "chrome-data");
                 var args = $"--user-data-dir=\"{chromeDataDir}\" --proxy-server=127.0.0.1:{port} {defaultUrl}";
-                _ = ProcUtils.ProcessStart("google-chrome", args) ?? ProcUtils.ProcessStart("chromium", args);
+                if (ProcUtils.ProcessStart("google-chrome", args, v2rayNPath) == null)
+                {
+                    ProcUtils.ProcessStart("chromium", args, v2rayNPath);
+                }
             }
             else if (Utils.IsMacOS())
             {
