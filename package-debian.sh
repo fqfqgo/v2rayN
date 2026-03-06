@@ -3,6 +3,8 @@
 Arch="$1"
 OutputPath="$2"
 Version="$3"
+# Debian version must start with digit (strip leading 'v')
+Version="${Version#v}"
 
 FileName="v2rayN-${Arch}.zip"
 wget -nv -O $FileName "https://github.com/2dust/v2rayN-core-bin/raw/refs/heads/master/$FileName"
