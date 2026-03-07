@@ -99,8 +99,7 @@
 
                     <MenuItem
                         x:Name="menuStartBrowser"
-                        Header="{x:Static resx:ResUI.menuStartBrowser}"
-                        IsVisible="{Binding BlIsWindows}" />
+                        Header="{x:Static resx:ResUI.menuStartBrowser}" />
 
                     <!-- 推广菜单已隐藏 -->
                     <!-- <MenuItem x:Name="menuPromotion" Header="{x:Static resx:ResUI.menuPromotion}" /> -->
