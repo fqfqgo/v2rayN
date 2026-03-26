@@ -152,7 +152,7 @@ public partial class MainWindow
 
             AppEvents.SubscriptionDecryptFailedRequested
              .AsObservable()
-             .ObserveOn(RxApp.MainThreadScheduler)
+             .ObserveOn(RxSchedulers.MainThreadScheduler)
              .Subscribe(async subId => await OpenSubEditForDecryptFailed(subId))
              .DisposeWith(disposables);
         });
