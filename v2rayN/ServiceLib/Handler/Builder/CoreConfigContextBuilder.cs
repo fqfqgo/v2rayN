@@ -227,7 +227,7 @@ public class CoreConfigContextBuilder
     {
         var result = NodeValidatorResult.Empty();
 
-        if (node.Subid.IsNullOrEmpty())
+        if (node.Subid.IsNullOrEmpty() || node.ConfigType == EConfigType.Custom)
         {
             return (null, result);
         }
@@ -268,7 +268,8 @@ public class CoreConfigContextBuilder
         {
             IndexId = $"inner-{Utils.GetGuid(false)}",
             ConfigType = EConfigType.ProxyChain,
-            CoreType = node.CoreType ?? ECoreType.Xray,
+            CoreType = AppManager.Instance.GetCoreType(node, node.ConfigType),
+            Remarks = node.Remarks,
         };
         List<string?> childItems = [prevNode?.IndexId, node.IndexId, nextNode?.IndexId];
         var chainExtraItem = chainNode.GetProtocolExtra() with

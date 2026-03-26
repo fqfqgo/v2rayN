@@ -235,22 +235,22 @@ public class MainWindowViewModel : MyReactiveObject
 
         AppEvents.ReloadRequested
             .AsObservable()
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(async _ => await Reload());
 
         AppEvents.AddServerViaScanRequested
             .AsObservable()
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(async _ => await AddServerViaScanAsync());
 
         AppEvents.AddServerViaClipboardRequested
             .AsObservable()
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(async _ => await AddServerViaClipboardAsync(null));
 
         AppEvents.SubscriptionsUpdateRequested
             .AsObservable()
-            .ObserveOn(RxApp.MainThreadScheduler)
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(async blProxy => await UpdateSubscriptionProcess("", blProxy));
 
         #endregion AppEvents
@@ -658,7 +658,7 @@ public class MainWindowViewModel : MyReactiveObject
 
     private void ReloadResult(bool showClashUI)
     {
-        RxApp.MainThreadScheduler.Schedule(() =>
+        RxSchedulers.MainThreadScheduler.Schedule(() =>
         {
             ShowClashUI = showClashUI;
             TabMainSelectedIndex = showClashUI ? TabMainSelectedIndex : 0;
@@ -667,7 +667,7 @@ public class MainWindowViewModel : MyReactiveObject
 
     private void SetReloadEnabled(bool enabled)
     {
-        RxApp.MainThreadScheduler.Schedule(() => BlReloadEnabled = enabled);
+        RxSchedulers.MainThreadScheduler.Schedule(() => BlReloadEnabled = enabled);
     }
 
     private async Task LoadCore(CoreConfigContext? mainContext, CoreConfigContext? preContext)

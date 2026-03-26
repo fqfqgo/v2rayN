@@ -1057,7 +1057,7 @@
     <value>sing-box Mux Protocol</value>
   </data>
   <data name="TbRoutingRuleProcess" xml:space="preserve">
-    <value>Process (Tun mode)</value>
+    <value>Process (Linux/Windows)</value>
   </data>
   <data name="TbRoutingRuleIP" xml:space="preserve">
     <value>IP or IP CIDR</value>
@@ -1127,9 +1127,6 @@
   </data>
   <data name="TbSettingsSpeedPingTestUrl" xml:space="preserve">
     <value>Speed Ping Test URL</value>
-  </data>
-  <data name="TbSettingsEnableUpdateSubOnlyRemarksExist" xml:space="preserve">
-    <value>Updating subscription, only determining if remarks exist</value>
   </data>
   <data name="SpeedtestingStop" xml:space="preserve">
     <value>Test terminating...</value>
@@ -1703,5 +1700,17 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   </data>
   <data name="menuGenRegionGroup" xml:space="preserve">
     <value>Group by Region</value>
+  </data>
+  <data name="menuEditCopy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="menuEditSelectAll" xml:space="preserve">
+    <value>Select all</value>
+  </data>
+  <data name="menuEditPaste" xml:space="preserve">
+    <value>Paste</value>
+  </data>
+  <data name="menuEditFormat" xml:space="preserve">
+    <value>Format</value>
   </data>
 </root>

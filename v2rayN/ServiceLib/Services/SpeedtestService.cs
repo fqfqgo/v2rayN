@@ -416,52 +416,17 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
     private List<List<ServerTestItem>> GetTestBatchItem(List<ServerTestItem> lstSelected, int pageSize)
     {
         List<List<ServerTestItem>> lstTest = new();
+        var lst1 = lstSelected.Where(t => t.CoreType == ECoreType.Xray).ToList();
+        var lst2 = lstSelected.Where(t => t.CoreType == ECoreType.sing_box).ToList();
 
-        // 优先提取 anytls 节点，先测试它们（保留我方修改）
-        var lstAnytls = lstSelected.Where(t => t.ConfigType == EConfigType.Anytls).ToList();
-        var lstOthers = lstSelected.Where(t => t.ConfigType != EConfigType.Anytls).ToList();
-
-        // 先分批 anytls 节点
-        for (var num = 0; num < (int)Math.Ceiling(lstAnytls.Count * 1.0 / pageSize); num++)
+        for (var num = 0; num < (int)Math.Ceiling(lst1.Count * 1.0 / pageSize); num++)
         {
-            var batch = lstAnytls.Skip(num * pageSize).Take(pageSize).ToList();
-            if (batch.Count > 0)
-            {
-                lstTest.Add(batch);
-            }
+            lstTest.Add(lst1.Skip(num * pageSize).Take(pageSize).ToList());
         }
-        
-        // 然后处理其他节点
-        var lst1 = lstOthers.Where(t => Global.XraySupportConfigType.Contains(t.ConfigType)).ToList();
-        var lst2 = lstOthers.Where(t => Global.SingboxOnlyConfigType.Contains(t.ConfigType)).ToList();
 
-        // 交替添加 Xray 和 SingboxOnly 批次
-        var maxBatches = Math.Max(
-            (int)Math.Ceiling(lst1.Count * 1.0 / pageSize),
-            (int)Math.Ceiling(lst2.Count * 1.0 / pageSize)
-        );
-
-        for (var num = 0; num < maxBatches; num++)
+        for (var num = 0; num < (int)Math.Ceiling(lst2.Count * 1.0 / pageSize); num++)
         {
-            // 优先添加 Xray 批次（如果还有）
-            if (num < (int)Math.Ceiling(lst1.Count * 1.0 / pageSize))
-            {
-                var batch = lst1.Skip(num * pageSize).Take(pageSize).ToList();
-                if (batch.Count > 0)
-                {
-                    lstTest.Add(batch);
-                }
-            }
-            
-            // 然后添加 SingboxOnly 批次（如果还有）
-            if (num < (int)Math.Ceiling(lst2.Count * 1.0 / pageSize))
-            {
-                var batch = lst2.Skip(num * pageSize).Take(pageSize).ToList();
-                if (batch.Count > 0)
-                {
-                    lstTest.Add(batch);
-                }
-            }
+            lstTest.Add(lst2.Skip(num * pageSize).Take(pageSize).ToList());
         }
 
         return lstTest;

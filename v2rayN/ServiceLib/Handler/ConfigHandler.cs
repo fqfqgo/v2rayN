@@ -95,10 +95,7 @@ public static class ConfigHandler
         config.GuiItem ??= new();
         config.MsgUIItem ??= new();
 
-        config.UiItem ??= new UIItem()
-        {
-            EnableUpdateSubOnlyRemarksExist = true
-        };
+        config.UiItem ??= new();
         config.UiItem.MainColumnItem ??= new();
         config.UiItem.WindowSizeItem ??= new();
 
@@ -154,6 +151,7 @@ public static class ConfigHandler
             DownMbps = 100
         };
         config.ClashUIItem ??= new();
+        config.ClashUIItem.ConnectionsColumnItem ??= new();
         config.SystemProxyItem ??= new();
         config.WebDavItem ??= new();
         config.CheckUpdateItem ??= new();
@@ -722,8 +720,6 @@ public static class ConfigHandler
         profileItem.SetProtocolExtra(profileItem.GetProtocolExtra() with
         {
             SalamanderPass = profileItem.GetProtocolExtra().SalamanderPass?.TrimEx(),
-            UpMbps = profileItem.GetProtocolExtra().UpMbps is null or < 0 ? config.HysteriaItem.UpMbps : profileItem.GetProtocolExtra().UpMbps,
-            DownMbps = profileItem.GetProtocolExtra().DownMbps is null or < 0 ? config.HysteriaItem.DownMbps : profileItem.GetProtocolExtra().DownMbps,
             HopInterval = profileItem.GetProtocolExtra().HopInterval?.TrimEx(),
         });
 
@@ -1041,8 +1037,8 @@ public static class ConfigHandler
 
         if (profileItem.StreamSecurity.IsNotEmpty())
         {
-            if (profileItem.StreamSecurity != Global.StreamSecurity
-                 && profileItem.StreamSecurity != Global.StreamSecurityReality)
+            if (profileItem.StreamSecurity is not Global.StreamSecurity
+                 and not Global.StreamSecurityReality)
             {
                 profileItem.StreamSecurity = string.Empty;
             }
@@ -1130,6 +1126,84 @@ public static class ConfigHandler
         static bool AreEqual(string? a, string? b)
         {
             return string.Equals(a, b) || (string.IsNullOrEmpty(a) && string.IsNullOrEmpty(b));
+        }
+    }
+
+    /// <summary>
+    /// Searches the specified collection for a profile item that matches the target profile item based on a series of
+    /// criteria.
+    /// </summary>
+    /// <remarks>The method attempts to find a match by comparing the target's remarks, address, port, and
+    /// password in various combinations. The search is performed in order of specificity, starting with the most
+    /// detailed comparison. If no match is found at any stage, the method returns null.</remarks>
+    /// <param name="source">An enumerable collection of profile items to search. This parameter can be null.</param>
+    /// <param name="target">The profile item to match against items in the source collection. This parameter can be null.</param>
+    /// <returns>A profile item from the source collection that matches the target item according to defined criteria; otherwise,
+    /// null if no match is found or if either parameter is null.</returns>
+    private static ProfileItem? FindMatchedProfileItem(IEnumerable<ProfileItem>? source, ProfileItem? target)
+    {
+        if (source == null || target == null)
+        {
+            return null;
+        }
+
+        var matchedItem = source.FirstOrDefault(t => CompareProfileItem(t, target, true));
+        if (matchedItem != null)
+        {
+            return matchedItem;
+        }
+
+        if (target.Remarks.IsNotEmpty())
+        {
+            matchedItem = source.FirstOrDefault(t => t.Remarks == target.Remarks);
+            if (matchedItem != null)
+            {
+                return matchedItem;
+            }
+        }
+
+        if (target.Address.IsNotEmpty() && target.Port > 0 && target.Password.IsNotEmpty())
+        {
+            matchedItem = source.FirstOrDefault(t =>
+                IsSameText(t.Address, target.Address) &&
+                t.Port == target.Port &&
+                IsSameText(t.Password, target.Password));
+            if (matchedItem != null)
+            {
+                return matchedItem;
+            }
+        }
+
+        if (target.Address.IsNotEmpty() && target.Port > 0)
+        {
+            matchedItem = source.FirstOrDefault(t =>
+                IsSameText(t.Address, target.Address) &&
+                t.Port == target.Port);
+            if (matchedItem != null)
+            {
+                return matchedItem;
+            }
+        }
+
+        if (target.Address.IsNotEmpty())
+        {
+            matchedItem = source.FirstOrDefault(t => IsSameText(t.Address, target.Address));
+            if (matchedItem != null)
+            {
+                return matchedItem;
+            }
+        }
+
+        return null;
+
+        static bool IsSameText(string? left, string? right)
+        {
+            if (left.IsNullOrEmpty() || right.IsNullOrEmpty())
+            {
+                return false;
+            }
+
+            return string.Equals(left.TrimEx(), right.TrimEx(), StringComparison.OrdinalIgnoreCase);
         }
     }
 
@@ -1637,7 +1711,7 @@ public static class ConfigHandler
         if (activeProfile != null)
         {
             var lstSub = await AppManager.Instance.ProfileItems(subid);
-            var existItem = lstSub?.FirstOrDefault(t => config.UiItem.EnableUpdateSubOnlyRemarksExist ? t.Remarks == activeProfile.Remarks : CompareProfileItem(t, activeProfile, true));
+            var existItem = FindMatchedProfileItem(lstSub, activeProfile);
             if (existItem != null)
             {
                 await ConfigHandler.SetDefaultServerIndex(config, existItem.IndexId);
@@ -1650,7 +1724,7 @@ public static class ConfigHandler
             var lstSub = await AppManager.Instance.ProfileItems(subid);
             foreach (var item in lstSub)
             {
-                var existItem = lstOriSub?.FirstOrDefault(t => config.UiItem.EnableUpdateSubOnlyRemarksExist ? t.Remarks == item.Remarks : CompareProfileItem(t, item, true));
+                var existItem = FindMatchedProfileItem(lstOriSub, item);
                 if (existItem != null)
                 {
                     await StatisticsManager.Instance.CloneServerStatItem(existItem.IndexId, item.IndexId);

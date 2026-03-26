@@ -87,7 +87,6 @@ public class MsgUIItem
 public class UIItem
 {
     public bool EnableAutoAdjustMainLvColWidth { get; set; }
-    public bool EnableUpdateSubOnlyRemarksExist { get; set; }
     public int MainGirdHeight1 { get; set; }
     public int MainGirdHeight2 { get; set; }
     public EGirdOrientation MainGirdOrientation { get; set; } = EGirdOrientation.Vertical;
@@ -208,6 +207,7 @@ public class ClashUIItem
     public int ProxiesAutoDelayTestInterval { get; set; } = 10;
     public bool ConnectionsAutoRefresh { get; set; }
     public int ConnectionsRefreshInterval { get; set; } = 2;
+    public List<ColumnItem> ConnectionsColumnItem { get; set; }
 }
 
 [Serializable]

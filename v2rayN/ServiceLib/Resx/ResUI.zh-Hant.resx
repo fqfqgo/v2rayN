@@ -1024,7 +1024,7 @@
     <value>sing-box Mux 多路復用協定</value>
   </data>
   <data name="TbRoutingRuleProcess" xml:space="preserve">
-    <value>行程 (Tun 模式)</value>
+    <value>行程 (Linux/Windows)</value>
   </data>
   <data name="TbRoutingRuleIP" xml:space="preserve">
     <value>IP 或 IP CIDR</value>
@@ -1094,9 +1094,6 @@
   </data>
   <data name="TbSettingsSpeedPingTestUrl" xml:space="preserve">
     <value>真連線測試位址</value>
-  </data>
-  <data name="TbSettingsEnableUpdateSubOnlyRemarksExist" xml:space="preserve">
-    <value>更新訂閱時只判斷別名是否存在</value>
   </data>
   <data name="SpeedtestingStop" xml:space="preserve">
     <value>測試終止中...</value>
@@ -1668,52 +1665,16 @@
   <data name="menuGenRegionGroup" xml:space="preserve">
     <value>按區域分組</value>
   </data>
-  <data name="TbFinalmask" xml:space="preserve">
-    <value>Finalmask</value>
+  <data name="menuEditCopy" xml:space="preserve">
+    <value>複製</value>
   </data>
-  <data name="MsgRoutingRuleOutboundNodeWarning" xml:space="preserve">
-    <value>Routing rule {0} outbound node {1} warning: {2}</value>
+  <data name="menuEditSelectAll" xml:space="preserve">
+    <value>全選</value>
   </data>
-  <data name="MsgRoutingRuleOutboundNodeError" xml:space="preserve">
-    <value>Routing rule {0} outbound node {1} error: {2}. Fallback to proxy node only.</value>
+  <data name="menuEditPaste" xml:space="preserve">
+    <value>貼上</value>
   </data>
-  <data name="MsgGroupCycleDependency" xml:space="preserve">
-    <value>Group {0} has a cycle dependency on child node {1}. Skipping this node.</value>
-  </data>
-  <data name="MsgGroupChildNodeWarning" xml:space="preserve">
-    <value>Group {0} child node {1} warning: {2}</value>
-  </data>
-  <data name="MsgGroupChildNodeError" xml:space="preserve">
-    <value>Group {0} child node {1} error: {2}. Skipping this node.</value>
-  </data>
-  <data name="MsgGroupChildGroupNodeWarning" xml:space="preserve">
-    <value>Group {0} child group node {1} warning: {2}</value>
-  </data>
-  <data name="MsgGroupChildGroupNodeError" xml:space="preserve">
-    <value>Group {0} child group node {1} error: {2}. Skipping this node.</value>
-  </data>
-  <data name="MsgGroupNoValidChildNode" xml:space="preserve">
-    <value>Group {0} has no valid child node.</value>
-  </data>
-  <data name="MsgRoutingRuleEmptyOutboundTag" xml:space="preserve">
-    <value>Routing rule {0} has an empty outbound tag. Fallback to proxy node only.</value>
-  </data>
-  <data name="MsgRoutingRuleOutboundNodeNotFound" xml:space="preserve">
-    <value>Routing rule {0} outbound node {1} not found. Fallback to proxy node only.</value>
-  </data>
-  <data name="MsgSubscriptionPrevProfileNotFound" xml:space="preserve">
-    <value>Subscription previous proxy {0} not found. Skipping.</value>
-  </data>
-  <data name="MsgSubscriptionNextProfileNotFound" xml:space="preserve">
-    <value>Subscription next proxy {0} not found. Skipping.</value>
-  </data>
-  <data name="menuGenGroupServer" xml:space="preserve">
-    <value>Generate Policy Group</value>
-  </data>
-  <data name="menuAllServers" xml:space="preserve">
-    <value>All configurations</value>
-  </data>
-  <data name="menuGenRegionGroup" xml:space="preserve">
-    <value>Group by Region</value>
+  <data name="menuEditFormat" xml:space="preserve">
+    <value>格式化</value>
   </data>
 </root>
