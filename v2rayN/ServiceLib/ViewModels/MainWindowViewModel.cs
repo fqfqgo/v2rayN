@@ -289,6 +289,8 @@ public class MainWindowViewModel : MyReactiveObject
         {
             NoticeManager.Instance.Enqueue(msg);
         }
+
+        MixedListenPortRecoveryHandler.ScheduleRecoverFromCoreLog(_config, msg);
         await Task.CompletedTask;
     }
 

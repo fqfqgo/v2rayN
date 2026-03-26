@@ -897,6 +897,9 @@
   <data name="TipChangeSystemProxy" xml:space="preserve">
     <value>System proxy setting has changed</value>
   </data>
+  <data name="TipMixedListenPortAutoAdjusted" xml:space="preserve">
+    <value>Mixed listen port changed from {0} to {1} due to conflict (saved; reloading core)</value>
+  </data>
   <data name="TbSettingsRouteOnly" xml:space="preserve">
     <value>Route Only</value>
   </data>

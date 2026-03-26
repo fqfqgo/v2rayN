@@ -15,17 +15,17 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// Open only one process
+    /// 单例：文件名为 v2rayN.exe 时跨目录仅一个进程；其它文件名则按 exe 路径区分。重复启动时 Set 事件唤醒已运行实例（MainWindow.OnProgramStarted）。
     /// </summary>
-    /// <param name="e"></param>
     protected override void OnStartup(StartupEventArgs e)
     {
-        var exePathKey = Utils.GetMd5(Utils.GetExePath());
+        var exePathKey = Utils.GetSingleInstanceKernelObjectName();
 
         var rebootas = (e.Args ?? Array.Empty<string>()).Any(t => t == Global.RebootAs);
         ProgramStarted = new EventWaitHandle(false, EventResetMode.AutoReset, exePathKey, out var bCreatedNew);
         if (!rebootas && !bCreatedNew)
         {
+            // 通知首个实例（已在 MainWindow 中 RegisterWaitForSingleObject）
             ProgramStarted.Set();
             Environment.Exit(0);
             return;

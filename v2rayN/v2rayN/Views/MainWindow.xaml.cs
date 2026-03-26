@@ -409,8 +409,15 @@ public partial class MainWindow
             {
                 WindowState = WindowState.Normal;
             }
+
+            WindowsUtils.BringWindowToForeground(this);
             this?.Activate();
             this?.Focus();
+
+            // 部分系统上 Activate 仍无法抢焦点，短暂置顶可唤醒已运行实例窗口
+            var top = Topmost;
+            Topmost = true;
+            Topmost = top;
         }
         else
         {

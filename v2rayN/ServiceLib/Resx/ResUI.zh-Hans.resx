@@ -897,6 +897,9 @@
   <data name="TipChangeSystemProxy" xml:space="preserve">
     <value>系统代理设置改变</value>
   </data>
+  <data name="TipMixedListenPortAutoAdjusted" xml:space="preserve">
+    <value>混合监听端口因占用已从 {0} 调整为 {1}，已保存并将重新加载核心</value>
+  </data>
   <data name="TbSettingsRouteOnly" xml:space="preserve">
     <value>仅限路由 (routeOnly)</value>
   </data>

@@ -76,6 +76,30 @@ public class CoreManager
             return;
         }
 
+        // mixed 主端口（及 socks2/socks3）若已被占用，递增并保存后再生成配置，避免核心启动失败
+        if (MixedListenPortRecoveryHandler.TryBumpPrimaryMixedPortIfCurrentBusy(_config, out var oldMixedPort, out var newMixedPort))
+        {
+            if (await ConfigHandler.SaveConfig(_config) == 0)
+            {
+                Logging.SaveLog($"{_tag}: primary mixed listen {oldMixedPort} -> {newMixedPort} (pre-start bind check)");
+                await UpdateFunc(true, string.Format(ResUI.TipMixedListenPortAutoAdjusted, oldMixedPort, newMixedPort));
+                result = await CoreConfigHandler.GenerateClientConfig(mainContext, fileName);
+                if (result.Success != true)
+                {
+                    await UpdateFunc(true, result.Msg);
+                    return;
+                }
+            }
+            else
+            {
+                var inbound = _config.Inbound?.FirstOrDefault(t => t.Protocol == nameof(EInboundProtocol.socks));
+                if (inbound is not null)
+                {
+                    inbound.LocalPort = oldMixedPort;
+                }
+            }
+        }
+
         await UpdateFunc(false, $"{node.GetSummary()}");
         await UpdateFunc(false, $"{Utils.GetRuntimeInfo()}");
         await UpdateFunc(false, string.Format(ResUI.StartService, DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")));

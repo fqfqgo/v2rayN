@@ -955,6 +955,23 @@ public class Utils
         return Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
     }
 
+    /// <summary>
+    /// 命名内核同步对象（EventWaitHandle/Mutex）用名称：
+    /// 若当前进程文件名为 <c>v2rayN.exe</c>（不区分大小写），则使用固定名，使不同目录下的副本仍互斥为单实例；
+    /// 否则使用 exe 全路径的 MD5，便于改名或便携多开互不干扰。
+    /// </summary>
+    public static string GetSingleInstanceKernelObjectName()
+    {
+        var path = GetExePath();
+        var fileName = Path.GetFileName(path);
+        if (fileName.Equals("v2rayN.exe", StringComparison.OrdinalIgnoreCase))
+        {
+            return "v2rayN_SingleInstance_ByExeName_8C4F2A1E";
+        }
+
+        return GetMd5(path);
+    }
+
     public static string StartupPath()
     {
         if (Environment.GetEnvironmentVariable(Global.LocalAppData) == "1")

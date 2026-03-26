@@ -4663,6 +4663,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Mixed listen port changed from {0} to {1} due to conflict (saved; reloading core) 的本地化字符串。
+        /// </summary>
+        public static string TipMixedListenPortAutoAdjusted {
+            get {
+                return ResourceManager.GetString("TipMixedListenPortAutoAdjusted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Please turn off when there is an abnormal disconnection 的本地化字符串。
         /// </summary>
         public static string TipDisplayLog {
