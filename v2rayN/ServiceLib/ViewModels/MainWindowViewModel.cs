@@ -204,10 +204,8 @@ public class MainWindowViewModel : MyReactiveObject
             await OpenTheFileLocation();
         });
 
-        ReloadCmd = ReactiveCommand.CreateFromTask(async () =>
-        {
-            await Reload();
-        });
+        // “重启服务”属于用户手动操作：避免因短暂的 bind 检测误判而自动递增端口
+        ReloadCmd = ReactiveCommand.CreateFromTask(async () => await Reload(allowPreStartPortBump: false));
 
         StartBrowserCmd = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -236,7 +234,7 @@ public class MainWindowViewModel : MyReactiveObject
         AppEvents.ReloadRequested
             .AsObservable()
             .ObserveOn(RxSchedulers.MainThreadScheduler)
-            .Subscribe(async _ => await Reload());
+            .Subscribe(async _ => await Reload(allowPreStartPortBump: true));
 
         AppEvents.AddServerViaScanRequested
             .AsObservable()
@@ -604,7 +602,7 @@ public class MainWindowViewModel : MyReactiveObject
     private bool _hasNextReloadJob = false;
     private readonly SemaphoreSlim _reloadSemaphore = new(1, 1);
 
-    public async Task Reload()
+    public async Task Reload(bool allowPreStartPortBump = true)
     {
         //If there are unfinished reload job, marked with next job.
         if (!await _reloadSemaphore.WaitAsync(0))
@@ -631,7 +629,7 @@ public class MainWindowViewModel : MyReactiveObject
 
             await Task.Run(async () =>
             {
-                await LoadCore(allResult.ResolvedMainContext, allResult.PreSocksResult?.Context);
+                await LoadCore(allResult.ResolvedMainContext, allResult.PreSocksResult?.Context, allowPreStartPortBump);
                 await SysProxyHandler.UpdateSysProxy(_config, false);
                 await Task.Delay(1000);
             });
@@ -653,7 +651,7 @@ public class MainWindowViewModel : MyReactiveObject
             if (_hasNextReloadJob)
             {
                 _hasNextReloadJob = false;
-                await Reload();
+                await Reload(allowPreStartPortBump);
             }
         }
     }
@@ -672,9 +670,9 @@ public class MainWindowViewModel : MyReactiveObject
         RxSchedulers.MainThreadScheduler.Schedule(() => BlReloadEnabled = enabled);
     }
 
-    private async Task LoadCore(CoreConfigContext? mainContext, CoreConfigContext? preContext)
+    private async Task LoadCore(CoreConfigContext? mainContext, CoreConfigContext? preContext, bool allowPreStartPortBump)
     {
-        await CoreManager.Instance.LoadCore(mainContext, preContext);
+        await CoreManager.Instance.LoadCore(mainContext, preContext, allowPreStartPortBump);
     }
 
     #endregion core job

@@ -59,7 +59,7 @@ public class CoreManager
 
     /// <param name="mainContext">Resolved main context (with pre-socks ports already merged if applicable).</param>
     /// <param name="preContext">Optional pre-socks context passed to <see cref="CoreStartPreService"/>.</param>
-    public async Task LoadCore(CoreConfigContext? mainContext, CoreConfigContext? preContext)
+    public async Task LoadCore(CoreConfigContext? mainContext, CoreConfigContext? preContext, bool allowPreStartPortBump = true)
     {
         if (mainContext == null)
         {
@@ -77,7 +77,9 @@ public class CoreManager
         }
 
         // mixed 主端口（及 socks2/socks3）若已被占用，递增并保存后再生成配置，避免核心启动失败
-        if (MixedListenPortRecoveryHandler.TryBumpPrimaryMixedPortIfCurrentBusy(_config, out var oldMixedPort, out var newMixedPort))
+        // 注意：用户手动“重启服务”时可能出现短暂端口不可绑定（退出延迟/占用检查误判），此时不应自动改端口。
+        if (allowPreStartPortBump
+            && MixedListenPortRecoveryHandler.TryBumpPrimaryMixedPortIfCurrentBusy(_config, out var oldMixedPort, out var newMixedPort))
         {
             if (await ConfigHandler.SaveConfig(_config) == 0)
             {
