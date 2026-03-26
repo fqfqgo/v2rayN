@@ -631,6 +631,8 @@ public class MainWindowViewModel : MyReactiveObject
             {
                 await LoadCore(allResult.ResolvedMainContext, allResult.PreSocksResult?.Context, allowPreStartPortBump);
                 await SysProxyHandler.UpdateSysProxy(_config, false);
+                // Refresh status-bar inbound port display after reload (including auto port adjustments).
+                AppEvents.InboundDisplayRequested.Publish();
                 await Task.Delay(1000);
             });
             AppEvents.TestServerRequested.Publish();
