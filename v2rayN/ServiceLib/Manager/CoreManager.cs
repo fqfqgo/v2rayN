@@ -14,6 +14,8 @@ public class CoreManager
     private bool _linuxSudo = false;
     private Func<bool, string, Task>? _updateFunc;
     private const string _tag = "CoreHandler";
+    private bool HasRunningCoreProcess() =>
+        (_processService is { HasExited: false }) || (_processPreService is { HasExited: false });
 
     public async Task Init(Config config, Func<bool, string, Task> updateFunc)
     {
@@ -76,9 +78,10 @@ public class CoreManager
             return;
         }
 
-        // mixed 主端口（及 socks2/socks3）若已被占用，递增并保存后再生成配置，避免核心启动失败
-        // 注意：用户手动“重启服务”时可能出现短暂端口不可绑定（退出延迟/占用检查误判），此时不应自动改端口。
+        // mixed 主端口（及 socks2/socks3）若已被占用，递增并保存后再生成配置，避免核心启动失败。
+        // 仅在当前核心未运行时执行该检测，避免把“旧核心仍在监听”误判为端口冲突。
         if (allowPreStartPortBump
+            && !HasRunningCoreProcess()
             && MixedListenPortRecoveryHandler.TryBumpPrimaryMixedPortIfCurrentBusy(_config, out var oldMixedPort, out var newMixedPort))
         {
             if (await ConfigHandler.SaveConfig(_config) == 0)
