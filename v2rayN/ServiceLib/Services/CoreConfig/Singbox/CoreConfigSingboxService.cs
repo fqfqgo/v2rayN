@@ -57,20 +57,30 @@ public partial class CoreConfigSingboxService(CoreConfigContext context)
 
             ConvertGeo2Ruleset();
 
+            ApplyOutboundSendThrough();
+
             ret.Msg = string.Format(ResUI.SuccessfulConfiguration, "");
             ret.Success = true;
 
             ret.Data = ApplyFullConfigTemplate();
-            if (context.TunProtectSsPort is > 0 and <= 65535)
+            if (!context.AppConfig.TunModeItem.EnableLegacyProtect
+                && context.TunProtectSocksPort is > 0 and <= 65535)
             {
+                // Replace relay proxy outbound, avoid mux or other feature cause issue, and add a socks inbound for tun protect
+                var relayProxyIndex = _coreConfig.outbounds.FindIndex(o => o.tag == Global.ProxyTag);
+                _coreConfig.outbounds[relayProxyIndex] = new Outbound4Sbox()
+                {
+                    type = Global.ProtocolTypes[EConfigType.SOCKS],
+                    tag = Global.ProxyTag,
+                    server = Global.Loopback,
+                    server_port = context.ProxyRelaySocksPort,
+                };
                 var ssInbound = new
                 {
-                    type = "shadowsocks",
-                    tag = "tun-protect-ss",
+                    type = "socks",
+                    tag = "tun-protect-socks",
                     listen = Global.Loopback,
-                    listen_port = context.TunProtectSsPort,
-                    method = "none",
-                    password = "none",
+                    listen_port = context.TunProtectSocksPort,
                 };
                 var directRule = new Rule4Sbox()
                 {
@@ -213,6 +223,7 @@ public partial class CoreConfigSingboxService(CoreConfigContext context)
                 _coreConfig.route.rules.Add(rule);
             }
 
+            ApplyOutboundSendThrough();
             ret.Success = true;
             ret.Data = JsonUtils.Serialize(_coreConfig);
             return ret;
@@ -271,6 +282,7 @@ public partial class CoreConfigSingboxService(CoreConfigContext context)
                 listen_port = port,
                 type = EInboundProtocol.mixed.ToString(),
             });
+            ApplyOutboundSendThrough();
 
             ret.Msg = string.Format(ResUI.SuccessfulConfiguration, "");
             ret.Success = true;

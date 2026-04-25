@@ -25,14 +25,14 @@ public record CoreConfigContextBuilderAllResult(
         [.. MainResult.ValidatorResult.Warnings, .. PreSocksResult?.ValidatorResult.Warnings ?? []]);
 
     /// <summary>
-    /// The main context with TunProtectSsPort/ProxyRelaySsPort and ProtectDomainList merged in
+    /// The main context with TunProtectSocksPort/ProxyRelaySocksPort and ProtectDomainList merged in
     /// from the pre-socks result (if any). Pass this to the core runner.
     /// </summary>
     public CoreConfigContext ResolvedMainContext => PreSocksResult is not null
         ? MainResult.Context with
         {
-            TunProtectSsPort = PreSocksResult.Context.TunProtectSsPort,
-            ProxyRelaySsPort = PreSocksResult.Context.ProxyRelaySsPort,
+            TunProtectSocksPort = PreSocksResult.Context.TunProtectSocksPort,
+            ProxyRelaySocksPort = PreSocksResult.Context.ProxyRelaySocksPort,
             ProtectDomainList = [.. MainResult.Context.ProtectDomainList ?? [], .. PreSocksResult.Context.ProtectDomainList ?? []],
         }
         : MainResult.Context;
@@ -58,8 +58,8 @@ public class CoreConfigContextBuilder
             IsTunEnabled = config.TunModeItem.EnableTun,
             SimpleDnsItem = config.SimpleDNSItem,
             ProtectDomainList = [],
-            TunProtectSsPort = 0,
-            ProxyRelaySsPort = 0,
+            TunProtectSocksPort = 0,
+            ProxyRelaySocksPort = 0,
             RawDnsItem = await AppManager.Instance.GetDNSItem(coreType),
             RoutingItem = await ConfigHandler.GetDefaultRouting(config),
         };
@@ -155,28 +155,23 @@ public class CoreConfigContextBuilder
             return null;
         }
 
-        var tunProtectSsPort = Utils.GetFreePort();
-        var proxyRelaySsPort = Utils.GetFreePort();
+        var tunProtectSocksPort = Utils.GetFreePort();
+        var proxyRelaySocksPort = Utils.GetFreePort();
         var preItem = new ProfileItem()
         {
             CoreType = ECoreType.sing_box,
-            ConfigType = EConfigType.Shadowsocks,
+            ConfigType = EConfigType.SOCKS,
             Address = Global.Loopback,
-            Port = proxyRelaySsPort,
-            Password = Global.None,
+            Port = proxyRelaySocksPort,
         };
-        preItem.SetProtocolExtra(preItem.GetProtocolExtra() with
-        {
-            SsMethod = Global.None,
-        });
         var preResult2 = await Build(nodeContext.AppConfig, preItem);
         return preResult2 with
         {
             Context = preResult2.Context with
             {
                 ProtectDomainList = [.. nodeContext.ProtectDomainList ?? [], .. preResult2.Context.ProtectDomainList ?? []],
-                TunProtectSsPort = tunProtectSsPort,
-                ProxyRelaySsPort = proxyRelaySsPort,
+                TunProtectSocksPort = tunProtectSocksPort,
+                ProxyRelaySocksPort = proxyRelaySocksPort,
             }
         };
     }
@@ -309,6 +304,11 @@ public class CoreConfigContextBuilder
         }
 
         var nodeValidatorResult = NodeValidator.Validate(node, context.RunCoreType);
+        var msgs = new List<string>([.. nodeValidatorResult.Errors, .. nodeValidatorResult.Warnings]);
+        if (msgs.Count > 0)
+        {
+            Logging.SaveLog($"{node.Remarks}: {string.Join("; ", msgs)}");
+        }
         if (!nodeValidatorResult.Success)
         {
             return nodeValidatorResult;
@@ -322,6 +322,7 @@ public class CoreConfigContextBuilder
             context.ProtectDomainList.Add(address);
         }
 
+        // ech query server name protect
         if (!node.EchConfigList.IsNullOrEmpty())
         {
             var echQuerySni = node.Sni;
@@ -336,6 +337,20 @@ public class CoreConfigContextBuilder
             {
                 context.ProtectDomainList.Add(echQuerySni);
             }
+        }
+
+        // xhttp downloadSettings address protect
+        if (!string.IsNullOrEmpty(node.Extra)
+            && JsonUtils.ParseJson(node.Extra) is JsonObject extra
+            && extra.TryGetPropertyValue("downloadSettings", out var dsNode)
+            && dsNode is JsonObject downloadSettings
+            && downloadSettings.TryGetPropertyValue("address", out var dAddrNode)
+            && dAddrNode is JsonValue dAddrValue
+            && dAddrValue.TryGetValue(out string? dAddr)
+            && !string.IsNullOrEmpty(dAddr)
+            && Utils.IsDomain(dAddr))
+        {
+            context.ProtectDomainList.Add(dAddr);
         }
 
         return nodeValidatorResult;

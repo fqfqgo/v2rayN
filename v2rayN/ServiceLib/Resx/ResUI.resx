@@ -532,19 +532,19 @@
     <value>Add a custom configuration</value>
   </data>
   <data name="menuAddShadowsocksServer" xml:space="preserve">
-    <value>Add [Shadowsocks] </value>
+    <value>Add [Shadowsocks]</value>
   </data>
   <data name="menuAddSocksServer" xml:space="preserve">
-    <value>Add [SOCKS] </value>
+    <value>Add [SOCKS]</value>
   </data>
   <data name="menuAddTrojanServer" xml:space="preserve">
-    <value>Add [Trojan] </value>
+    <value>Add [Trojan]</value>
   </data>
   <data name="menuAddVlessServer" xml:space="preserve">
-    <value>Add [VLESS] </value>
+    <value>Add [VLESS]</value>
   </data>
   <data name="menuAddVmessServer" xml:space="preserve">
-    <value>Add [VMess] </value>
+    <value>Add [VMess]</value>
   </data>
   <data name="menuSelectAll" xml:space="preserve">
     <value>Select all</value>
@@ -970,7 +970,7 @@
     <value>User-Agent</value>
   </data>
   <data name="TbSettingsDefUserAgentTips" xml:space="preserve">
-    <value>This parameter is valid only for tcp/http and ws</value>
+    <value>This parameter is valid only for tcp/http, ws, gRPC and xhttp</value>
   </data>
   <data name="TbSettingsCurrentFontFamily" xml:space="preserve">
     <value>Font family (requires restart)</value>
@@ -1069,7 +1069,7 @@
     <value>Domain</value>
   </data>
   <data name="menuAddHysteria2Server" xml:space="preserve">
-    <value>Add [Hysteria2] </value>
+    <value>Add [Hysteria2]</value>
   </data>
   <data name="TbSettingsHysteriaBandwidth" xml:space="preserve">
     <value>Hysteria Max bandwidth (Up/Down)</value>
@@ -1078,7 +1078,7 @@
     <value>Use System Hosts</value>
   </data>
   <data name="menuAddTuicServer" xml:space="preserve">
-    <value>Add [TUIC] </value>
+    <value>Add [TUIC]</value>
   </data>
   <data name="TbHeaderType8" xml:space="preserve">
     <value>Congestion control</value>
@@ -1108,7 +1108,7 @@
     <value>Enable IPv6 Address</value>
   </data>
   <data name="menuAddWireguardServer" xml:space="preserve">
-    <value>Add [WireGuard] </value>
+    <value>Add [WireGuard]</value>
   </data>
   <data name="TbPrivateKey" xml:space="preserve">
     <value>Private Key</value>
@@ -1353,6 +1353,15 @@
   <data name="TbSettingsLinuxSudoPasswordTip" xml:space="preserve">
     <value>The password will be validated via the command line. If a validation error causes the application to malfunction, please restart the application. The password will not be stored and must be entered again after each restart.</value>
   </data>
+  <data name="TbSettingsSendThrough" xml:space="preserve">
+    <value>Local outbound address (SendThrough)</value>
+  </data>
+  <data name="TbSettingsSendThroughTip" xml:space="preserve">
+    <value>For multi-interface environments, enter the local machine's IPv4 address</value>
+  </data>
+  <data name="FillCorrectSendThroughIPv4" xml:space="preserve">
+    <value>Please fill in the correct IPv4 address for SendThrough.</value>
+  </data>
   <data name="TransportHeaderTypeTip5" xml:space="preserve">
     <value>*xhttp mode</value>
   </data>
@@ -1531,13 +1540,13 @@
     <value>Policy Group Type</value>
   </data>
   <data name="menuAddPolicyGroupServer" xml:space="preserve">
-    <value>Add Policy Group </value>
+    <value>Add Policy Group</value>
   </data>
   <data name="menuAddProxyChainServer" xml:space="preserve">
     <value>Add Proxy Chain</value>
   </data>
   <data name="menuAddChildServer" xml:space="preserve">
-    <value>Add Child </value>
+    <value>Add Child</value>
   </data>
   <data name="menuRemoveChildServer" xml:space="preserve">
     <value>Remove Child </value>
@@ -1715,5 +1724,23 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   </data>
   <data name="menuEditFormat" xml:space="preserve">
     <value>Format</value>
+  </data>
+  <data name="TbUot" xml:space="preserve">
+    <value>UDP over TCP</value>
+  </data>
+  <data name="menuAddNaiveServer" xml:space="preserve">
+    <value>Add [NaïveProxy]</value>
+  </data>
+  <data name="TbInsecureConcurrency" xml:space="preserve">
+    <value>Insecure Concurrency</value>
+  </data>
+  <data name="TbUsername" xml:space="preserve">
+    <value>Username</value>
+  </data>
+  <data name="TbIcmpRoutingPolicy" xml:space="preserve">
+    <value>ICMP routing policy</value>
+  </data>
+  <data name="TbLegacyProtect" xml:space="preserve">
+    <value>Legacy TUN Protect</value>
   </data>
 </root>

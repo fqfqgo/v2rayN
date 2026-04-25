@@ -72,6 +72,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
             this.BindCommand(ViewModel, vm => vm.AddTuicServerCmd, v => v.menuAddTuicServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddWireguardServerCmd, v => v.menuAddWireguardServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddAnytlsServerCmd, v => v.menuAddAnytlsServer).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.AddNaiveServerCmd, v => v.menuAddNaiveServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddCustomServerCmd, v => v.menuAddCustomServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddPolicyGroupServerCmd, v => v.menuAddPolicyGroupServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddProxyChainServerCmd, v => v.menuAddProxyChainServer).DisposeWith(disposables);
@@ -168,8 +169,8 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         else
         {
             Title = $"{Utils.GetVersion()}";
+            menuAddServerViaScan.IsVisible = false;
         }
-        menuAddServerViaScan.IsVisible = false;
 
         if (_config.UiItem.AutoHideStartup && Utils.IsWindows())
         {
@@ -360,17 +361,17 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
 
     public async Task ScanScreenTaskAsync()
     {
-        //ShowHideWindow(false);
+        ShowHideWindow(false);
 
-        NoticeManager.Instance.SendMessageAndEnqueue("Not yet implemented.(还未实现)");
-        await Task.CompletedTask;
-        //if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        //{
-        //    //var bytes = QRCodeHelper.CaptureScreen(desktop);
-        //    //await ViewModel?.ScanScreenResult(bytes);
-        //}
+        await Task.Delay(200);
 
-        //ShowHideWindow(true);
+        var bytes = QRCodeAvaloniaUtils.CaptureScreen();
+        if (bytes != null && ViewModel != null)
+        {
+            await ViewModel.ScanScreenResult(bytes);
+        }
+
+        ShowHideWindow(true);
     }
 
     private async Task ScanImageTaskAsync()

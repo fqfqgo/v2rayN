@@ -14,17 +14,15 @@ on:
       - 'V*'
       - '[0-9]*'
 
-env:
-  OutputArch: "windows-64"
-  OutputArchArm: "windows-arm64"
-  OutputPath64:  "${{ github.workspace }}/v2rayN/Release/windows-64"
-  OutputPathArm64:  "${{ github.workspace }}/v2rayN/Release/windows-arm64"
+permissions:
+  contents: write
 
 jobs:
   build:
-    strategy:
-      matrix:
-        configuration: [Release]
+    uses: ./.github/workflows/build.yml
+    with:
+      target: windows
+      project: ./v2rayN/v2rayN.csproj
 
     runs-on: ubuntu-latest
 

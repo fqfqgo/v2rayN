@@ -105,6 +105,8 @@ public class Outbounds4Ray
 
     public string protocol { get; set; }
 
+    public string? sendThrough { get; set; }
+
     public string? targetStrategy { get; set; }
 
     public Outboundsettings4Ray settings { get; set; }
@@ -178,6 +180,8 @@ public class ServersItem4Ray
     public int? level { get; set; }
 
     public string flow { get; set; }
+
+    public bool? uot { get; set; }
 
     public List<SocksUsersItem4Ray> users { get; set; }
 }
@@ -335,7 +339,7 @@ public class StreamSettings4Ray
 
     public HysteriaSettings4Ray? hysteriaSettings { get; set; }
 
-    public Finalmask4Ray? finalmask { get; set; }
+    public object? finalmask { get; set; }
 
     public Sockopt4Ray? sockopt { get; set; }
 }
@@ -419,6 +423,8 @@ public class HttpupgradeSettings4Ray
     public string? path { get; set; }
 
     public string? host { get; set; }
+
+    public Headers4Ray headers { get; set; }
 }
 
 public class XhttpSettings4Ray
@@ -454,39 +460,45 @@ public class GrpcSettings4Ray
     public int? health_check_timeout { get; set; }
     public bool? permit_without_stream { get; set; }
     public int? initial_windows_size { get; set; }
+    public string? user_agent { get; set; }
 }
 
 public class HysteriaSettings4Ray
 {
     public int version { get; set; }
     public string? auth { get; set; }
-    public string? up { get; set; }
-    public string? down { get; set; }
-    public HysteriaUdpHop4Ray? udphop { get; set; }
 }
 
-public class HysteriaUdpHop4Ray
+public class UdpHop4Ray
 {
-    public string? port { get; set; }
+    public string? ports { get; set; }
     public string? interval { get; set; }
 }
 
 public class Finalmask4Ray
 {
-    public List<Mask4Ray>? tcp { get; set; }
     public List<Mask4Ray>? udp { get; set; }
+    public QuicParams4Ray? quicParams { get; set; }
 }
 
 public class Mask4Ray
 {
     public string type { get; set; }
-    public object? settings { get; set; }
+    public MaskSettings4Ray? settings { get; set; }
 }
 
 public class MaskSettings4Ray
 {
     public string? password { get; set; }
     public string? domain { get; set; }
+}
+
+public class QuicParams4Ray
+{
+    public string? congestion { get; set; }
+    public string? brutalUp { get; set; }
+    public string? brutalDown { get; set; }
+    public UdpHop4Ray? udpHop { get; set; }
 }
 
 public class AccountsItem4Ray

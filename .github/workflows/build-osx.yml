@@ -14,46 +14,48 @@ on:
       - 'V*'
       - '[0-9]*'
 
-env:
-  OutputArch: "macos-64"
-  OutputArchArm: "macos-arm64"
-  OutputPath64:  "${{ github.workspace }}/v2rayN/Release/macos-64"
-  OutputPathArm64:  "${{ github.workspace }}/v2rayN/Release/macos-arm64"
+permissions:
+  contents: write
 
 jobs:
   build:
+    uses: ./.github/workflows/build.yml
+    with:
+      target: macos
+
+  release-zip:
+    if: inputs.release_tag != ''
+    needs: build
+    uses: ./.github/workflows/package-zip.yml
+    with:
+      target: macos
+      release_tag: ${{ inputs.release_tag }}
+    
+  dmg:
+    name: package and release macOS dmg
+    if: inputs.release_tag != ''
+    needs: build
     strategy:
       matrix:
-        configuration: [Release]
-
+        arch: [ x64, arm64 ]
     runs-on: macos-latest
-
+    env:
+      Arch: |-
+        ${{
+          case(
+            matrix.arch == 'x64', '64',
+            matrix.arch
+          ) 
+        }} 
     steps:
     - name: Checkout
       uses: actions/checkout@v6.0.2
-      with:
-        submodules: 'recursive'
-        fetch-depth: '0'
 
-    - name: Setup
-      uses: actions/setup-dotnet@v5.2.0
+    - name: Restore build artifacts
+      uses: actions/download-artifact@v8
       with:
-        dotnet-version: '8.0.x'
-
-    - name: Build
-      run: |
-        cd v2rayN 
-        dotnet publish ./v2rayN.Desktop/v2rayN.Desktop.csproj -c Release -r osx-x64   -p:SelfContained=true -o $OutputPath64
-        dotnet publish ./v2rayN.Desktop/v2rayN.Desktop.csproj -c Release -r osx-arm64 -p:SelfContained=true -o $OutputPathArm64
-        dotnet publish ./AmazTool/AmazTool.csproj             -c Release -r osx-x64   -p:SelfContained=true -p:PublishTrimmed=true -o $OutputPath64
-        dotnet publish ./AmazTool/AmazTool.csproj             -c Release -r osx-arm64 -p:SelfContained=true -p:PublishTrimmed=true -o $OutputPathArm64
-
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v7.0.0
-      with:
-        name: v2rayN-macos
-        path: |
-          ${{ github.workspace }}/v2rayN/Release/macos*
+        name: ${{ matrix.arch }}
+        path: v2rayN-macos-${{ env.Arch }}
     
     # release osx package (run on workflow_dispatch with release_tag OR on tag push)
     - name: Package osx

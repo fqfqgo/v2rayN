@@ -41,6 +41,7 @@ public static class ConfigHandler
             Loglevel = "warning",
             MuxEnabled = false,
         };
+        config.CoreBasicItem.SendThrough = config.CoreBasicItem.SendThrough?.TrimEx();
 
         if (config.Inbound == null)
         {
@@ -91,6 +92,8 @@ public static class ConfigHandler
         {
             EnableTun = false,
             Mtu = 9000,
+            IcmpRouting = Global.TunIcmpRoutingPolicies.First(),
+            EnableLegacyProtect = false,
         };
         config.GuiItem ??= new();
         config.MsgUIItem ??= new();
@@ -269,6 +272,7 @@ public static class ConfigHandler
             EConfigType.TUIC => await AddTuicServer(config, item),
             EConfigType.WireGuard => await AddWireguardServer(config, item),
             EConfigType.Anytls => await AddAnytlsServer(config, item),
+            EConfigType.Naive => await AddNaiveServer(config, item),
             _ => -1,
         };
         return ret;
@@ -804,7 +808,7 @@ public static class ConfigHandler
     }
 
     /// <summary>
-    /// Add or edit a Anytls server
+    /// Add or edit an Anytls server
     /// Validates and processes Anytls-specific settings
     /// </summary>
     /// <param name="config">Current configuration</param>
@@ -818,6 +822,36 @@ public static class ConfigHandler
 
         profileItem.Address = profileItem.Address.TrimEx();
         profileItem.Password = profileItem.Password.TrimEx();
+        profileItem.Network = string.Empty;
+        if (profileItem.StreamSecurity.IsNullOrEmpty())
+        {
+            profileItem.StreamSecurity = Global.StreamSecurity;
+        }
+        if (profileItem.Password.IsNullOrEmpty())
+        {
+            return -1;
+        }
+        await AddServerCommon(config, profileItem, toFile);
+        return 0;
+    }
+
+    /// <summary>
+    /// Add or edit a Naive server
+    /// Validates and processes Naive-specific settings
+    /// </summary>
+    /// <param name="config">Current configuration</param>
+    /// <param name="profileItem">Naive profile to add</param>
+    /// <param name="toFile">Whether to save to file</param>
+    /// <returns>0 if successful, -1 if failed</returns>
+    public static async Task<int> AddNaiveServer(Config config, ProfileItem profileItem, bool toFile = true)
+    {
+        profileItem.ConfigType = EConfigType.Naive;
+        profileItem.CoreType = ECoreType.sing_box;
+
+        profileItem.Address = profileItem.Address.TrimEx();
+        profileItem.Username = profileItem.Username.TrimEx();
+        profileItem.Password = profileItem.Password.TrimEx();
+        profileItem.Alpn = string.Empty;
         profileItem.Network = string.Empty;
         if (profileItem.StreamSecurity.IsNullOrEmpty())
         {
@@ -1077,7 +1111,8 @@ public static class ConfigHandler
 
         if (toFile)
         {
-            profileItem.SetProtocolExtra();
+            //profileItem.SetProtocolExtra();
+            profileItem.SetProtocolExtra(profileItem.GetProtocolExtra());
             await SQLiteHelper.Instance.ReplaceAsync(profileItem);
         }
         return 0;
@@ -1105,6 +1140,7 @@ public static class ConfigHandler
                && AreEqual(o.Address, n.Address)
                && o.Port == n.Port
                && AreEqual(o.Password, n.Password)
+               && AreEqual(o.Username, n.Username)
                && AreEqual(oProtocolExtra.VlessEncryption, nProtocolExtra.VlessEncryption)
                && AreEqual(oProtocolExtra.SsMethod, nProtocolExtra.SsMethod)
                && AreEqual(oProtocolExtra.VmessSecurity, nProtocolExtra.VmessSecurity)
@@ -1380,19 +1416,32 @@ public static class ConfigHandler
     /// <returns>A SOCKS profile item or null if not needed</returns>
     public static ProfileItem? GetPreSocksItem(Config config, ProfileItem node, ECoreType coreType)
     {
-        if (node.ConfigType != EConfigType.Custom || !(node.PreSocksPort > 0))
-        {
-            return null;
-        }
         ProfileItem? itemSocks = null;
-        var preCoreType = AppManager.Instance.RunningCoreType = config.TunModeItem.EnableTun ? ECoreType.sing_box : ECoreType.Xray;
-        itemSocks = new ProfileItem()
+        if (node.ConfigType != EConfigType.Custom
+            && coreType != ECoreType.sing_box
+            && config.TunModeItem.EnableTun
+            && config.TunModeItem.EnableLegacyProtect)
         {
-            CoreType = preCoreType,
-            ConfigType = EConfigType.SOCKS,
-            Address = Global.Loopback,
-            Port = node.PreSocksPort.Value,
-        };
+            itemSocks = new ProfileItem()
+            {
+                CoreType = ECoreType.sing_box,
+                ConfigType = EConfigType.SOCKS,
+                Address = Global.Loopback,
+                Port = AppManager.Instance.GetLocalPort(EInboundProtocol.socks)
+            };
+        }
+        else if (node.ConfigType == EConfigType.Custom
+            && node.PreSocksPort is > 0 and <= 65535)
+        {
+            var preCoreType = config.TunModeItem.EnableTun ? ECoreType.sing_box : ECoreType.Xray;
+            itemSocks = new ProfileItem()
+            {
+                CoreType = preCoreType,
+                ConfigType = EConfigType.SOCKS,
+                Address = Global.Loopback,
+                Port = node.PreSocksPort.Value,
+            };
+        }
         return itemSocks;
     }
 
@@ -1496,6 +1545,7 @@ public static class ConfigHandler
                 EConfigType.TUIC => await AddTuicServer(config, profileItem, false),
                 EConfigType.WireGuard => await AddWireguardServer(config, profileItem, false),
                 EConfigType.Anytls => await AddAnytlsServer(config, profileItem, false),
+                EConfigType.Naive => await AddNaiveServer(config, profileItem, false),
                 _ => -1,
             };
 

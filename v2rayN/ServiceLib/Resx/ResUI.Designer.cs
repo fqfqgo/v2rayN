@@ -223,6 +223,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Please fill in the correct IPv4 address for SendThrough. 的本地化字符串。
+        /// </summary>
+        public static string FillCorrectSendThroughIPv4 {
+            get {
+                return ResourceManager.GetString("FillCorrectSendThroughIPv4", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Please enter the correct port format. 的本地化字符串。
         /// </summary>
         public static string FillCorrectServerPort {
@@ -700,7 +709,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Add Child  的本地化字符串。
+        ///   查找类似 Add Child 的本地化字符串。
         /// </summary>
         public static string menuAddChildServer {
             get {
@@ -727,7 +736,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Add [Hysteria2]  的本地化字符串。
+        ///   查找类似 Add [Hysteria2] 的本地化字符串。
         /// </summary>
         public static string menuAddHysteria2Server {
             get {
@@ -736,7 +745,16 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Add Policy Group  的本地化字符串。
+        ///   查找类似 Add [NaïveProxy] 的本地化字符串。
+        /// </summary>
+        public static string menuAddNaiveServer {
+            get {
+                return ResourceManager.GetString("menuAddNaiveServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Add Policy Group 的本地化字符串。
         /// </summary>
         public static string menuAddPolicyGroupServer {
             get {
@@ -781,7 +799,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Add [Shadowsocks]  的本地化字符串。
+        ///   查找类似 Add [Shadowsocks] 的本地化字符串。
         /// </summary>
         public static string menuAddShadowsocksServer {
             get {
@@ -790,7 +808,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Add [SOCKS]  的本地化字符串。
+        ///   查找类似 Add [SOCKS] 的本地化字符串。
         /// </summary>
         public static string menuAddSocksServer {
             get {
@@ -799,7 +817,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Add [Trojan]  的本地化字符串。
+        ///   查找类似 Add [Trojan] 的本地化字符串。
         /// </summary>
         public static string menuAddTrojanServer {
             get {
@@ -808,7 +826,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Add [TUIC]  的本地化字符串。
+        ///   查找类似 Add [TUIC] 的本地化字符串。
         /// </summary>
         public static string menuAddTuicServer {
             get {
@@ -817,7 +835,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Add [VLESS]  的本地化字符串。
+        ///   查找类似 Add [VLESS] 的本地化字符串。
         /// </summary>
         public static string menuAddVlessServer {
             get {
@@ -826,7 +844,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Add [VMess]  的本地化字符串。
+        ///   查找类似 Add [VMess] 的本地化字符串。
         /// </summary>
         public static string menuAddVmessServer {
             get {
@@ -835,7 +853,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 Add [WireGuard]  的本地化字符串。
+        ///   查找类似 Add [WireGuard] 的本地化字符串。
         /// </summary>
         public static string menuAddWireguardServer {
             get {
@@ -3160,6 +3178,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 ICMP routing policy 的本地化字符串。
+        /// </summary>
+        public static string TbIcmpRoutingPolicy {
+            get {
+                return ResourceManager.GetString("TbIcmpRoutingPolicy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 UUID(id) 的本地化字符串。
         /// </summary>
         public static string TbId {
@@ -3196,6 +3223,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Insecure Concurrency 的本地化字符串。
+        /// </summary>
+        public static string TbInsecureConcurrency {
+            get {
+                return ResourceManager.GetString("TbInsecureConcurrency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Most Stable 的本地化字符串。
         /// </summary>
         public static string TbLeastLoad {
@@ -3210,6 +3246,15 @@ namespace ServiceLib.Resx {
         public static string TbLeastPing {
             get {
                 return ResourceManager.GetString("TbLeastPing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Legacy TUN Protect 的本地化字符串。
+        /// </summary>
+        public static string TbLegacyProtect {
+            get {
+                return ResourceManager.GetString("TbLegacyProtect", resourceCulture);
             }
         }
         
@@ -3826,7 +3871,7 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
-        ///   查找类似 This parameter is valid only for tcp/http and ws 的本地化字符串。
+        ///   查找类似 This parameter is valid only for tcp/http, ws, gRPC and xhttp 的本地化字符串。
         /// </summary>
         public static string TbSettingsDefUserAgentTips {
             get {
@@ -4213,6 +4258,24 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Local outbound address (SendThrough) 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsSendThrough {
+            get {
+                return ResourceManager.GetString("TbSettingsSendThrough", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 For multi-interface environments, enter the local machine&apos;s IPv4 address 的本地化字符串。
+        /// </summary>
+        public static string TbSettingsSendThroughTip {
+            get {
+                return ResourceManager.GetString("TbSettingsSendThroughTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Set Win10 UWP Loopback 的本地化字符串。
         /// </summary>
         public static string TbSettingsSetUWP {
@@ -4587,6 +4650,24 @@ namespace ServiceLib.Resx {
         public static string TbSystemProxyPac {
             get {
                 return ResourceManager.GetString("TbSystemProxyPac", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 UDP over TCP 的本地化字符串。
+        /// </summary>
+        public static string TbUot {
+            get {
+                return ResourceManager.GetString("TbUot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Username 的本地化字符串。
+        /// </summary>
+        public static string TbUsername {
+            get {
+                return ResourceManager.GetString("TbUsername", resourceCulture);
             }
         }
         

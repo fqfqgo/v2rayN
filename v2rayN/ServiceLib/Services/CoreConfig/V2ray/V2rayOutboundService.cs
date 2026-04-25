@@ -51,10 +51,7 @@ public partial class CoreConfigV2rayService
             }
             foreach (var outbound in actOutboundWithTlsList)
             {
-                outbound.streamSettings.sockopt = new()
-                {
-                    dialerProxy = fragmentOutbound.tag
-                };
+                FillDialerProxy(outbound, fragmentOutbound.tag);
             }
         }
         return proxyOutboundList;
@@ -153,6 +150,7 @@ public partial class CoreConfigV2rayService
                         serversItem.password = _node.Password;
                         serversItem.method = AppManager.Instance.GetShadowsocksSecurities(_node).Contains(protocolExtra.SsMethod)
                             ? protocolExtra.SsMethod : "none";
+                        serversItem.uot = protocolExtra.Uot == true ? true : null;
 
                         serversItem.ota = false;
                         serversItem.level = 1;
@@ -227,12 +225,13 @@ public partial class CoreConfigV2rayService
                         usersItem.email = Global.UserEMail;
                         usersItem.encryption = protocolExtra.VlessEncryption;
 
-                        if (!protocolExtra.Flow.IsNullOrEmpty())
+                        if (protocolExtra.Flow.IsNullOrEmpty())
                         {
-                            usersItem.flow = protocolExtra.Flow;
+                            FillOutboundMux(outbound, muxEnabled, muxEnabled);
                         }
                         else
                         {
+                            usersItem.flow = protocolExtra.Flow;
                             FillOutboundMux(outbound, false, muxEnabled);
                         }
                         outbound.settings.servers = null;
@@ -353,11 +352,7 @@ public partial class CoreConfigV2rayService
             var host = _node.RequestHost.TrimEx();
             var path = _node.Path.TrimEx();
             var sni = _node.Sni.TrimEx();
-            var useragent = "";
-            if (!_config.CoreBasicItem.DefUserAgent.IsNullOrEmpty())
-            {
-                useragent = Global.UserAgentTexts.GetValueOrDefault(_config.CoreBasicItem.DefUserAgent, _config.CoreBasicItem.DefUserAgent);
-            }
+            var useragent = _config.CoreBasicItem.DefUserAgent ?? string.Empty;
 
             //if tls
             if (_node.StreamSecurity == Global.StreamSecurity)
@@ -440,10 +435,10 @@ public partial class CoreConfigV2rayService
                     kcpSettings.congestion = _config.KcpItem.Congestion;
                     kcpSettings.readBufferSize = _config.KcpItem.ReadBufferSize;
                     kcpSettings.writeBufferSize = _config.KcpItem.WriteBufferSize;
-                    streamSettings.finalmask ??= new();
+                    var kcpFinalmask = new Finalmask4Ray();
                     if (Global.KcpHeaderMaskMap.TryGetValue(_node.HeaderType, out var header))
                     {
-                        streamSettings.finalmask.udp =
+                        kcpFinalmask.udp =
                         [
                             new Mask4Ray
                             {
@@ -452,23 +447,24 @@ public partial class CoreConfigV2rayService
                             }
                         ];
                     }
-                    streamSettings.finalmask.udp ??= [];
+                    kcpFinalmask.udp ??= [];
                     if (path.IsNullOrEmpty())
                     {
-                        streamSettings.finalmask.udp.Add(new Mask4Ray
+                        kcpFinalmask.udp.Add(new Mask4Ray
                         {
                             type = "mkcp-original"
                         });
                     }
                     else
                     {
-                        streamSettings.finalmask.udp.Add(new Mask4Ray
+                        kcpFinalmask.udp.Add(new Mask4Ray
                         {
                             type = "mkcp-aes128gcm",
                             settings = new MaskSettings4Ray { password = path }
                         });
                     }
                     streamSettings.kcpSettings = kcpSettings;
+                    streamSettings.finalmask = kcpFinalmask;
                     break;
                 //ws
                 case nameof(ETransport.ws):
@@ -494,13 +490,17 @@ public partial class CoreConfigV2rayService
                 case nameof(ETransport.httpupgrade):
                     HttpupgradeSettings4Ray httpupgradeSettings = new();
 
+                    if (host.IsNotEmpty())
+                    {
+                        httpupgradeSettings.host = host;
+                    }
                     if (path.IsNotEmpty())
                     {
                         httpupgradeSettings.path = path;
                     }
-                    if (host.IsNotEmpty())
+                    if (useragent.IsNotEmpty())
                     {
-                        httpupgradeSettings.host = host;
+                        httpupgradeSettings.headers.UserAgent = useragent;
                     }
                     streamSettings.httpupgradeSettings = httpupgradeSettings;
 
@@ -579,6 +579,7 @@ public partial class CoreConfigV2rayService
                         health_check_timeout = _config.GrpcItem.HealthCheckTimeout,
                         permit_without_stream = _config.GrpcItem.PermitWithoutStream,
                         initial_windows_size = _config.GrpcItem.InitialWindowsSize,
+                        user_agent = useragent.NullIfEmpty(),
                     };
                     streamSettings.grpcSettings = grpcSettings;
                     break;
@@ -597,36 +598,46 @@ public partial class CoreConfigV2rayService
                         : (_config.HysteriaItem.HopInterval >= 5
                             ? _config.HysteriaItem.HopInterval
                             : Global.Hysteria2DefaultHopInt).ToString();
-                    HysteriaUdpHop4Ray? udpHop = null;
+                    var hy2Finalmask = new Finalmask4Ray();
+                    var quicParams = new QuicParams4Ray();
                     if (!ports.IsNullOrEmpty() &&
                         (ports.Contains(':') || ports.Contains('-') || ports.Contains(',')))
                     {
-                        udpHop = new HysteriaUdpHop4Ray
+                        var udpHop = new UdpHop4Ray
                         {
-                            port = ports.Replace(':', '-'),
+                            ports = ports.Replace(':', '-'),
                             interval = hopInterval,
                         };
+                        quicParams.udpHop = udpHop;
+                    }
+                    if (upMbps > 0 || downMbps > 0)
+                    {
+                        quicParams.congestion = "brutal";
+                        quicParams.brutalUp = upMbps > 0 ? $"{upMbps}mbps" : null;
+                        quicParams.brutalDown = downMbps > 0 ? $"{downMbps}mbps" : null;
+                    }
+                    else
+                    {
+                        quicParams.congestion = "bbr";
+                    }
+                    hy2Finalmask.quicParams = quicParams;
+                    if (!protocolExtra.SalamanderPass.IsNullOrEmpty())
+                    {
+                        hy2Finalmask.udp =
+                            [
+                                new Mask4Ray
+                                {
+                                    type = "salamander",
+                                    settings = new MaskSettings4Ray { password = protocolExtra.SalamanderPass.TrimEx(), }
+                                }
+                            ];
                     }
                     streamSettings.hysteriaSettings = new()
                     {
                         version = 2,
                         auth = _node.Password,
-                        up = upMbps > 0 ? $"{upMbps}mbps" : null,
-                        down = downMbps > 0 ? $"{downMbps}mbps" : null,
-                        udphop = udpHop,
                     };
-                    if (!protocolExtra.SalamanderPass.IsNullOrEmpty())
-                    {
-                        streamSettings.finalmask ??= new();
-                        streamSettings.finalmask.udp =
-                        [
-                            new Mask4Ray
-                            {
-                                type = "salamander",
-                                settings = new MaskSettings4Ray { password = protocolExtra.SalamanderPass.TrimEx(), }
-                            }
-                        ];
-                    }
+                    streamSettings.finalmask = hy2Finalmask;
                     break;
 
                 default:
@@ -643,10 +654,11 @@ public partial class CoreConfigV2rayService
 
                         //request Host
                         var request = EmbedUtils.GetEmbedText(Global.V2raySampleHttpRequestFileName);
+                        var useragentValue = Global.TcpHttpUserAgentTexts.GetValueOrDefault(useragent, useragent);
                         var arrHost = host.Split(',');
                         var host2 = string.Join(",".AppendQuotes(), arrHost);
                         request = request.Replace("$requestHost$", $"{host2.AppendQuotes()}");
-                        request = request.Replace("$requestUserAgent$", $"{useragent.AppendQuotes()}");
+                        request = request.Replace("$requestUserAgent$", $"{useragentValue.AppendQuotes()}");
                         //Path
                         var pathHttp = @"/";
                         if (path.IsNotEmpty())
@@ -664,7 +676,7 @@ public partial class CoreConfigV2rayService
 
             if (!_node.Finalmask.IsNullOrEmpty())
             {
-                streamSettings.finalmask = JsonUtils.Deserialize<Finalmask4Ray>(_node.Finalmask);
+                streamSettings.finalmask = JsonUtils.ParseJson(_node.Finalmask);
             }
         }
         catch (Exception ex)
@@ -687,7 +699,12 @@ public partial class CoreConfigV2rayService
         for (var i = 0; i < nodes.Count; i++)
         {
             var node = nodes[i];
-            var currentTag = $"{baseTagName}-{i + 1}";
+            var currentTag = $"{baseTagName}-{i + 1}-{node.Remarks}";
+
+            if (nodes.Count == 1)
+            {
+                currentTag = baseTagName;
+            }
 
             if (node.ConfigType.IsGroupType())
             {
@@ -718,8 +735,8 @@ public partial class CoreConfigV2rayService
         for (var i = 0; i < nodesReverse.Count; i++)
         {
             var node = nodesReverse[i];
-            var currentTag = i == 0 ? baseTagName : $"chain-{baseTagName}-{i}";
-            var dialerProxyTag = i != nodesReverse.Count - 1 ? $"chain-{baseTagName}-{i + 1}" : null;
+            var currentTag = i == 0 ? baseTagName : $"chain-{baseTagName}-{i}-{node.Remarks}";
+            var dialerProxyTag = i != nodesReverse.Count - 1 ? $"chain-{baseTagName}-{i + 1}-{nodesReverse[i + 1].Remarks}" : null;
             if (node.ConfigType.IsGroupType())
             {
                 var childProfiles = new CoreConfigV2rayService(context with { Node = node, }).BuildGroupProxyOutbounds(currentTag);
@@ -729,10 +746,7 @@ public partial class CoreConfigV2rayService
                         childProfiles.Where(n => n?.streamSettings?.sockopt?.dialerProxy?.IsNullOrEmpty() ?? true);
                     foreach (var chainEndNode in chainEndNodes)
                     {
-                        chainEndNode.streamSettings.sockopt = new()
-                        {
-                            dialerProxy = dialerProxyTag
-                        };
+                        FillDialerProxy(chainEndNode, dialerProxyTag);
                     }
                 }
                 if (i != 0)
@@ -740,12 +754,10 @@ public partial class CoreConfigV2rayService
                     var chainStartNodes = childProfiles.Where(n => n.tag.StartsWith(currentTag)).ToList();
                     if (chainStartNodes.Count == 1)
                     {
+                        var firstChainTag = chainStartNodes.First().tag;
                         foreach (var existedChainEndNode in resultOutbounds.Where(n => n.streamSettings?.sockopt?.dialerProxy == currentTag))
                         {
-                            existedChainEndNode.streamSettings.sockopt = new()
-                            {
-                                dialerProxy = chainStartNodes.First().tag
-                            };
+                            FillDialerProxy(existedChainEndNode, firstChainTag);
                         }
                     }
                     else if (chainStartNodes.Count > 1)
@@ -768,12 +780,8 @@ public partial class CoreConfigV2rayService
                                 var nextTag = k + 1 < existedChainNodesClone.Count
                                     ? existedChainNodesClone[k + 1].tag
                                     : chainStartNode.tag;
-                                existedChainNode.streamSettings.sockopt = new()
-                                {
-                                    dialerProxy = (previousDialerProxyTag == currentTag)
-                                        ? chainStartNode.tag
-                                        : nextTag
-                                };
+                                FillDialerProxy(existedChainNode,
+                                    previousDialerProxyTag == currentTag ? chainStartNode.tag : nextTag);
                                 resultOutbounds.Add(existedChainNode);
                             }
                             j++;
@@ -789,14 +797,32 @@ public partial class CoreConfigV2rayService
 
             if (!dialerProxyTag.IsNullOrEmpty())
             {
-                outbound.streamSettings.sockopt = new()
-                {
-                    dialerProxy = dialerProxyTag
-                };
+                FillDialerProxy(outbound, dialerProxyTag);
             }
 
             resultOutbounds.Add(outbound);
         }
         return resultOutbounds;
+    }
+
+    private static void FillDialerProxy(Outbounds4Ray outbound, string dialerProxyTag)
+    {
+        outbound.streamSettings ??= new();
+        outbound.streamSettings.sockopt ??= new();
+        outbound.streamSettings.sockopt.dialerProxy = dialerProxyTag;
+
+        // xhttp download dialer proxy
+        if (outbound?.streamSettings?.xhttpSettings?.extra is not null)
+        {
+            var xhttpExtra = JsonUtils.ParseJson(JsonUtils.Serialize(outbound.streamSettings.xhttpSettings!.extra));
+            if (xhttpExtra is JsonObject xhttpExtraObject
+                && xhttpExtraObject["downloadSettings"] is JsonObject downloadSettings)
+            {
+                var sockopt = downloadSettings["sockopt"] as JsonObject ?? new JsonObject();
+                sockopt["dialerProxy"] = dialerProxyTag;
+                downloadSettings["sockopt"] = sockopt;
+                outbound.streamSettings.xhttpSettings.extra = xhttpExtraObject;
+            }
+        }
     }
 }

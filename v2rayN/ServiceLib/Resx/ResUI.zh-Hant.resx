@@ -937,7 +937,7 @@
     <value>使用者代理 (User-Agent)</value>
   </data>
   <data name="TbSettingsDefUserAgentTips" xml:space="preserve">
-    <value>僅對 TCP/HTTP、WS 協定生效</value>
+    <value>僅對 TCP/HTTP、WS、gRPC、XHTTP 生效</value>
   </data>
   <data name="TbSettingsCurrentFontFamily" xml:space="preserve">
     <value>目前字型 (需重啟)</value>
@@ -1676,5 +1676,26 @@
   </data>
   <data name="menuEditFormat" xml:space="preserve">
     <value>格式化</value>
+  </data>
+  <data name="TbUot" xml:space="preserve">
+    <value>UDP over TCP</value>
+  </data>
+  <data name="menuAddNaiveServer" xml:space="preserve">
+    <value>新增 [NaïveProxy] 節點</value>
+  </data>
+  <data name="TbInsecureConcurrency" xml:space="preserve">
+    <value>不安全的並行處理</value>
+  </data>
+  <data name="TbUsername" xml:space="preserve">
+    <value>使用者名稱</value>
+  </data>
+  <data name="TbIcmpRoutingPolicy" xml:space="preserve">
+    <value>ICMP 路由策略</value>
+  </data>
+  <data name="TbLegacyProtect" xml:space="preserve">
+    <value>Legacy TUN Protect</value>
+  </data>
+  <data name="TbSettingsSendThroughTip" xml:space="preserve">
+    <value>For multi-interface environments, enter the local machine's IPv4 address</value>
   </data>
 </root>

@@ -15,7 +15,10 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
         var ret = new RetResult();
         try
         {
-            if (context.IsTunEnabled && context.TunProtectSsPort > 0 && context.ProxyRelaySsPort > 0)
+            if (!context.AppConfig.TunModeItem.EnableLegacyProtect
+                && context.IsTunEnabled
+                && context.TunProtectSocksPort is > 0 and <= 65535
+                && context.ProxyRelaySocksPort is > 0 and <= 65535)
             {
                 return GenerateClientProxyRelayConfig();
             }
@@ -59,6 +62,7 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
             GenDns();
 
             GenStatistic();
+            ApplyOutboundSendThrough();
 
             var finalRule = BuildFinalRule();
             if (!string.IsNullOrEmpty(finalRule?.balancerTag))
@@ -192,6 +196,7 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
                 _coreConfig.routing.rules.Add(rule);
             }
 
+            ApplyOutboundSendThrough();
             //ret.Msg =string.Format(ResUI.SuccessfulConfiguration"), node.getSummary());
             ret.Success = true;
             ret.Data = JsonUtils.Serialize(_coreConfig);
@@ -252,6 +257,7 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
             });
 
             _coreConfig.routing.rules.Add(BuildFinalRule());
+            ApplyOutboundSendThrough();
 
             ret.Msg = string.Format(ResUI.SuccessfulConfiguration, "");
             ret.Success = true;
@@ -306,58 +312,85 @@ public partial class CoreConfigV2rayService(CoreConfigContext context)
             var protectNode = new ProfileItem()
             {
                 CoreType = ECoreType.Xray,
-                ConfigType = EConfigType.Shadowsocks,
+                ConfigType = EConfigType.SOCKS,
                 Address = Global.Loopback,
-                Port = context.TunProtectSsPort,
-                Password = Global.None,
+                Port = context.TunProtectSocksPort,
             };
             protectNode.SetProtocolExtra(protectNode.GetProtocolExtra() with
             {
                 SsMethod = Global.None,
             });
 
+            const string protectTag = "tun-protect-socks";
             foreach (var outbound in _coreConfig.outbounds
                 .Where(o => o.streamSettings?.sockopt?.dialerProxy?.IsNullOrEmpty() ?? true))
             {
                 outbound.streamSettings ??= new();
                 outbound.streamSettings.sockopt ??= new();
-                outbound.streamSettings.sockopt.dialerProxy = "tun-protect-ss";
+                outbound.streamSettings.sockopt.dialerProxy = protectTag;
             }
             // ech protected
             foreach (var outbound in _coreConfig.outbounds
                 .Where(outbound => outbound.streamSettings?.tlsSettings?.echConfigList?.IsNullOrEmpty() == false))
             {
                 outbound.streamSettings!.tlsSettings!.echSockopt ??= new();
-                outbound.streamSettings.tlsSettings.echSockopt.dialerProxy = "tun-protect-ss";
+                outbound.streamSettings.tlsSettings.echSockopt.dialerProxy = protectTag;
+            }
+            // xhttp download protected
+            foreach (var outbound in _coreConfig.outbounds
+                .Where(o => o.streamSettings?.xhttpSettings?.extra is not null))
+            {
+                var xhttpExtra = JsonUtils.ParseJson(JsonUtils.Serialize(outbound.streamSettings.xhttpSettings!.extra));
+                if (xhttpExtra is not JsonObject xhttpExtraObject
+                    || xhttpExtraObject["downloadSettings"] is not JsonObject downloadSettings)
+                {
+                    continue;
+                }
+                // dialerProxy
+                var sockopt = downloadSettings["sockopt"] as JsonObject ?? new JsonObject();
+                sockopt["dialerProxy"] = protectTag;
+                downloadSettings["sockopt"] = sockopt;
+                // ech protected
+                if (downloadSettings["tlsSettings"] is JsonObject tlsSettings
+                    && tlsSettings["echConfigList"] is not null)
+                {
+                    tlsSettings["echSockopt"] = new JsonObject
+                    {
+                        ["dialerProxy"] = protectTag
+                    };
+                }
+                outbound.streamSettings.xhttpSettings.extra = xhttpExtraObject;
             }
             _coreConfig.outbounds.Add(new CoreConfigV2rayService(context with
             {
                 Node = protectNode,
-            }).BuildProxyOutbound("tun-protect-ss"));
+            }).BuildProxyOutbound(protectTag));
 
             _coreConfig.routing.rules ??= [];
             var hasBalancer = _coreConfig.routing.balancers is { Count: > 0 };
             _coreConfig.routing.rules.Add(new()
             {
-                inboundTag = ["proxy-relay-ss"],
+                inboundTag = ["proxy-relay-socks"],
                 outboundTag = hasBalancer ? null : Global.ProxyTag,
                 balancerTag = hasBalancer ? Global.ProxyTag + Global.BalancerTagSuffix : null,
                 type = "field"
             });
 
+            //_coreConfig.inbounds.Clear();
+
+            ApplyOutboundSendThrough();
             var configNode = JsonUtils.ParseJson(JsonUtils.Serialize(_coreConfig))!;
             configNode["inbounds"]!.AsArray().Add(new
             {
                 listen = Global.Loopback,
-                port = context.ProxyRelaySsPort,
-                protocol = "shadowsocks",
+                port = context.ProxyRelaySocksPort,
+                protocol = "socks",
                 settings = new
                 {
-                    network = "tcp,udp",
-                    method = Global.None,
-                    password = Global.None,
+                    auth = "noauth",
+                    udp = true,
                 },
-                tag = "proxy-relay-ss",
+                tag = "proxy-relay-socks",
             });
 
             ret.Msg = string.Format(ResUI.SuccessfulConfiguration, "");
