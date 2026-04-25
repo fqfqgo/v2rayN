@@ -13,6 +13,9 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
     private CheckUpdateView? _checkUpdateView;
     private BackupAndRestoreView? _backupAndRestoreView;
     private bool _blCloseByUser = false;
+    private bool _logPanelVisible = false;
+    private double _defaultTopHeight = 1;
+    private double _defaultBottomHeight = 1;
 
     public MainWindow()
     {
@@ -26,6 +29,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         // menuPromotion.Click += MenuPromotion_Click; // 推广菜单已隐藏
         menuCheckUpdate.Click += MenuCheckUpdate_Click;
         menuBackupAndRestore.Click += MenuBackupAndRestore_Click;
+        menuToggleLog.Click += MenuToggleLog_Click;
         menuClose.Click += MenuClose_Click;
 
         ViewModel = new MainWindowViewModel(UpdateViewHandler);
@@ -413,6 +417,11 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         await AppManager.Instance.AppExitAsync(true);
     }
 
+    private void MenuToggleLog_Click(object? sender, RoutedEventArgs e)
+    {
+        ToggleLogPanel();
+    }
+
     private void Shutdown(bool obj)
     {
         if (obj is bool b && _blCloseByUser == false)
@@ -473,10 +482,15 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
             ShowHideWindow(false);
         }
         RestoreUI();
+        // Default behavior: keep the bottom log panel collapsed on startup.
+        SetLogPanelVisible(false);
     }
 
     private void RestoreUI()
     {
+        _defaultTopHeight = _config.UiItem.MainGirdHeight1 > 0 ? _config.UiItem.MainGirdHeight1 : 1;
+        _defaultBottomHeight = _config.UiItem.MainGirdHeight2 > 0 ? _config.UiItem.MainGirdHeight2 : 1;
+
         if (_config.UiItem.MainGirdHeight1 > 0 && _config.UiItem.MainGirdHeight2 > 0)
         {
             if (_config.UiItem.MainGirdOrientation == EGirdOrientation.Horizontal)
@@ -492,6 +506,33 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         }
     }
 
+    private void ToggleLogPanel()
+    {
+        SetLogPanelVisible(!_logPanelVisible);
+    }
+
+    private void SetLogPanelVisible(bool visible)
+    {
+        _logPanelVisible = visible;
+        if (_config.UiItem.MainGirdOrientation != EGirdOrientation.Vertical)
+        {
+            return;
+        }
+
+        if (visible)
+        {
+            gridMain1.RowDefinitions[0].Height = new GridLength(_defaultTopHeight, GridUnitType.Star);
+            gridMain1.RowDefinitions[1].Height = new GridLength(10, GridUnitType.Pixel);
+            gridMain1.RowDefinitions[2].Height = new GridLength(_defaultBottomHeight, GridUnitType.Star);
+        }
+        else
+        {
+            gridMain1.RowDefinitions[1].Height = new GridLength(0, GridUnitType.Pixel);
+            gridMain1.RowDefinitions[2].Height = new GridLength(0, GridUnitType.Pixel);
+            gridMain1.RowDefinitions[0].Height = new GridLength(1, GridUnitType.Star);
+        }
+    }
+
     private void StorageUI()
     {
         ConfigHandler.SaveWindowSizeItem(_config, GetType().Name, Width, Height);
@@ -502,7 +543,9 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         }
         else if (_config.UiItem.MainGirdOrientation == EGirdOrientation.Vertical)
         {
-            ConfigHandler.SaveMainGirdHeight(_config, gridMain1.RowDefinitions[0].ActualHeight, gridMain1.RowDefinitions[2].ActualHeight);
+            var h1 = _logPanelVisible ? gridMain1.RowDefinitions[0].ActualHeight : _defaultTopHeight;
+            var h2 = _logPanelVisible ? gridMain1.RowDefinitions[2].ActualHeight : _defaultBottomHeight;
+            ConfigHandler.SaveMainGirdHeight(_config, h1, h2);
         }
     }
 

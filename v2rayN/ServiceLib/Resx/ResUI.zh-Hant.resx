@@ -228,6 +228,9 @@
   <data name="MsgSubscriptionDecodingFailed" xml:space="preserve">
     <value>無效的訂閱內容</value>
   </data>
+  <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
+    <value>訂閱解密失敗，請在訂閱分組設定中輸入你在訂閱網站的登入密碼</value>
+  </data>
   <data name="MsgUnpacking" xml:space="preserve">
     <value>正在解壓......</value>
   </data>
@@ -310,7 +313,7 @@
     <value>別名</value>
   </data>
   <data name="LvUrl" xml:space="preserve">
-    <value>可選位址 (URL)</value>
+    <value>訂閱連結</value>
   </data>
   <data name="LvCount" xml:space="preserve">
     <value>數量</value>

@@ -228,6 +228,9 @@
   <data name="MsgSubscriptionDecodingFailed" xml:space="preserve">
     <value>Contenu d’abonnement invalide</value>
   </data>
+  <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
+    <value>Échec du déchiffrement de l’abonnement. Veuillez saisir le mot de passe de connexion de votre site d’abonnement dans les paramètres du groupe d’abonnements.</value>
+  </data>
   <data name="MsgUnpacking" xml:space="preserve">
     <value>Décompression en cours......</value>
   </data>

@@ -325,7 +325,7 @@
     <value>Please enter the website login password</value>
   </data>
   <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
-    <value>Subscription decryption failed</value>
+    <value>Subscription decryption failed. Please enter your subscription website login password in Subscription Group Settings.</value>
   </data>
   <data name="LvCount" xml:space="preserve">
     <value>Count</value>

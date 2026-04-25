@@ -121,7 +121,7 @@
     <value>导出分享链接至剪贴板成功</value>
   </data>
   <data name="CheckServerSettings" xml:space="preserve">
-    <value>请先检查设置</value>
+    <value>请导入并选择节点</value>
   </data>
   <data name="ConfigurationFormatIncorrect" xml:space="preserve">
     <value>配置格式不正确</value>
@@ -265,7 +265,7 @@
     <value>请选择协议</value>
   </data>
   <data name="PleaseSelectServer" xml:space="preserve">
-    <value>请先选择配置</value>
+    <value>请先选择节点</value>
   </data>
   <data name="RemoveDuplicateServerResult" xml:space="preserve">
     <value>配置去重完成。原数量: {0}，现数量: {1}。</value>
@@ -310,7 +310,7 @@
     <value>别名</value>
   </data>
   <data name="LvUrl" xml:space="preserve">
-    <value>可选地址 (Url)</value>
+    <value>订阅链接</value>
   </data>
   <data name="LvLoginPassword" xml:space="preserve">
     <value>网站登录密码</value>
@@ -322,7 +322,7 @@
     <value>请输入网站登录密码</value>
   </data>
   <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
-    <value>订阅解密失败</value>
+    <value>订阅解密失败，请在订阅分组设置中输入你在订阅网站的登录密码</value>
   </data>
   <data name="LvCount" xml:space="preserve">
     <value>数量</value>

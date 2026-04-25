@@ -584,6 +584,11 @@ public class ProfilesViewModel : MyReactiveObject
         {
             await RefreshServers();
             Reload();
+            if (!StatusBarViewModel.Instance.BlConnectionOn)
+            {
+                var nodeName = item.GetSummary();
+                NoticeManager.Instance.Enqueue($"您已选择{nodeName}节点，请点击 底栏 启动连接 开始冲浪");
+            }
         }
     }
 

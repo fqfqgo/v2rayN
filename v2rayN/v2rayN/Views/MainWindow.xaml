@@ -289,6 +289,23 @@
                             </MenuItem>
                         </Menu>
                         <Separator />
+                        <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
+                            <MenuItem
+                                x:Name="menuToggleLog"
+                                Padding="{StaticResource MarginLeftRight8}"
+                                AutomationProperties.Name="日志">
+                                <MenuItem.Header>
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon
+                                            Margin="{StaticResource MarginRight8}"
+                                            VerticalAlignment="Center"
+                                            Kind="MessageTextOutline" />
+                                        <TextBlock Text="日志" />
+                                    </StackPanel>
+                                </MenuItem.Header>
+                            </MenuItem>
+                        </Menu>
+                        <Separator />
                         <!-- 推广菜单已隐藏 -->
                         <!--
                         <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">

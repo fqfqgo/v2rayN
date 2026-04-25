@@ -228,6 +228,9 @@
   <data name="MsgSubscriptionDecodingFailed" xml:space="preserve">
     <value>Некорректное содержимое подписки</value>
   </data>
+  <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
+    <value>Не удалось расшифровать подписку. Введите пароль от сайта подписки в настройках группы подписок.</value>
+  </data>
   <data name="MsgUnpacking" xml:space="preserve">
     <value>Распаковка…</value>
   </data>

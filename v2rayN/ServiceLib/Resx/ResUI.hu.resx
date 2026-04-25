@@ -228,6 +228,9 @@
   <data name="MsgSubscriptionDecodingFailed" xml:space="preserve">
     <value>Érvénytelen előfizetés tartalom</value>
   </data>
+  <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
+    <value>Az előfizetés visszafejtése sikertelen. Add meg az előfizetési webhely bejelentkezési jelszavát az Előfizetési csoport beállításaiban.</value>
+  </data>
   <data name="MsgUnpacking" xml:space="preserve">
     <value>Kicsomagolás...</value>
   </data>
