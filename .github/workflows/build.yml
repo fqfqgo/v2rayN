@@ -15,6 +15,7 @@ jobs:
   build:
     name: build x64 arm64
     strategy:
+      fail-fast: false
       matrix:
         arch: [ x64, arm64 ]
     runs-on: |-
