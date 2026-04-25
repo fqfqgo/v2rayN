@@ -22,7 +22,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       target: windows
-      project: ./v2rayN/v2rayN.Desktop/v2rayN.Desktop.csproj
+      project: ./v2rayN.Desktop/v2rayN.Desktop.csproj
 
   release-zip:
     if: inputs.release_tag != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
