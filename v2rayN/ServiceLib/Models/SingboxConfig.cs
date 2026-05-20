@@ -173,7 +173,7 @@ public class Peer4Sbox
     public string? pre_shared_key { get; set; }
     public List<string> allowed_ips { get; set; }
     public int? persistent_keepalive_interval { get; set; }
-    public List<int> reserved { get; set; }
+    public List<int>? reserved { get; set; }
 }
 
 public class Tls4Sbox
@@ -237,6 +237,7 @@ public class Transport4Sbox
 public class Headers4Sbox
 {
     public string? Host { get; set; }
+
     [JsonPropertyName("User-Agent")]
     public string UserAgent { get; set; }
 }
@@ -261,14 +262,6 @@ public class Server4Sbox : BaseServer4Sbox
 
     // public List<string>? path { get; set; } // hosts
     public Dictionary<string, List<string>>? predefined { get; set; }
-
-    // Deprecated in sing-box 1.12.0 , kept for backward compatibility
-    public string? address { get; set; }
-
-    public string? address_resolver { get; set; }
-    public string? address_strategy { get; set; }
-    public string? strategy { get; set; }
-    // Deprecated End
 }
 
 public class Experimental4Sbox

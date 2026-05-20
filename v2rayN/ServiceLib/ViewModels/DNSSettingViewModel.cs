@@ -20,6 +20,7 @@ public class DNSSettingViewModel : MyReactiveObject
     [Reactive] public string DomainStrategy4FreedomCompatible { get; set; }
     [Reactive] public string DomainDNSAddressCompatible { get; set; }
     [Reactive] public string NormalDNSCompatible { get; set; }
+    [Reactive] public string TunDNSCompatible { get; set; }
 
     [Reactive] public string DomainStrategy4Freedom2Compatible { get; set; }
     [Reactive] public string DomainDNSAddress2Compatible { get; set; }
@@ -43,6 +44,7 @@ public class DNSSettingViewModel : MyReactiveObject
         ImportDefConfig4V2rayCompatibleCmd = ReactiveCommand.CreateFromTask(async () =>
         {
             NormalDNSCompatible = EmbedUtils.GetEmbedText(Global.DNSV2rayNormalFileName);
+            TunDNSCompatible = EmbedUtils.GetEmbedText(Global.DNSV2rayNormalFileName);
             await Task.CompletedTask;
         });
 
@@ -84,6 +86,7 @@ public class DNSSettingViewModel : MyReactiveObject
         DomainStrategy4FreedomCompatible = item1?.DomainStrategy4Freedom ?? string.Empty;
         DomainDNSAddressCompatible = item1?.DomainDNSAddress ?? string.Empty;
         NormalDNSCompatible = item1?.NormalDNS ?? string.Empty;
+        TunDNSCompatible = item1?.TunDNS ?? string.Empty;
 
         var item2 = await AppManager.Instance.GetDNSItem(ECoreType.sing_box);
         SBCustomDNSEnableCompatible = item2.Enabled;
@@ -124,10 +127,27 @@ public class DNSSettingViewModel : MyReactiveObject
                 }
             }
         }
+        if (TunDNSCompatible.IsNotEmpty())
+        {
+            var obj = JsonUtils.ParseJson(TunDNSCompatible);
+            if (obj != null && obj["servers"] != null)
+            {
+            }
+            else
+            {
+                if (TunDNSCompatible.Contains('{') || TunDNSCompatible.Contains('}'))
+                {
+                    NoticeManager.Instance.Enqueue(ResUI.FillCorrectDNSText);
+                    return;
+                }
+            }
+        }
         if (NormalDNS2Compatible.IsNotEmpty())
         {
             var obj2 = JsonUtils.Deserialize<Dns4Sbox>(NormalDNS2Compatible);
-            if (obj2 == null)
+            if (obj2 == null
+                || obj2.servers.Count == 0
+                || obj2.servers.Any(s => s.type.IsNullOrEmpty()))
             {
                 NoticeManager.Instance.Enqueue(ResUI.FillCorrectDNSText);
                 return;
@@ -136,7 +156,9 @@ public class DNSSettingViewModel : MyReactiveObject
         if (TunDNS2Compatible.IsNotEmpty())
         {
             var obj2 = JsonUtils.Deserialize<Dns4Sbox>(TunDNS2Compatible);
-            if (obj2 == null)
+            if (obj2 == null
+                || obj2.servers.Count == 0
+                || obj2.servers.Any(s => s.type.IsNullOrEmpty()))
             {
                 NoticeManager.Instance.Enqueue(ResUI.FillCorrectDNSText);
                 return;
@@ -149,14 +171,15 @@ public class DNSSettingViewModel : MyReactiveObject
         item1.DomainDNSAddress = DomainDNSAddressCompatible;
         item1.UseSystemHosts = UseSystemHostsCompatible;
         item1.NormalDNS = NormalDNSCompatible;
+        item1.TunDNS = TunDNSCompatible;
         await ConfigHandler.SaveDNSItems(_config, item1);
 
         var item2 = await AppManager.Instance.GetDNSItem(ECoreType.sing_box);
         item2.Enabled = SBCustomDNSEnableCompatible;
         item2.DomainStrategy4Freedom = DomainStrategy4Freedom2Compatible;
         item2.DomainDNSAddress = DomainDNSAddress2Compatible;
-        item2.NormalDNS = JsonUtils.Serialize(JsonUtils.ParseJson(NormalDNS2Compatible));
-        item2.TunDNS = JsonUtils.Serialize(JsonUtils.ParseJson(TunDNS2Compatible));
+        item2.NormalDNS = JsonUtils.Serialize(JsonUtils.Deserialize<Dns4Sbox>(NormalDNS2Compatible));
+        item2.TunDNS = JsonUtils.Serialize(JsonUtils.Deserialize<Dns4Sbox>(TunDNS2Compatible));
         await ConfigHandler.SaveDNSItems(_config, item2);
 
         await ConfigHandler.SaveConfig(_config);

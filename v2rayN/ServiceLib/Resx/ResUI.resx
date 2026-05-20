@@ -121,7 +121,7 @@
     <value>Export share link to clipboard successfully</value>
   </data>
   <data name="CheckServerSettings" xml:space="preserve">
-    <value>Please check the Configuration settings first.</value>
+    <value>Invalid configuration, please check or reselect</value>
   </data>
   <data name="ConfigurationFormatIncorrect" xml:space="preserve">
     <value>Invalid configuration format.</value>
@@ -358,7 +358,7 @@
     <value>*QUIC key/KCP seed</value>
   </data>
   <data name="TransportPathTip4" xml:space="preserve">
-    <value>*grpc service name</value>
+    <value>gRPC service name</value>
   </data>
   <data name="TransportRequestHostTip1" xml:space="preserve">
     <value>*http host separated by commas (,)</value>
@@ -372,17 +372,17 @@
   <data name="TransportRequestHostTip4" xml:space="preserve">
     <value>*QUIC security</value>
   </data>
-  <data name="TransportHeaderTypeTip1" xml:space="preserve">
-    <value>*tcp camouflage type</value>
+  <data name="TransportHeaderType1" xml:space="preserve">
+    <value>raw camouflage type</value>
   </data>
-  <data name="TransportHeaderTypeTip2" xml:space="preserve">
-    <value>*kcp camouflage type</value>
+  <data name="TransportHeaderType2" xml:space="preserve">
+    <value>kcp camouflage type</value>
   </data>
-  <data name="TransportHeaderTypeTip3" xml:space="preserve">
-    <value>*QUIC camouflage type</value>
+  <data name="TransportHeaderType3" xml:space="preserve">
+    <value>QUIC camouflage type</value>
   </data>
-  <data name="TransportHeaderTypeTip4" xml:space="preserve">
-    <value>*grpc mode</value>
+  <data name="TransportHeaderType4" xml:space="preserve">
+    <value>gRPC mode</value>
   </data>
   <data name="LvTLS" xml:space="preserve">
     <value>TLS</value>
@@ -624,9 +624,6 @@
   <data name="TbRemarks" xml:space="preserve">
     <value>Alias (remarks)</value>
   </data>
-  <data name="TbRequestHost" xml:space="preserve">
-    <value>Camouflage domain(host)</value>
-  </data>
   <data name="TbSecurity" xml:space="preserve">
     <value>Encryption method (security)</value>
   </data>
@@ -637,7 +634,7 @@
     <value>TLS</value>
   </data>
   <data name="TipNetwork" xml:space="preserve">
-    <value>*Default value tcp</value>
+    <value>*Default value raw</value>
   </data>
   <data name="TbCoreType" xml:space="preserve">
     <value>Core Type</value>
@@ -740,9 +737,6 @@
   </data>
   <data name="TbSettingsPass" xml:space="preserve">
     <value>Auth pass</value>
-  </data>
-  <data name="TbSettingsRemoteDNS" xml:space="preserve">
-    <value>Custom DNS (multiple, separated by commas (,))</value>
   </data>
   <data name="TbSettingsSetUWP" xml:space="preserve">
     <value>Set Win10 UWP Loopback</value>
@@ -886,7 +880,7 @@
     <value>Rule object Doc</value>
   </data>
   <data name="TbDnsObjectDoc" xml:space="preserve">
-    <value>Supports DNS Object; Click to view documentation</value>
+    <value>Please fill in DNS Object; Click to view documentation</value>
   </data>
   <data name="SubUrlTips" xml:space="preserve">
     <value>For group please leave blank here</value>
@@ -970,7 +964,7 @@
     <value>User-Agent</value>
   </data>
   <data name="TbSettingsDefUserAgentTips" xml:space="preserve">
-    <value>This parameter is valid only for tcp/http, ws, gRPC and xhttp</value>
+    <value>This parameter is valid only for raw/http, ws, gRPC and xhttp</value>
   </data>
   <data name="TbSettingsCurrentFontFamily" xml:space="preserve">
     <value>Font family (requires restart)</value>
@@ -1101,7 +1095,7 @@
   <data name="TbSettingsTunStack" xml:space="preserve">
     <value>Stack</value>
   </data>
-  <data name="TbSettingsTunMtu" xml:space="preserve">
+  <data name="TbMtu" xml:space="preserve">
     <value>MTU</value>
   </data>
   <data name="TbSettingsEnableIPv6Address" xml:space="preserve">
@@ -1114,7 +1108,7 @@
     <value>Private Key</value>
   </data>
   <data name="TbReserved" xml:space="preserve">
-    <value>Reserved (2,3,4)</value>
+    <value>Reserved</value>
   </data>
   <data name="TbLocalAddress" xml:space="preserve">
     <value>Address (IPv4, IPv6)</value>
@@ -1135,7 +1129,7 @@
     <value>Test terminating...</value>
   </data>
   <data name="TransportRequestHostTip5" xml:space="preserve">
-    <value>*grpc Authority</value>
+    <value>gRPC Authority</value>
   </data>
   <data name="menuAddHttpServer" xml:space="preserve">
     <value>Add [HTTP]</value>
@@ -1353,20 +1347,11 @@
   <data name="TbSettingsLinuxSudoPasswordTip" xml:space="preserve">
     <value>The password will be validated via the command line. If a validation error causes the application to malfunction, please restart the application. The password will not be stored and must be entered again after each restart.</value>
   </data>
-  <data name="TbSettingsSendThrough" xml:space="preserve">
-    <value>Local outbound address (SendThrough)</value>
-  </data>
-  <data name="TbSettingsSendThroughTip" xml:space="preserve">
-    <value>For multi-interface environments, enter the local machine's IPv4 address</value>
-  </data>
-  <data name="FillCorrectSendThroughIPv4" xml:space="preserve">
-    <value>Please fill in the correct IPv4 address for SendThrough.</value>
-  </data>
-  <data name="TransportHeaderTypeTip5" xml:space="preserve">
-    <value>*xhttp mode</value>
+  <data name="TransportHeaderType5" xml:space="preserve">
+    <value>xhttp mode</value>
   </data>
   <data name="TransportExtraTip" xml:space="preserve">
-    <value>XHTTP Extra raw JSON, format: { XHTTP Object }</value>
+    <value>Raw JSON, format: { XHTTP Object }</value>
   </data>
   <data name="TbSettingsHide2TrayWhenClose" xml:space="preserve">
     <value>Hide to tray when closing the window</value>
@@ -1632,9 +1617,6 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="TbEchConfigList" xml:space="preserve">
     <value>EchConfigList</value>
   </data>
-  <data name="TbEchForceQuery" xml:space="preserve">
-    <value>EchForceQuery</value>
-  </data>
   <data name="TbFullCertTips" xml:space="preserve">
     <value>Full certificate (chain), PEM format</value>
   </data>
@@ -1742,5 +1724,47 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   </data>
   <data name="TbLegacyProtect" xml:space="preserve">
     <value>Legacy TUN Protect</value>
+  </data>
+  <data name="TbCamouflageDomain" xml:space="preserve">
+    <value>Camouflage domain</value>
+  </data>
+  <data name="TbHost" xml:space="preserve">
+    <value>Host</value>
+  </data>
+  <data name="TransportExtra" xml:space="preserve">
+    <value>XHTTP Extra</value>
+  </data>
+  <data name="TbAllowInsecureCertFetch" xml:space="preserve">
+    <value>Allow insecure cert fetch (self-signed)</value>
+  </data>
+  <data name="TbAllowInsecureCertFetchTips" xml:space="preserve">
+    <value>Only for fetching self-signed certificates. This may expose you to MITM risks.</value>
+  </data>
+  <data name="menuUdpTestServer" xml:space="preserve">
+    <value>Test Configurations UDP Delay</value>
+  </data>
+  <data name="TbSettingsUdpTestUrl" xml:space="preserve">
+    <value>UDP Test Url</value>
+  </data>
+  <data name="TbSettingsSendThrough" xml:space="preserve">
+    <value>Local outbound address (SendThrough)</value>
+  </data>
+  <data name="TbSettingsSendThroughTip" xml:space="preserve">
+    <value>For multi-interface environments, enter the local machine's IPv4 address</value>
+  </data>
+  <data name="FillCorrectSendThroughIPv4" xml:space="preserve">
+    <value>Please fill in the correct IPv4 address for SendThrough.</value>
+  </data>
+  <data name="TbSettingsBindInterface" xml:space="preserve">
+    <value>Bind Interface</value>
+  </data>
+  <data name="TbSettingsBindInterfaceTip" xml:space="preserve">
+    <value>For multi-interface environments, enter the name of the interface to bind. Only effective on Windows systems or TUN mode</value>
+  </data>
+  <data name="TbPreSharedKey" xml:space="preserve">
+    <value>PreSharedKey</value>
+  </data>
+  <data name="menuExport2InnerUri" xml:space="preserve">
+    <value>Export v2rayN Internal Share Link to Clipboard</value>
   </data>
 </root>

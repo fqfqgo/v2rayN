@@ -342,11 +342,6 @@
                         </StackPanel>
 
                         <StackPanel Grid.Row="1" Orientation="Horizontal">
-                            <TextBlock
-                                Margin="{StaticResource Margin4}"
-                                VerticalAlignment="Center"
-                                Text="{x:Static resx:ResUI.TbSettingsRemoteDNS}" />
-
                             <TextBlock Margin="{StaticResource Margin4}" VerticalAlignment="Center">
                                 <HyperlinkButton Classes="WithIcon" Click="linkDnsObjectDoc_Click">
                                     <TextBlock Text="{x:Static resx:ResUI.TbDnsObjectDoc}" />
@@ -395,13 +390,26 @@
                         </StackPanel>
                     </WrapPanel>
 
-                    <HeaderedContentControl
-                        Margin="{StaticResource Margin4}"
-                        BorderBrush="Gray"
-                        BorderThickness="1"
-                        Header="HTTP/SOCKS">
-                        <local:JsonEditor Name="txtnormalDNSCompatible" VerticalAlignment="Stretch" />
-                    </HeaderedContentControl>
+                    <Grid Margin="{StaticResource Margin4}" ColumnDefinitions="*,10,*">
+
+                        <HeaderedContentControl
+                            Grid.Column="0"
+                            BorderBrush="Gray"
+                            BorderThickness="1"
+                            Header="HTTP/SOCKS">
+                            <local:JsonEditor Name="txtnormalDNSCompatible" VerticalAlignment="Stretch" />
+                        </HeaderedContentControl>
+
+                        <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />
+
+                        <HeaderedContentControl
+                            Grid.Column="2"
+                            BorderBrush="Gray"
+                            BorderThickness="1"
+                            Header="{x:Static resx:ResUI.TbSettingsTunMode}">
+                            <local:JsonEditor Name="txttunDNSCompatible" VerticalAlignment="Stretch" />
+                        </HeaderedContentControl>
+                    </Grid>
                 </DockPanel>
             </TabItem>
 
@@ -481,7 +489,6 @@
                             Header="{x:Static resx:ResUI.TbSettingsTunMode}">
                             <local:JsonEditor Name="txttunDNS2Compatible" VerticalAlignment="Stretch" />
                         </HeaderedContentControl>
-
                     </Grid>
                 </DockPanel>
             </TabItem>

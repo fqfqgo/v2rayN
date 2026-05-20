@@ -70,6 +70,9 @@ jobs:
       if: github.event.inputs.release_tag != '' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
       run: |
         ./package-osx.sh "macos-${Arch}" "v2rayN-macos-${Arch}" "${RELEASE_TAG}"
+
+    - name: Sleep for race condition between matrix jobs
+      run: sleep $(awk 'BEGIN { srand(); printf "%.3f", rand()*2 }')
     
     - name: Upload dmg to release
       uses: svenstaro/upload-release-action@v2

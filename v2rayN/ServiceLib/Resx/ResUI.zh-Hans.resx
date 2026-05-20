@@ -355,7 +355,7 @@
     <value>*QUIC 加密密钥</value>
   </data>
   <data name="TransportPathTip4" xml:space="preserve">
-    <value>*grpc serviceName</value>
+    <value>gRPC serviceName</value>
   </data>
   <data name="TransportRequestHostTip1" xml:space="preserve">
     <value>*http host 中间逗号 (,) 分隔</value>
@@ -369,17 +369,17 @@
   <data name="TransportRequestHostTip4" xml:space="preserve">
     <value>*QUIC 加密方式</value>
   </data>
-  <data name="TransportHeaderTypeTip1" xml:space="preserve">
-    <value>*tcp 伪装类型</value>
+  <data name="TransportHeaderType1" xml:space="preserve">
+    <value>raw 伪装类型</value>
   </data>
-  <data name="TransportHeaderTypeTip2" xml:space="preserve">
-    <value>*kcp 伪装类型</value>
+  <data name="TransportHeaderType2" xml:space="preserve">
+    <value>kcp 伪装类型</value>
   </data>
-  <data name="TransportHeaderTypeTip3" xml:space="preserve">
-    <value>*QUIC 伪装类型</value>
+  <data name="TransportHeaderType3" xml:space="preserve">
+    <value>QUIC 伪装类型</value>
   </data>
-  <data name="TransportHeaderTypeTip4" xml:space="preserve">
-    <value>*grpc 模式</value>
+  <data name="TransportHeaderType4" xml:space="preserve">
+    <value>gRPC 模式</value>
   </data>
   <data name="LvTLS" xml:space="preserve">
     <value>TLS</value>
@@ -621,9 +621,6 @@
   <data name="TbRemarks" xml:space="preserve">
     <value>别名 (remarks)</value>
   </data>
-  <data name="TbRequestHost" xml:space="preserve">
-    <value>伪装域名 (host)</value>
-  </data>
   <data name="TbSecurity" xml:space="preserve">
     <value>加密方式 (security)</value>
   </data>
@@ -634,7 +631,7 @@
     <value>传输层安全 (TLS)</value>
   </data>
   <data name="TipNetwork" xml:space="preserve">
-    <value>*默认 tcp，选错会无法连接</value>
+    <value>*默认 raw，选错会无法连接</value>
   </data>
   <data name="TbCoreType" xml:space="preserve">
     <value>Core 类型</value>
@@ -737,9 +734,6 @@
   </data>
   <data name="TbSettingsPass" xml:space="preserve">
     <value>认证密码</value>
-  </data>
-  <data name="TbSettingsRemoteDNS" xml:space="preserve">
-    <value>自定义 DNS (可多个，用逗号 (,) 分隔)</value>
   </data>
   <data name="TbSettingsSetUWP" xml:space="preserve">
     <value>解除 Win10 UWP 应用回环代理限制</value>
@@ -883,7 +877,7 @@
     <value>规则详细说明文档</value>
   </data>
   <data name="TbDnsObjectDoc" xml:space="preserve">
-    <value>支持填写 DnsObject，JSON 格式，点击查看文档</value>
+    <value>请填写 DnsObject，JSON 格式，点击查看文档</value>
   </data>
   <data name="SubUrlTips" xml:space="preserve">
     <value>普通分组此处请留空</value>
@@ -970,7 +964,7 @@
     <value>用户代理 (User-Agent)</value>
   </data>
   <data name="TbSettingsDefUserAgentTips" xml:space="preserve">
-    <value>仅对 tcp/http、ws、gRPC、xhttp 生效</value>
+    <value>仅对 raw/http、ws、gRPC、xhttp 生效</value>
   </data>
   <data name="TbSettingsCurrentFontFamily" xml:space="preserve">
     <value>当前字体 (需重启)</value>
@@ -1098,7 +1092,7 @@
   <data name="TbSettingsTunStack" xml:space="preserve">
     <value>协议栈</value>
   </data>
-  <data name="TbSettingsTunMtu" xml:space="preserve">
+  <data name="TbMtu" xml:space="preserve">
     <value>MTU</value>
   </data>
   <data name="TbSettingsEnableIPv6Address" xml:space="preserve">
@@ -1111,7 +1105,7 @@
     <value>PrivateKey</value>
   </data>
   <data name="TbReserved" xml:space="preserve">
-    <value>Reserved (2,3,4)</value>
+    <value>Reserved</value>
   </data>
   <data name="TbLocalAddress" xml:space="preserve">
     <value>Address (IPv4,IPv6)</value>
@@ -1132,7 +1126,7 @@
     <value>测试终止中...</value>
   </data>
   <data name="TransportRequestHostTip5" xml:space="preserve">
-    <value>*grpc Authority</value>
+    <value>gRPC Authority</value>
   </data>
   <data name="menuAddHttpServer" xml:space="preserve">
     <value>添加 [HTTP]</value>
@@ -1350,20 +1344,11 @@
   <data name="TbSettingsLinuxSudoPasswordTip" xml:space="preserve">
     <value>密码将调用命令行校验，如果因为校验错误导致无法正常运行时，请重启本应用。 密码不会存储，每次重启后都需要再次输入。</value>
   </data>
-  <data name="TbSettingsSendThrough" xml:space="preserve">
-    <value>本地出站地址 (SendThrough)</value>
-  </data>
-  <data name="TbSettingsSendThroughTip" xml:space="preserve">
-    <value>用于多网口环境，请填写本机 IPv4 地址</value>
-  </data>
-  <data name="FillCorrectSendThroughIPv4" xml:space="preserve">
-    <value>请填写正确的 SendThrough IPv4 地址。</value>
-  </data>
-  <data name="TransportHeaderTypeTip5" xml:space="preserve">
-    <value>*XHTTP 模式</value>
+  <data name="TransportHeaderType5" xml:space="preserve">
+    <value>XHTTP 模式</value>
   </data>
   <data name="TransportExtraTip" xml:space="preserve">
-    <value>XHTTP Extra 原始 JSON，格式： { XHTTPObject }</value>
+    <value>原始 JSON，格式： { XHTTPObject }</value>
   </data>
   <data name="TbSettingsHide2TrayWhenClose" xml:space="preserve">
     <value>关闭窗口时隐藏至托盘</value>
@@ -1629,9 +1614,6 @@
   <data name="TbEchConfigList" xml:space="preserve">
     <value>EchConfigList</value>
   </data>
-  <data name="TbEchForceQuery" xml:space="preserve">
-    <value>EchForceQuery</value>
-  </data>
   <data name="TbFullCertTips" xml:space="preserve">
     <value>完整证书（链），PEM 格式</value>
   </data>
@@ -1739,5 +1721,47 @@
   </data>
   <data name="TbLegacyProtect" xml:space="preserve">
     <value>旧版 TUN 保护</value>
+  </data>
+  <data name="TbCamouflageDomain" xml:space="preserve">
+    <value>伪装域名</value>
+  </data>
+  <data name="TbHost" xml:space="preserve">
+    <value>Host</value>
+  </data>
+  <data name="TransportExtra" xml:space="preserve">
+    <value>XHTTP Extra</value>
+  </data>
+  <data name="TbAllowInsecureCertFetch" xml:space="preserve">
+    <value>允许不安全获取证书（自签名）</value>
+  </data>
+  <data name="TbAllowInsecureCertFetchTips" xml:space="preserve">
+    <value>仅用于抓取自签证书，存在中间人风险。</value>
+  </data>
+  <data name="menuUdpTestServer" xml:space="preserve">
+    <value>测试 UDP 延迟 (多选)</value>
+  </data>
+  <data name="TbSettingsUdpTestUrl" xml:space="preserve">
+    <value>UDP 测试地址</value>
+  </data>
+  <data name="TbSettingsSendThrough" xml:space="preserve">
+    <value>本地出站地址 (SendThrough)</value>
+  </data>
+  <data name="TbSettingsSendThroughTip" xml:space="preserve">
+    <value>用于多网口环境，请填写本机 IPv4 地址</value>
+  </data>
+  <data name="FillCorrectSendThroughIPv4" xml:space="preserve">
+    <value>请填写正确的 SendThrough IPv4 地址。</value>
+  </data>
+  <data name="TbSettingsBindInterface" xml:space="preserve">
+    <value>绑定网口</value>
+  </data>
+  <data name="TbSettingsBindInterfaceTip" xml:space="preserve">
+    <value>用于多网口环境，填写要绑定的网口名称，仅生效于 Windows 系统或 TUN 模式</value>
+  </data>
+  <data name="TbPreSharedKey" xml:space="preserve">
+    <value>PreSharedKey</value>
+  </data>
+  <data name="menuExport2InnerUri" xml:space="preserve">
+    <value>导出 v2rayN 内部分享链接至剪贴板 (多选)</value>
   </data>
 </root>

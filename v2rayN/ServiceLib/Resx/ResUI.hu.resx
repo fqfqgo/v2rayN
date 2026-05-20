@@ -346,7 +346,7 @@
     <value>*QUIC kulcs/KCP seed</value>
   </data>
   <data name="TransportPathTip4" xml:space="preserve">
-    <value>*grpc szolgáltatásnév</value>
+    <value>gRPC szolgáltatásnév</value>
   </data>
   <data name="TransportRequestHostTip1" xml:space="preserve">
     <value>*http host vesszővel elválasztva (,)</value>
@@ -360,17 +360,17 @@
   <data name="TransportRequestHostTip4" xml:space="preserve">
     <value>*QUIC biztonság</value>
   </data>
-  <data name="TransportHeaderTypeTip1" xml:space="preserve">
-    <value>*tcp álcázási típus</value>
+  <data name="TransportHeaderType1" xml:space="preserve">
+    <value>raw álcázási típus</value>
   </data>
-  <data name="TransportHeaderTypeTip2" xml:space="preserve">
-    <value>*kcp álcázási típus</value>
+  <data name="TransportHeaderType2" xml:space="preserve">
+    <value>kcp álcázási típus</value>
   </data>
-  <data name="TransportHeaderTypeTip3" xml:space="preserve">
-    <value>*QUIC álcázási típus</value>
+  <data name="TransportHeaderType3" xml:space="preserve">
+    <value>QUIC álcázási típus</value>
   </data>
-  <data name="TransportHeaderTypeTip4" xml:space="preserve">
-    <value>*grpc mód</value>
+  <data name="TransportHeaderType4" xml:space="preserve">
+    <value>gRPC mód</value>
   </data>
   <data name="LvTLS" xml:space="preserve">
     <value>TLS</value>
@@ -609,9 +609,6 @@
   <data name="TbRemarks" xml:space="preserve">
     <value>Alias (megjegyzések)</value>
   </data>
-  <data name="TbRequestHost" xml:space="preserve">
-    <value>Álcázási tartomány(host)</value>
-  </data>
   <data name="TbSecurity" xml:space="preserve">
     <value>Titkosítási módszer (biztonság)</value>
   </data>
@@ -622,7 +619,7 @@
     <value>TLS</value>
   </data>
   <data name="TipNetwork" xml:space="preserve">
-    <value>*Alapértelmezett érték tcp</value>
+    <value>*Alapértelmezett érték raw</value>
   </data>
   <data name="TbCoreType" xml:space="preserve">
     <value>Core Típus</value>
@@ -725,9 +722,6 @@
   </data>
   <data name="TbSettingsPass" xml:space="preserve">
     <value>Hitelesítési jelszó</value>
-  </data>
-  <data name="TbSettingsRemoteDNS" xml:space="preserve">
-    <value>Egyéni DNS (több, vesszővel (,) elválasztva)</value>
   </data>
   <data name="TbSettingsSetUWP" xml:space="preserve">
     <value>Win10 UWP Loopback beállítása</value>
@@ -940,7 +934,7 @@
     <value>User-Agent</value>
   </data>
   <data name="TbSettingsDefUserAgentTips" xml:space="preserve">
-    <value>This parameter is valid only for tcp/http, ws, gRPC and xhttp</value>
+    <value>This parameter is valid only for raw/http, ws, gRPC and xhttp</value>
   </data>
   <data name="TbSettingsCurrentFontFamily" xml:space="preserve">
     <value>Betűtípus (újraindítást igényel)</value>
@@ -1071,7 +1065,7 @@
   <data name="TbSettingsTunStack" xml:space="preserve">
     <value>Hálózati verem</value>
   </data>
-  <data name="TbSettingsTunMtu" xml:space="preserve">
+  <data name="TbMtu" xml:space="preserve">
     <value>MTU</value>
   </data>
   <data name="TbSettingsEnableIPv6Address" xml:space="preserve">
@@ -1084,7 +1078,7 @@
     <value>Privát kulcs</value>
   </data>
   <data name="TbReserved" xml:space="preserve">
-    <value>Fenntartott (2,3,4)</value>
+    <value>Fenntartott</value>
   </data>
   <data name="TbLocalAddress" xml:space="preserve">
     <value>Cím (IPv4, IPv6)</value>
@@ -1105,7 +1099,7 @@
     <value>Teszt megszakítása...</value>
   </data>
   <data name="TransportRequestHostTip5" xml:space="preserve">
-    <value>*grpc Authority</value>
+    <value>gRPC Authority</value>
   </data>
   <data name="menuAddHttpServer" xml:space="preserve">
     <value>HTTP konfiguráció hozzáadása</value>
@@ -1323,11 +1317,11 @@
   <data name="TbSettingsLinuxSudoPasswordTip" xml:space="preserve">
     <value>A jelszót a parancssoron keresztül ellenőrizzük. Ha egy érvényesítési hiba miatt az alkalmazás hibásan működik, indítsa újra az alkalmazást. A jelszó nem kerül tárolásra, és minden újraindítás után újra meg kell adni.</value>
   </data>
-  <data name="TransportHeaderTypeTip5" xml:space="preserve">
-    <value>*xhttp mód</value>
+  <data name="TransportHeaderType5" xml:space="preserve">
+    <value>xhttp mód</value>
   </data>
   <data name="TransportExtraTip" xml:space="preserve">
-    <value>XHTTP Extra nyers JSON, formátum: { XHTTP Objektum }</value>
+    <value>Raw JSON, format: { XHTTP Object }</value>
   </data>
   <data name="TbSettingsHide2TrayWhenClose" xml:space="preserve">
     <value>Ablak bezárásakor a tálcára rejtés</value>
@@ -1590,9 +1584,6 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="TbEchConfigList" xml:space="preserve">
     <value>EchConfigList</value>
   </data>
-  <data name="TbEchForceQuery" xml:space="preserve">
-    <value>EchForceQuery</value>
-  </data>
   <data name="TbFullCertTips" xml:space="preserve">
     <value>Full certificate (chain), PEM format</value>
   </data>
@@ -1701,7 +1692,46 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="TbLegacyProtect" xml:space="preserve">
     <value>Legacy TUN Protect</value>
   </data>
+  <data name="TbCamouflageDomain" xml:space="preserve">
+    <value>Álcázási tartomány</value>
+  </data>
+  <data name="TbHost" xml:space="preserve">
+    <value>Host</value>
+  </data>
+  <data name="TransportExtra" xml:space="preserve">
+    <value>XHTTP Extra</value>
+  </data>
+  <data name="TbAllowInsecureCertFetch" xml:space="preserve">
+    <value>Allow insecure cert fetch (self-signed)</value>
+  </data>
+  <data name="TbAllowInsecureCertFetchTips" xml:space="preserve">
+    <value>Only for fetching self-signed certificates. This may expose you to MITM risks.</value>
+  </data>
+  <data name="menuUdpTestServer" xml:space="preserve">
+    <value>Test Configurations UDP Delay</value>
+  </data>
+  <data name="TbSettingsUdpTestUrl" xml:space="preserve">
+    <value>UDP Test Url</value>
+  </data>
+  <data name="TbSettingsSendThrough" xml:space="preserve">
+    <value>Local outbound address (SendThrough)</value>
+  </data>
   <data name="TbSettingsSendThroughTip" xml:space="preserve">
     <value>For multi-interface environments, enter the local machine's IPv4 address</value>
+  </data>
+  <data name="FillCorrectSendThroughIPv4" xml:space="preserve">
+    <value>Please fill in the correct IPv4 address for SendThrough.</value>
+  </data>
+  <data name="TbSettingsBindInterface" xml:space="preserve">
+    <value>Bind Interface</value>
+  </data>
+  <data name="TbSettingsBindInterfaceTip" xml:space="preserve">
+    <value>For multi-interface environments, enter the name of the interface to bind. Only effective on Windows systems or TUN mode</value>
+  </data>
+  <data name="TbPreSharedKey" xml:space="preserve">
+    <value>PreSharedKey</value>
+  </data>
+  <data name="menuExport2InnerUri" xml:space="preserve">
+    <value>Export v2rayN Internal Share Link to Clipboard</value>
   </data>
 </root>

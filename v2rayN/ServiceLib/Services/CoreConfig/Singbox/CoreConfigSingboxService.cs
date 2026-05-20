@@ -57,65 +57,13 @@ public partial class CoreConfigSingboxService(CoreConfigContext context)
 
             ConvertGeo2Ruleset();
 
+            ApplyOutboundBindInterface();
             ApplyOutboundSendThrough();
 
             ret.Msg = string.Format(ResUI.SuccessfulConfiguration, "");
             ret.Success = true;
 
             ret.Data = ApplyFullConfigTemplate();
-            if (!context.AppConfig.TunModeItem.EnableLegacyProtect
-                && context.TunProtectSocksPort is > 0 and <= 65535)
-            {
-                // Replace relay proxy outbound, avoid mux or other feature cause issue, and add a socks inbound for tun protect
-                var relayProxyIndex = _coreConfig.outbounds.FindIndex(o => o.tag == Global.ProxyTag);
-                _coreConfig.outbounds[relayProxyIndex] = new Outbound4Sbox()
-                {
-                    type = Global.ProtocolTypes[EConfigType.SOCKS],
-                    tag = Global.ProxyTag,
-                    server = Global.Loopback,
-                    server_port = context.ProxyRelaySocksPort,
-                };
-                var ssInbound = new
-                {
-                    type = "socks",
-                    tag = "tun-protect-socks",
-                    listen = Global.Loopback,
-                    listen_port = context.TunProtectSocksPort,
-                };
-                var directRule = new Rule4Sbox()
-                {
-                    inbound = new List<string> { ssInbound.tag },
-                    outbound = Global.DirectTag,
-                };
-                var singboxConfigNode = JsonUtils.ParseJson(ret.Data.ToString())!.AsObject();
-                var inboundsNode = singboxConfigNode["inbounds"]!.AsArray();
-                inboundsNode.Add(JsonUtils.SerializeToNode(ssInbound, new JsonSerializerOptions
-                {
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-                }));
-                var routeNode = singboxConfigNode["route"]?.AsObject();
-                var rulesNode = routeNode?["rules"]?.AsArray();
-                var protectRuleNode = JsonUtils.SerializeToNode(directRule,
-                    new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull });
-                if (rulesNode != null)
-                {
-                    rulesNode.Insert(0, protectRuleNode);
-                }
-                else
-                {
-                    var newRulesNode = new JsonArray() { protectRuleNode };
-                    if (routeNode is null)
-                    {
-                        var newRouteNode = new JsonObject() { ["rules"] = newRulesNode };
-                        singboxConfigNode["route"] = newRouteNode;
-                    }
-                    else
-                    {
-                        routeNode["rules"] = newRulesNode;
-                    }
-                }
-                ret.Data = JsonUtils.Serialize(singboxConfigNode);
-            }
             return ret;
         }
         catch (Exception ex)
@@ -223,6 +171,7 @@ public partial class CoreConfigSingboxService(CoreConfigContext context)
                 _coreConfig.route.rules.Add(rule);
             }
 
+            ApplyOutboundBindInterface();
             ApplyOutboundSendThrough();
             ret.Success = true;
             ret.Data = JsonUtils.Serialize(_coreConfig);
@@ -282,6 +231,7 @@ public partial class CoreConfigSingboxService(CoreConfigContext context)
                 listen_port = port,
                 type = EInboundProtocol.mixed.ToString(),
             });
+            ApplyOutboundBindInterface();
             ApplyOutboundSendThrough();
 
             ret.Msg = string.Format(ResUI.SuccessfulConfiguration, "");
