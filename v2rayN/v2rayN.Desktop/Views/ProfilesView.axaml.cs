@@ -26,6 +26,7 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
         txtServerFilter.KeyDown += TxtServerFilter_KeyDown;
         lstProfiles.KeyDown += LstProfiles_KeyDown;
         lstProfiles.SelectionChanged += lstProfiles_SelectionChanged;
+        lstProfiles.Tapped += LstProfiles_Tapped;
         lstProfiles.DoubleTapped += LstProfiles_DoubleTapped;
         lstProfiles.LoadingRow += LstProfiles_LoadingRow;
         lstProfiles.Sorting += LstProfiles_Sorting;
@@ -138,7 +139,8 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
                 break;
 
             case EViewAction.ShowYesNo:
-                if (await UI.ShowYesNo(_window, ResUI.RemoveServer) != ButtonResult.Yes)
+                var yesNoMsg = obj as string;
+                if (await UI.ShowYesNo(_window, yesNoMsg.IsNullOrEmpty() ? ResUI.RemoveServer : yesNoMsg) != ButtonResult.Yes)
                 {
                     return false;
                 }
@@ -232,6 +234,35 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
         {
             ViewModel.SelectedProfiles = lstProfiles.SelectedItems.Cast<ProfileItemModel>().ToList();
         }
+    }
+
+    private void LstProfiles_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        if (ViewModel?.SelectedProfile == null)
+        {
+            return;
+        }
+
+        var source = e.Source as Border;
+        if (source?.Name == "HeaderBackground")
+        {
+            return;
+        }
+
+        // Keep multi-select behavior unchanged when Ctrl/Shift/Meta is pressed.
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control)
+            || e.KeyModifiers.HasFlag(KeyModifiers.Shift)
+            || e.KeyModifiers.HasFlag(KeyModifiers.Meta))
+        {
+            return;
+        }
+
+        if (ViewModel.SelectedProfile.IsActive)
+        {
+            return;
+        }
+
+        ViewModel.SetDefaultServer();
     }
 
     private void LstProfiles_DoubleTapped(object? sender, Avalonia.Input.TappedEventArgs e)

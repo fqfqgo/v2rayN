@@ -82,10 +82,7 @@
                     ToolTip.Tip="{x:Static resx:ResUI.menuRouting}" />
             </StackPanel>
 
-            <StackPanel
-                VerticalAlignment="Center"
-                Margin="{StaticResource MarginLr8}"
-                Orientation="Horizontal">
+            <StackPanel VerticalAlignment="Center" Margin="{StaticResource MarginLr8}">
                 <TextBlock x:Name="txtRunningServerDisplay" />
                 <Border Margin="1" />
                 <TextBlock x:Name="txtRunningInfoDisplay" />

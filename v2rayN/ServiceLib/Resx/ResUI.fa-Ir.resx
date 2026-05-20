@@ -426,6 +426,9 @@
   <data name="menuReload" xml:space="preserve">
     <value>بارگذاری مجدد</value>
   </data>
+  <data name="menuLog" xml:space="preserve">
+    <value>گزارش</value>
+  </data>
   <data name="menuRoutingSetting" xml:space="preserve">
     <value>تنظیم مسیریابی</value>
   </data>
@@ -977,6 +980,9 @@
   </data>
   <data name="SpeedtestingPressEscToExit" xml:space="preserve">
     <value>برای پایان دادن به ESC فشار دهید</value>
+  </data>
+  <data name="SpeedtestingBatchWarning" xml:space="preserve">
+    <value>تست سرعت گروهی مصرف ترافیک بالایی دارد و هر بار ممکن است چند گیگابایت مصرف شود. ادامه می‌دهید؟</value>
   </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>لطفاً در صورت قطع غیرعادی آن را خاموش کنید</value>

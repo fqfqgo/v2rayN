@@ -426,6 +426,9 @@
   <data name="menuReload" xml:space="preserve">
     <value>重啟服務</value>
   </data>
+  <data name="menuLog" xml:space="preserve">
+    <value>日誌</value>
+  </data>
   <data name="menuRoutingSetting" xml:space="preserve">
     <value>路由設定</value>
   </data>
@@ -977,6 +980,9 @@
   </data>
   <data name="SpeedtestingPressEscToExit" xml:space="preserve">
     <value>按 ECS 以終止測試</value>
+  </data>
+  <data name="SpeedtestingBatchWarning" xml:space="preserve">
+    <value>批量測速會消耗大量流量，測一次消耗幾GB，是否繼續？</value>
   </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>當有異常斷流時請關閉</value>

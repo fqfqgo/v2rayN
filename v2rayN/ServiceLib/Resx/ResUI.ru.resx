@@ -426,6 +426,9 @@
   <data name="menuReload" xml:space="preserve">
     <value>Перезагрузить</value>
   </data>
+  <data name="menuLog" xml:space="preserve">
+    <value>Журнал</value>
+  </data>
   <data name="menuRoutingSetting" xml:space="preserve">
     <value>Настройки маршрутизации</value>
   </data>
@@ -977,6 +980,9 @@
   </data>
   <data name="SpeedtestingPressEscToExit" xml:space="preserve">
     <value>Нажмите ESC для прекращения теста</value>
+  </data>
+  <data name="SpeedtestingBatchWarning" xml:space="preserve">
+    <value>Пакетный тест скорости потребляет много трафика и может расходовать несколько ГБ за один запуск. Продолжить?</value>
   </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>Отключите при нестабильном соединении</value>

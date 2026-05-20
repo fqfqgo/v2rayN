@@ -744,6 +744,14 @@ public class ProfilesViewModel : MyReactiveObject
             return;
         }
 
+        if (actionType == ESpeedActionType.Speedtest && lstSelected.Count > 10)
+        {
+            if (await _updateView?.Invoke(EViewAction.ShowYesNo, ResUI.SpeedtestingBatchWarning) == false)
+            {
+                return;
+            }
+        }
+
         _speedtestService ??= new SpeedtestService(_config, async (SpeedTestResult result) =>
         {
             RxSchedulers.MainThreadScheduler.Schedule(result, (scheduler, result) =>

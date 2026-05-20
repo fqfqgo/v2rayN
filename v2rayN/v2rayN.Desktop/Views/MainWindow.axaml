@@ -102,7 +102,7 @@
                         x:Name="menuStartBrowser"
                         Header="{x:Static resx:ResUI.menuStartBrowser}" />
 
-                    <MenuItem x:Name="menuToggleLog" Header="日志" />
+                    <MenuItem x:Name="menuToggleLog" Header="{x:Static resx:ResUI.menuLog}" />
 
                     <!-- 推广菜单已隐藏 -->
                     <!-- <MenuItem x:Name="menuPromotion" Header="{x:Static resx:ResUI.menuPromotion}" /> -->

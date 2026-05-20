@@ -13,7 +13,7 @@ public sealed class WindowsManager
     {
         try
         {
-            var index = (int)config.SystemProxyItem.SysProxyType;
+            var index = GetNotifyIconIndex(config);
 
             //Load from routing setting
             var createdIcon = await GetNotifyIcon4Routing(config);
@@ -32,8 +32,6 @@ public sealed class WindowsManager
             {
                 0 => Properties.Resources.NotifyIcon1,
                 1 => Properties.Resources.NotifyIcon2,
-                2 => Properties.Resources.NotifyIcon3,
-                3 => Properties.Resources.NotifyIcon4,
                 _ => Properties.Resources.NotifyIcon1, // default
             };
         }
@@ -46,7 +44,7 @@ public sealed class WindowsManager
 
     public System.Windows.Media.ImageSource GetAppIcon(Config config)
     {
-        var index = (int)config.SystemProxyItem.SysProxyType + 1;
+        var index = GetNotifyIconIndex(config) + 1;
         return BitmapFrame.Create(new Uri($"pack://application:,,,/Resources/NotifyIcon{index}.ico", UriKind.RelativeOrAbsolute));
     }
 
@@ -61,7 +59,7 @@ public sealed class WindowsManager
             }
 
             var color = ColorTranslator.FromHtml("#3399CC");
-            var index = (int)config.SystemProxyItem.SysProxyType;
+            var index = GetNotifyIconIndex(config);
             if (index > 0)
             {
                 color = (new[] { Color.Red, Color.Purple, Color.DarkGreen, Color.Orange, Color.DarkSlateBlue, Color.RoyalBlue })[index - 1];
@@ -92,6 +90,13 @@ public sealed class WindowsManager
             Logging.SaveLog(_tag, ex);
             return null;
         }
+    }
+
+    private static int GetNotifyIconIndex(Config config)
+    {
+        var proxyOn = config.SystemProxyItem.SysProxyType is ESysProxyType.ForcedChange or ESysProxyType.Pac;
+        var tunOn = config.TunModeItem.EnableTun;
+        return (proxyOn || tunOn) ? 1 : 0;
     }
 
     public void RegisterGlobalHotkey(Config config, Action<EGlobalHotkey> handler, Action<bool, string>? update)

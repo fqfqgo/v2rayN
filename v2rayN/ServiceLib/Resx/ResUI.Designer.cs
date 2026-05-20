@@ -1123,6 +1123,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Log 的本地化字符串。
+        /// </summary>
+        public static string menuLog {
+            get {
+                return ResourceManager.GetString("menuLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 Import Rules From Clipboard 的本地化字符串。
         /// </summary>
         public static string menuImportRulesFromClipboard {
@@ -2487,6 +2496,15 @@ namespace ServiceLib.Resx {
         public static string Speedtesting {
             get {
                 return ResourceManager.GetString("Speedtesting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Batch speed testing consumes a lot of traffic and may use several GB each run. Continue? 的本地化字符串。
+        /// </summary>
+        public static string SpeedtestingBatchWarning {
+            get {
+                return ResourceManager.GetString("SpeedtestingBatchWarning", resourceCulture);
             }
         }
         

@@ -426,6 +426,9 @@
   <data name="menuReload" xml:space="preserve">
     <value>Redémarrer</value>
   </data>
+  <data name="menuLog" xml:space="preserve">
+    <value>Journal</value>
+  </data>
   <data name="menuRoutingSetting" xml:space="preserve">
     <value>Paramètres de routage</value>
   </data>
@@ -977,6 +980,9 @@
   </data>
   <data name="SpeedtestingPressEscToExit" xml:space="preserve">
     <value>Appuyer sur Échap pour arrêter</value>
+  </data>
+  <data name="SpeedtestingBatchWarning" xml:space="preserve">
+    <value>Le test de vitesse en lot consomme beaucoup de données et peut utiliser plusieurs Go à chaque exécution. Continuer ?</value>
   </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>Désactiver cette option si coupure anormale</value>

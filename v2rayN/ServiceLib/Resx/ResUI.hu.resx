@@ -426,6 +426,9 @@
   <data name="menuReload" xml:space="preserve">
     <value>Újratöltés</value>
   </data>
+  <data name="menuLog" xml:space="preserve">
+    <value>Napló</value>
+  </data>
   <data name="menuRoutingSetting" xml:space="preserve">
     <value>Útválasztási beállítás</value>
   </data>
@@ -977,6 +980,9 @@
   </data>
   <data name="SpeedtestingPressEscToExit" xml:space="preserve">
     <value>ESC megnyomásával megszakítható</value>
+  </data>
+  <data name="SpeedtestingBatchWarning" xml:space="preserve">
+    <value>A tömeges sebességteszt sok adatforgalmat fogyaszt, és egy futás több GB-ot is elhasználhat. Folytatja?</value>
   </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>Kérjük, kapcsolja ki rendellenes megszakadás esetén</value>

@@ -1592,6 +1592,10 @@ public static class ConfigHandler
 
         if (lstAdd.Count > 0)
         {
+            if (isSub && subid.IsNotEmpty())
+            {
+                await RemoveServersViaSubid(config, subid, isSub);
+            }
             await SQLiteHelper.Instance.InsertAllAsync(lstAdd);
         }
 
@@ -1632,20 +1636,30 @@ public static class ConfigHandler
         }
         if (lstProfiles != null && lstProfiles.Count > 0)
         {
-            var count = 0;
-            foreach (var it in lstProfiles)
+            var validItems = lstProfiles
+                .Where(it => it.Address.IsNotEmpty() && File.Exists(it.Address))
+                .ToList();
+            if (validItems.Count > 0)
             {
-                it.Subid = subid;
-                it.IsSub = isSub;
-                it.PreSocksPort = preSocksPort;
-                if (await AddCustomServer(config, it, true) == 0)
+                if (isSub && subid.IsNotEmpty())
                 {
-                    count++;
+                    await RemoveServersViaSubid(config, subid, isSub);
                 }
-            }
-            if (count > 0)
-            {
-                return count;
+                var count = 0;
+                foreach (var it in validItems)
+                {
+                    it.Subid = subid;
+                    it.IsSub = isSub;
+                    it.PreSocksPort = preSocksPort;
+                    if (await AddCustomServer(config, it, true) == 0)
+                    {
+                        count++;
+                    }
+                }
+                if (count > 0)
+                {
+                    return count;
+                }
             }
         }
 
@@ -1663,9 +1677,14 @@ public static class ConfigHandler
         profileItem ??= ClashFmt.ResolveFull(strData, subRemarks);
         //Is hysteria configuration
         profileItem ??= Hysteria2Fmt.ResolveFull2(strData, subRemarks);
-        if (profileItem is null || profileItem.Address.IsNullOrEmpty())
+        if (profileItem is null || profileItem.Address.IsNullOrEmpty() || !File.Exists(profileItem.Address))
         {
             return -1;
+        }
+
+        if (isSub && subid.IsNotEmpty())
+        {
+            await RemoveServersViaSubid(config, subid, isSub);
         }
 
         profileItem.Subid = subid;
@@ -1675,10 +1694,8 @@ public static class ConfigHandler
         {
             return 1;
         }
-        else
-        {
-            return -1;
-        }
+
+        return -1;
     }
 
     /// <summary>
@@ -1701,16 +1718,26 @@ public static class ConfigHandler
         if (lstSsServer?.Count > 0)
         {
             var counter = 0;
+            List<ProfileItem> lstAdd = new();
             foreach (var ssItem in lstSsServer)
             {
                 ssItem.Subid = subid;
                 ssItem.IsSub = isSub;
-                if (await AddShadowsocksServer(config, ssItem) == 0)
+                if (await AddShadowsocksServer(config, ssItem, false) == 0)
                 {
                     counter++;
+                    lstAdd.Add(ssItem);
                 }
             }
-            await SaveConfig(config);
+            if (lstAdd.Count > 0)
+            {
+                if (isSub && subid.IsNotEmpty())
+                {
+                    await RemoveServersViaSubid(config, subid, isSub);
+                }
+                await SQLiteHelper.Instance.InsertAllAsync(lstAdd);
+                await SaveConfig(config);
+            }
             return counter;
         }
 
@@ -1732,16 +1759,26 @@ public static class ConfigHandler
         if (lstServer?.Count > 0)
         {
             var counter = 0;
+            List<ProfileItem> lstAdd = new();
             foreach (var item in lstServer)
             {
                 item.Subid = subid;
                 item.IsSub = isSub;
-                if (await AddWireguardServer(config, item) == 0)
+                if (await AddWireguardServer(config, item, false) == 0)
                 {
                     counter++;
+                    lstAdd.Add(item);
                 }
             }
-            await SaveConfig(config);
+            if (lstAdd.Count > 0)
+            {
+                if (isSub && subid.IsNotEmpty())
+                {
+                    await RemoveServersViaSubid(config, subid, isSub);
+                }
+                await SQLiteHelper.Instance.InsertAllAsync(lstAdd);
+                await SaveConfig(config);
+            }
             return counter;
         }
         return -1;
@@ -1788,6 +1825,10 @@ public static class ConfigHandler
             }
             if (lstAdd.Count > 0)
             {
+                if (isSub && subid.IsNotEmpty())
+                {
+                    await RemoveServersViaSubid(config, subid, isSub);
+                }
                 await SQLiteHelper.Instance.InsertAllAsync(lstAdd);
             }
             await SaveConfig(config);
@@ -1818,21 +1859,18 @@ public static class ConfigHandler
         {
             lstOriSub = await AppManager.Instance.ProfileItems(subid);
             activeProfile = lstOriSub?.FirstOrDefault(t => t.IndexId == config.IndexId);
-            await RemoveServersViaSubid(config, subid, true);
         }
 
         var counter = 0;
-        if (Utils.IsBase64String(strData))
+        var isBase64 = Utils.IsBase64String(strData);
+        var decoded = isBase64 ? Utils.Base64Decode(strData) : null;
+        if (decoded.IsNotEmpty())
         {
-            counter = await AddBatchServersCommon(config, Utils.Base64Decode(strData), subid, isSub);
+            counter = await AddBatchServersCommon(config, decoded, subid, isSub);
         }
-        if (counter < 1)
+        if (counter < 1 && !isBase64)
         {
             counter = await AddBatchServersCommon(config, strData, subid, isSub);
-        }
-        if (counter < 1)
-        {
-            counter = await AddBatchServersCommon(config, Utils.Base64Decode(strData), subid, isSub);
         }
 
         if (counter < 1)

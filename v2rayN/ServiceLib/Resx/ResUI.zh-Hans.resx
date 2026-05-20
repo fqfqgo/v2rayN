@@ -438,6 +438,9 @@
   <data name="menuStartBrowser" xml:space="preserve">
     <value>启动浏览器</value>
   </data>
+  <data name="menuLog" xml:space="preserve">
+    <value>日志</value>
+  </data>
   <data name="menuRoutingSetting" xml:space="preserve">
     <value>路由设置</value>
   </data>
@@ -1007,6 +1010,9 @@
   </data>
   <data name="SpeedtestingPressEscToExit" xml:space="preserve">
     <value>按 ESC 可终止测试</value>
+  </data>
+  <data name="SpeedtestingBatchWarning" xml:space="preserve">
+    <value>批量测速会消耗大量流量，测一次消耗几G，是否继续？</value>
   </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>当有异常断流时请关闭</value>

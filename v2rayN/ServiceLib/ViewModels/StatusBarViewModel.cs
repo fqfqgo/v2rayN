@@ -545,6 +545,7 @@ public class StatusBarViewModel : MyReactiveObject
         }
 
         await ConfigHandler.SaveConfig(_config);
+        _updateView?.Invoke(EViewAction.DispatcherRefreshIcon, null);
         AppEvents.ReloadRequested.Publish();
     }
 

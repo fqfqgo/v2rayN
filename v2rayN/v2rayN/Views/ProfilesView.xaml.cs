@@ -120,7 +120,8 @@ public partial class ProfilesView
                 break;
 
             case EViewAction.ShowYesNo:
-                if (UI.ShowYesNo(ResUI.RemoveServer) == MessageBoxResult.No)
+                var yesNoMsg = obj as string;
+                if (UI.ShowYesNo(yesNoMsg.IsNullOrEmpty() ? ResUI.RemoveServer : yesNoMsg) == MessageBoxResult.No)
                 {
                     return false;
                 }
@@ -214,6 +215,27 @@ public partial class ProfilesView
         {
             ViewModel.SelectedProfiles = lstProfiles.SelectedItems.Cast<ProfileItemModel>().ToList();
         }
+    }
+
+    private void LstProfiles_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (ViewModel?.SelectedProfile == null)
+        {
+            return;
+        }
+
+        // Keep multi-select behavior unchanged when Ctrl/Shift is pressed.
+        if ((Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Shift)) != ModifierKeys.None)
+        {
+            return;
+        }
+
+        if (ViewModel.SelectedProfile.IsActive)
+        {
+            return;
+        }
+
+        ViewModel.SetDefaultServer();
     }
 
     private void LstProfiles_LoadingRow(object? sender, DataGridRowEventArgs e)

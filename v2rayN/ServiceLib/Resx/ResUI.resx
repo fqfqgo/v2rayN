@@ -441,6 +441,9 @@
   <data name="menuStartBrowser" xml:space="preserve">
     <value>Start Browser</value>
   </data>
+  <data name="menuLog" xml:space="preserve">
+    <value>Log</value>
+  </data>
   <data name="menuRoutingSetting" xml:space="preserve">
     <value>Routing Setting</value>
   </data>
@@ -1007,6 +1010,9 @@
   </data>
   <data name="SpeedtestingPressEscToExit" xml:space="preserve">
     <value>Press ESC to terminate the test</value>
+  </data>
+  <data name="SpeedtestingBatchWarning" xml:space="preserve">
+    <value>Batch speed testing consumes a lot of traffic and may use several GB each run. Continue?</value>
   </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>Please turn off when there is an abnormal disconnection</value>
