@@ -338,10 +338,6 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
                 case Key.T:
                     ViewModel?.ServerSpeedtest(ESpeedActionType.Speedtest);
                     break;
-
-                case Key.E:
-                    ViewModel?.ServerSpeedtest(ESpeedActionType.Mixedtest);
-                    break;
             }
         }
         else

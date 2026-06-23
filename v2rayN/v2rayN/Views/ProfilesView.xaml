@@ -93,7 +93,8 @@
                     Height="30"
                     Margin="{StaticResource MarginLeftRight4}"
                     Style="{StaticResource MaterialDesignFloatingActionMiniLightButton}"
-                    ToolTip="{x:Static resx:ResUI.menuMixedTestServer}">
+                    ToolTip="{x:Static resx:ResUI.menuMixedTestServer}"
+                    Visibility="Collapsed">
                     <materialDesign:PackIcon VerticalAlignment="Center" Kind="Speedometer" />
                 </Button>
             </WrapPanel>

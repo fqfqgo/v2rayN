@@ -88,6 +88,7 @@
                     x:Name="menuMixedTestServer"
                     Margin="{StaticResource MarginLr4}"
                     Classes="IconButton Success"
+                    IsVisible="False"
                     ToolTip.Tip="{x:Static resx:ResUI.menuMixedTestServer}">
                     <Button.Content>
                         <PathIcon Data="{StaticResource building_ping}" />
