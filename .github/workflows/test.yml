@@ -12,6 +12,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DOTNET_NUGET_SIGNATURE_VERIFICATION: false
     steps:
     - name: Checkout
       uses: actions/checkout@v6.0.2

@@ -27,6 +27,7 @@ jobs:
         )
       }}
     env:
+      DOTNET_NUGET_SIGNATURE_VERIFICATION: false
       Output: "${{ github.workspace }}/${{ matrix.arch }}"
       RID: |-
         ${{

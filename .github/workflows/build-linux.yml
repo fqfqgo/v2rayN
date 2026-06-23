@@ -35,6 +35,7 @@ jobs:
     runs-on: ubuntu-24.04
     container: debian:13
     env:
+      DOTNET_NUGET_SIGNATURE_VERIFICATION: false
       RELEASE_TAG: ${{ case(inputs.release_tag != '', inputs.release_tag, github.ref_name) }}
 
     steps:
@@ -87,6 +88,7 @@ jobs:
     runs-on: ubuntu-24.04
     container: registry.access.redhat.com/ubi10/ubi
     env:
+      DOTNET_NUGET_SIGNATURE_VERIFICATION: false
       RELEASE_TAG: ${{ case(inputs.release_tag != '', inputs.release_tag, github.ref_name) }}
 
     steps:
@@ -187,6 +189,7 @@ jobs:
     runs-on: ubuntu-24.04-riscv
     container: rockylinux/rockylinux:10
     env:
+      DOTNET_NUGET_SIGNATURE_VERIFICATION: false
       RELEASE_TAG: ${{ case(inputs.release_tag != '', inputs.release_tag, github.ref_name) }}
 
     steps:
