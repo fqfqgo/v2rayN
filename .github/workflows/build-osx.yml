@@ -82,3 +82,4 @@ jobs:
         tag: ${{ env.RELEASE_TAG }}
         file_glob: true
         prerelease: true
+        overwrite: true

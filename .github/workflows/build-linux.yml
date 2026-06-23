@@ -79,6 +79,7 @@ jobs:
         tag: ${{ env.RELEASE_TAG }}
         file_glob: true
         prerelease: true
+        overwrite: true
 
   rpm:
     name: build and release rpm x64 & arm64
@@ -180,6 +181,7 @@ jobs:
         tag: ${{ env.RELEASE_TAG }}
         file_glob: true
         prerelease: true
+        overwrite: true
 
   rpm-riscv64:
     name: build and release rpm riscv64
