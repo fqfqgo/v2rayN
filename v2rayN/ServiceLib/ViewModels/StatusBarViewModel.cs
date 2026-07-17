@@ -145,9 +145,7 @@ public class StatusBarViewModel : MyReactiveObject
                 y => y >= 0)
             .Subscribe(async c => await DoSystemProxySelected(c));
 
-        this.WhenAnyValue(
-                x => x.EnableTun,
-                y => y == true)
+        this.WhenAnyValue(x => x.EnableTun)
             .Subscribe(async c => await DoEnableTun(c));
 
         this.WhenAnyValue(
@@ -169,7 +167,11 @@ public class StatusBarViewModel : MyReactiveObject
             }
             else
             {
-                await SetListenerType(ESysProxyType.ForcedChange);
+                if (!await SetListenerType(ESysProxyType.ForcedChange))
+                {
+                    await SetListenerType(ESysProxyType.ForcedClear);
+                    await SetTunEnabled(true);
+                }
             }
         });
 
@@ -418,18 +420,19 @@ public class StatusBarViewModel : MyReactiveObject
 
     #region System proxy and Routings
 
-    private async Task SetListenerType(ESysProxyType type)
+    private async Task<bool> SetListenerType(ESysProxyType type)
     {
         if (_config.SystemProxyItem.SysProxyType == type)
         {
-            return;
+            return await ChangeSystemProxyAsync(type, true);
         }
         _config.SystemProxyItem.SysProxyType = type;
-        await ChangeSystemProxyAsync(type, true);
+        var success = await ChangeSystemProxyAsync(type, true);
         NoticeManager.Instance.SendMessageEx($"{ResUI.TipChangeSystemProxy} - {_config.SystemProxyItem.SysProxyType}");
 
         SystemProxySelected = (int)_config.SystemProxyItem.SysProxyType;
         await ConfigHandler.SaveConfig(_config);
+        return success;
     }
 
     /// <summary>底栏「停止连接」：清除系统代理并关闭 Tun</summary>
@@ -438,19 +441,16 @@ public class StatusBarViewModel : MyReactiveObject
         await SetListenerType(ESysProxyType.ForcedClear);
         if (EnableTun)
         {
-            _config.TunModeItem.EnableTun = false;
-            EnableTun = false;
-            await ConfigHandler.SaveConfig(_config);
-            AppEvents.ReloadRequested.Publish();
+            await SetTunEnabled(false);
         }
     }
 
-    public async Task ChangeSystemProxyAsync(ESysProxyType type, bool blChange)
+    public async Task<bool> ChangeSystemProxyAsync(ESysProxyType type, bool blChange)
     {
-        await SysProxyHandler.UpdateSysProxy(_config, false);
+        var success = await SysProxyHandler.UpdateSysProxy(_config, false);
 
         BlSystemProxyClear = type == ESysProxyType.ForcedClear;
-        BlSystemProxySet = type == ESysProxyType.ForcedChange;
+        BlSystemProxySet = type == ESysProxyType.ForcedChange && success;
         BlSystemProxyNothing = type == ESysProxyType.Unchanged;
         BlSystemProxyPac = type == ESysProxyType.Pac;
 
@@ -458,6 +458,7 @@ public class StatusBarViewModel : MyReactiveObject
         {
             _updateView?.Invoke(EViewAction.DispatcherRefreshIcon, null);
         }
+        return success;
     }
 
     private async Task RefreshRoutingsMenu()
@@ -517,19 +518,28 @@ public class StatusBarViewModel : MyReactiveObject
 
     private async Task DoEnableTun(bool c)
     {
-        if (_config.TunModeItem.EnableTun == EnableTun)
+        await SetTunEnabled(c);
+    }
+
+    private async Task SetTunEnabled(bool enabled)
+    {
+        if (_config.TunModeItem.EnableTun == enabled)
         {
             return;
         }
-
-        _config.TunModeItem.EnableTun = EnableTun;
-
-        if (EnableTun && AllowEnableTun() == false)
+        _config.TunModeItem.EnableTun = enabled;
+        if (enabled && AllowEnableTun() == false)
         {
             // When running as a non-administrator, reboot to administrator mode
             if (Utils.IsWindows())
             {
-                _config.TunModeItem.EnableTun = false;
+                if (await ConfigHandler.SaveConfig(_config) != 0)
+                {
+                    _config.TunModeItem.EnableTun = false;
+                    EnableTun = false;
+                    return;
+                }
+                EnableTun = true;
                 await AppManager.Instance.RebootAsAdmin();
                 return;
             }
@@ -539,6 +549,7 @@ public class StatusBarViewModel : MyReactiveObject
                 if (passwordResult == false)
                 {
                     _config.TunModeItem.EnableTun = false;
+                    EnableTun = false;
                     return;
                 }
             }
@@ -547,6 +558,7 @@ public class StatusBarViewModel : MyReactiveObject
         await ConfigHandler.SaveConfig(_config);
         _updateView?.Invoke(EViewAction.DispatcherRefreshIcon, null);
         AppEvents.ReloadRequested.Publish();
+        EnableTun = enabled;
     }
 
     private bool AllowEnableTun()

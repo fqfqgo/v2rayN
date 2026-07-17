@@ -124,7 +124,7 @@ public class CoreManager
 
         if (_processService != null)
         {
-            await UpdateFunc(true, $"{node.GetSummary()}");
+            await UpdateFunc(false, $"{node.GetSummary()}");
         }
     }
 

@@ -21,6 +21,31 @@ public static class ProxySettingOSX
         await ExecCmd(args);
     }
 
+    public static async Task<bool> IsProxySet(string host, int port)
+    {
+        var services = await Utils.GetCliWrapOutput("networksetup", "-listallnetworkservices");
+        if (services.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        foreach (var service in services.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Where(t => !t.Contains('*')))
+        {
+            foreach (var type in new[] { "-getwebproxy", "-getsecurewebproxy", "-getsocksfirewallproxy" })
+            {
+                var setting = await Utils.GetCliWrapOutput("networksetup", [type, service]);
+                if (setting.IsNullOrEmpty()
+                    || !setting.Contains("Enabled: Yes", StringComparison.OrdinalIgnoreCase)
+                    || !setting.Contains($"Server: {host}", StringComparison.OrdinalIgnoreCase)
+                    || !setting.Contains($"Port: {port}", StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private static async Task ExecCmd(List<string> args)
     {
         var customSystemProxyScriptPath = AppManager.Instance.Config.SystemProxyItem?.CustomSystemProxyScriptPath;
