@@ -29,18 +29,28 @@ public static class ProxySettingOSX
             return false;
         }
 
+        // 任一可用网络服务匹配即可；要求全部服务生效会在 Bluetooth/Thunderbolt 等接口上误判失败
         foreach (var service in services.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Where(t => !t.Contains('*')))
         {
-            foreach (var type in new[] { "-getwebproxy", "-getsecurewebproxy", "-getsocksfirewallproxy" })
+            if (await IsServiceProxySet(service, host, port))
             {
-                var setting = await Utils.GetCliWrapOutput("networksetup", [type, service]);
-                if (setting.IsNullOrEmpty()
-                    || !setting.Contains("Enabled: Yes", StringComparison.OrdinalIgnoreCase)
-                    || !setting.Contains($"Server: {host}", StringComparison.OrdinalIgnoreCase)
-                    || !setting.Contains($"Port: {port}", StringComparison.Ordinal))
-                {
-                    return false;
-                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static async Task<bool> IsServiceProxySet(string service, string host, int port)
+    {
+        foreach (var type in new[] { "-getwebproxy", "-getsecurewebproxy", "-getsocksfirewallproxy" })
+        {
+            var setting = await Utils.GetCliWrapOutput("networksetup", [type, service]);
+            if (setting.IsNullOrEmpty()
+                || !setting.Contains("Enabled: Yes", StringComparison.OrdinalIgnoreCase)
+                || !setting.Contains($"Server: {host}", StringComparison.OrdinalIgnoreCase)
+                || !setting.Contains($"Port: {port}", StringComparison.Ordinal))
+            {
+                return false;
             }
         }
         return true;

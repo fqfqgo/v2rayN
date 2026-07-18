@@ -109,7 +109,7 @@ public class CoreManager
         await UpdateFunc(false, $"{Utils.GetRuntimeInfo()}");
         await UpdateFunc(false, string.Format(ResUI.StartService, DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")));
         await CoreStop();
-        await Task.Delay(100);
+        await WaitForSingboxCacheUnlocked();
 
         if (Utils.IsWindows() && _config.TunModeItem.EnableTun)
         {
@@ -196,6 +196,32 @@ public class CoreManager
         catch (Exception ex)
         {
             Logging.SaveLog(_tag, ex);
+        }
+    }
+
+    /// <summary>
+    /// 等待旧 sing-box 释放 cache.db，避免 Reload/开 TUN 后出现 initialize cache-file: timeout
+    /// </summary>
+    private static async Task WaitForSingboxCacheUnlocked()
+    {
+        var path = Utils.GetBinPath("cache.db");
+        if (!File.Exists(path))
+        {
+            await Task.Delay(100);
+            return;
+        }
+
+        for (var i = 0; i < 20; i++)
+        {
+            try
+            {
+                await using var fs = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                return;
+            }
+            catch
+            {
+                await Task.Delay(100);
+            }
         }
     }
 
