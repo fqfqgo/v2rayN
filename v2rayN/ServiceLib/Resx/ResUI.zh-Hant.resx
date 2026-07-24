@@ -1302,6 +1302,12 @@
   <data name="InvalidUrlTip" xml:space="preserve">
     <value>位址 (Url) 無效</value>
   </data>
+  <data name="InvalidSubUrlFormatTip" xml:space="preserve">
+    <value>訂閱位址格式不正確，必須為單行且以 http:// 或 https:// 開頭（不能是 vmess:// 、vless:// 等節點連結）</value>
+  </data>
+  <data name="SubUrlUnreachableTip" xml:space="preserve">
+    <value>該訂閱連結無法連線（網域無法解析或連線逾時），教學中有多個訂閱連結，請更換連結後重試</value>
+  </data>
   <data name="InsecureUrlProtocol" xml:space="preserve">
     <value>請不要使用不安全的 HTTP 協定訂閱位址</value>
   </data>

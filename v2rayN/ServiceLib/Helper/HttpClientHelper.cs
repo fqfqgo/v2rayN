@@ -40,6 +40,30 @@ public class HttpClientHelper
         }
     }
 
+    /// <summary>
+    /// 校验链接是否可达：拿到任意 HTTP 响应（含 403/503）即视为可达；
+    /// 仅域名无法解析、连接超时、拒绝连接等才返回 false
+    /// </summary>
+    public async Task<bool> CheckReachableAsync(string url, int timeoutSeconds = 15)
+    {
+        if (url.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public async Task<string?> GetAsync(string url)
     {
         if (url.IsNullOrEmpty())

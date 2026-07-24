@@ -1335,6 +1335,12 @@
   <data name="InsecureUrlProtocol" xml:space="preserve">
     <value>请不要使用不安全的 HTTP 协议订阅地址</value>
   </data>
+  <data name="InvalidSubUrlFormatTip" xml:space="preserve">
+    <value>订阅地址格式不正确，必须为单行且以 http:// 或 https:// 开头（不能是 vmess:// 、vless:// 等节点链接）</value>
+  </data>
+  <data name="SubUrlUnreachableTip" xml:space="preserve">
+    <value>该订阅链接无法连接（域名无法解析或连接超时），教程中有多个订阅链接，请更换链接后重试</value>
+  </data>
   <data name="TbSettingsCurrentFontFamilyLinuxTip" xml:space="preserve">
     <value>安装字体到系统中，选择或填入字体名称，重启生效</value>
   </data>

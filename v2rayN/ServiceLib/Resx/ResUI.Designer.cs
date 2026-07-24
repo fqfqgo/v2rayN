@@ -331,6 +331,24 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Invalid subscription URL format. It must be a single line starting with http:// or https:// (node links such as vmess:// or vless:// are not allowed). 的本地化字符串。
+        /// </summary>
+        public static string InvalidSubUrlFormatTip {
+            get {
+                return ResourceManager.GetString("InvalidSubUrlFormatTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Unable to reach this subscription URL (DNS resolution failed or connection timed out). The tutorial provides several subscription links, please switch to another one and try again. 的本地化字符串。
+        /// </summary>
+        public static string SubUrlUnreachableTip {
+            get {
+                return ResourceManager.GetString("SubUrlUnreachableTip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 {0} {1} already up to date. 的本地化字符串。
         /// </summary>
         public static string IsLatestCore {

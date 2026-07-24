@@ -1338,6 +1338,12 @@
   <data name="InsecureUrlProtocol" xml:space="preserve">
     <value>Please do not use the insecure HTTP protocol subscription address</value>
   </data>
+  <data name="InvalidSubUrlFormatTip" xml:space="preserve">
+    <value>Invalid subscription URL format. It must be a single line starting with http:// or https:// (node links such as vmess:// or vless:// are not allowed).</value>
+  </data>
+  <data name="SubUrlUnreachableTip" xml:space="preserve">
+    <value>Unable to reach this subscription URL (DNS resolution failed or connection timed out). The tutorial provides several subscription links, please switch to another one and try again.</value>
+  </data>
   <data name="TbSettingsCurrentFontFamilyLinuxTip" xml:space="preserve">
     <value>Install the font to the system, select or fill in the font name, restart the settings</value>
   </data>
