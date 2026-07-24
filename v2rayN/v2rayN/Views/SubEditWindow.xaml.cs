@@ -49,6 +49,10 @@ public partial class SubEditWindow
             case EViewAction.CloseWindow:
                 DialogResult = true;
                 break;
+
+            case EViewAction.ShowMsgBox:
+                UI.Show(obj as string ?? string.Empty);
+                break;
         }
         return await Task.FromResult(true);
     }

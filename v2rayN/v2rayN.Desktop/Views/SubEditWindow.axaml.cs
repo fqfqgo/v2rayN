@@ -1,4 +1,5 @@
 using v2rayN.Desktop.Base;
+using v2rayN.Desktop.Common;
 
 namespace v2rayN.Desktop.Views;
 
@@ -50,6 +51,10 @@ public partial class SubEditWindow : WindowBase<SubEditViewModel>
         {
             case EViewAction.CloseWindow:
                 Close(true);
+                break;
+
+            case EViewAction.ShowMsgBox:
+                await UI.Show(this, obj as string ?? string.Empty);
                 break;
         }
         return await Task.FromResult(true);

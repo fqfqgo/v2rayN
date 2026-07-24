@@ -4,6 +4,7 @@ public enum EViewAction
 {
     CloseWindow,
     ShowYesNo,
+    ShowMsgBox,
     SaveFileDialog,
     AddBatchRoutingRulesYesNo,
     SetClipboardData,

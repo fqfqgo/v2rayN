@@ -25,7 +25,7 @@ public class SubEditViewModel : MyReactiveObject
         var remarks = SelectedSource.Remarks;
         if (remarks.IsNullOrEmpty())
         {
-            NoticeManager.Instance.Enqueue(ResUI.PleaseFillRemarks);
+            await _updateView?.Invoke(EViewAction.ShowMsgBox, ResUI.PleaseFillRemarks);
             return;
         }
 
@@ -37,13 +37,13 @@ public class SubEditViewModel : MyReactiveObject
                 || !(url.StartsWith(Global.HttpsProtocol, StringComparison.OrdinalIgnoreCase)
                      || url.StartsWith(Global.HttpProtocol, StringComparison.OrdinalIgnoreCase)))
             {
-                NoticeManager.Instance.Enqueue(ResUI.InvalidSubUrlFormatTip);
+                await _updateView?.Invoke(EViewAction.ShowMsgBox, ResUI.InvalidSubUrlFormatTip);
                 return;
             }
             var uri = Utils.TryUri(url);
             if (uri == null)
             {
-                NoticeManager.Instance.Enqueue(ResUI.InvalidUrlTip);
+                await _updateView?.Invoke(EViewAction.ShowMsgBox, ResUI.InvalidUrlTip);
                 return;
             }
             //Do not allow http protocol
@@ -55,7 +55,7 @@ public class SubEditViewModel : MyReactiveObject
             // 可达性校验：拿到任意 HTTP 响应（含 403/503）即视为通；仅解析失败/超时等视为无效
             if (!await HttpClientHelper.Instance.CheckReachableAsync(url))
             {
-                NoticeManager.Instance.Enqueue(ResUI.SubUrlUnreachableTip);
+                await _updateView?.Invoke(EViewAction.ShowMsgBox, ResUI.SubUrlUnreachableTip);
                 return;
             }
         }
