@@ -6,6 +6,9 @@ on:
       release_tag:
         required: false
         type: string
+  push:
+    tags:
+      - '[0-9]*'
 
 permissions:
   contents: write
@@ -14,7 +17,7 @@ permissions:
 jobs:
   package-x86:
     name: build and release windows x86 WPF & Avalonia
-    if: inputs.release_tag != ''
+    if: inputs.release_tag != '' || startsWith(github.ref, 'refs/tags/')
     runs-on: windows-latest
 
     strategy:
@@ -232,7 +235,7 @@ jobs:
 
   release-x86:
     name: sign and upload windows x86
-    if: inputs.release_tag != ''
+    if: inputs.release_tag != '' || startsWith(github.ref, 'refs/tags/')
     needs: package-x86
     strategy:
       fail-fast: false
@@ -240,7 +243,7 @@ jobs:
         flavor: [ wpf, desktop ]
     uses: ./.github/workflows/upload-sign.yml
     with:
-      release_tag: ${{ inputs.release_tag }}
+      release_tag: ${{ case(inputs.release_tag != '', inputs.release_tag, github.ref_name) }}
       artifact_name: release-windows-x86-${{ matrix.flavor }}
       file_pattern: '*.zip'
     secrets:
