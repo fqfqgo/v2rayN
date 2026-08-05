@@ -3,24 +3,22 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dd="clr-namespace:v2rayN.Desktop.DesignData"
     xmlns:dialogHost="clr-namespace:DialogHostAvalonia;assembly=DialogHost.Avalonia"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:resx="clr-namespace:ServiceLib.Resx;assembly=ServiceLib"
-    xmlns:view="using:v2rayN.Desktop.Views"
     xmlns:vms="clr-namespace:ServiceLib.ViewModels;assembly=ServiceLib"
     Title="v2rayN for V2free"
     Width="1200"
     Height="800"
     MinWidth="600"
     x:DataType="vms:MainWindowViewModel"
+    Design.DataContext="{x:Static dd:DesignData.MainWindow}"
     Icon="/Assets/NotifyIcon1.ico"
     ShowInTaskbar="True"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
-    <dialogHost:DialogHost
-        Background="Gray"
-        CloseOnClickAway="True"
-        DisableOpeningAnimation="True">
+    <dialogHost:DialogHost CloseOnClickAway="True" DisableOpeningAnimation="True">
         <DockPanel>
             <DockPanel Margin="{StaticResource Margin8}" DockPanel.Dock="Top">
                 <ContentControl x:Name="conTheme" DockPanel.Dock="Right" />
@@ -98,20 +96,27 @@
 
                     <MenuItem x:Name="menuReload" Header="{x:Static resx:ResUI.menuReload}" />
 
-                    <MenuItem
-                        x:Name="menuStartBrowser"
-                        Header="{x:Static resx:ResUI.menuStartBrowser}" />
+                    <MenuItem x:Name="menuStartBrowser" Header="{x:Static resx:ResUI.menuStartBrowser}" />
 
                     <MenuItem x:Name="menuToggleLog" Header="{x:Static resx:ResUI.menuLog}" />
 
-                    <!-- 推广菜单已隐藏 -->
-                    <!-- <MenuItem x:Name="menuPromotion" Header="{x:Static resx:ResUI.menuPromotion}" /> -->
+                    <MenuItem
+                        x:Name="menuPromotion"
+                        Header="{x:Static resx:ResUI.menuPromotion}"
+                        IsVisible="False" />
 
                     <MenuItem x:Name="menuClose" Header="{x:Static resx:ResUI.menuExit}" />
                 </Menu>
+
+                <Button
+                    x:Name="btnNewUpdate"
+                    Margin="{StaticResource MarginLr8}"
+                    HorizontalAlignment="Left"
+                    Content="{x:Static resx:ResUI.menuNewUpdate}"
+                    IsVisible="False" />
             </DockPanel>
 
-            <view:StatusBarView DockPanel.Dock="Bottom" />
+            <ContentControl x:Name="contentStatusBarView" DockPanel.Dock="Bottom" />
 
             <Grid>
                 <Grid

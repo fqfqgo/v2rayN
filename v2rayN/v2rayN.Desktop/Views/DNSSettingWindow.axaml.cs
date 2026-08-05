@@ -13,13 +13,14 @@ public partial class DNSSettingWindow : WindowBase<DNSSettingViewModel>
         _config = AppManager.Instance.Config;
         Loaded += Window_Loaded;
         btnCancel.Click += (s, e) => Close();
-        ViewModel = new DNSSettingViewModel(UpdateViewHandler);
 
         cmbDirectDNSStrategy.ItemsSource = Global.DomainStrategy;
         cmbRemoteDNSStrategy.ItemsSource = Global.DomainStrategy;
+        cmbProxyDialDNSStrategy.ItemsSource = Global.DomainStrategy;
         cmbDirectDNS.ItemsSource = Global.DomainDirectDNSAddress;
         cmbRemoteDNS.ItemsSource = Global.DomainRemoteDNSAddress;
         cmbBootstrapDNS.ItemsSource = Global.DomainPureIPDNSAddress;
+        cmbFakeIPRange.ItemsSource = Global.FakeIPRanges;
         cmbDirectExpectedIPs.ItemsSource = Global.ExpectedIPs;
 
         cmbdomainStrategy4FreedomCompatible.ItemsSource = Global.DomainStrategy;
@@ -32,16 +33,19 @@ public partial class DNSSettingWindow : WindowBase<DNSSettingViewModel>
             this.Bind(ViewModel, vm => vm.UseSystemHosts, v => v.togUseSystemHosts.IsChecked).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.AddCommonHosts, v => v.togAddCommonHosts.IsChecked).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.FakeIP, v => v.togFakeIP.IsChecked).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.FakeIPRange, v => v.cmbFakeIPRange.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.BlockBindingQuery, v => v.togBlockBindingQuery.IsChecked).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.DirectDNS, v => v.cmbDirectDNS.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.RemoteDNS, v => v.cmbRemoteDNS.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.BootstrapDNS, v => v.cmbBootstrapDNS.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.Strategy4Freedom, v => v.cmbDirectDNSStrategy.SelectedItem).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.Strategy4Proxy, v => v.cmbRemoteDNSStrategy.SelectedItem).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.Strategy4ProxyDial, v => v.cmbProxyDialDNSStrategy.SelectedItem).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.Hosts, v => v.txtHosts.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.DirectExpectedIPs, v => v.cmbDirectExpectedIPs.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.ParallelQuery, v => v.togParallelQuery.IsChecked).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.ServeStale, v => v.togServeStale.IsChecked).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.EnableHappyEyeballs, v => v.togEnableHappyEyeballs.IsChecked).DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.SaveCmd, v => v.btnSave).DisposeWith(disposables);
 
@@ -64,24 +68,13 @@ public partial class DNSSettingWindow : WindowBase<DNSSettingViewModel>
 
             this.WhenAnyValue(x => x.ViewModel.IsSimpleDNSEnabled)
                 .Select(b => !b)
-                .BindTo(this.FindControl<TextBlock>("txtBasicDNSSettingsInvalid"), t => t.IsVisible);
+                .BindTo(txtBasicDNSSettingsInvalid, t => t.IsVisible);
             this.WhenAnyValue(x => x.ViewModel.IsSimpleDNSEnabled)
                 .Select(b => !b)
-                .BindTo(this.FindControl<TextBlock>("txtAdvancedDNSSettingsInvalid"), t => t.IsVisible);
+                .BindTo(txtAdvancedDNSSettingsInvalid, t => t.IsVisible);
             this.Bind(ViewModel, vm => vm.IsSimpleDNSEnabled, v => v.gridBasicDNSSettings.IsEnabled).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.IsSimpleDNSEnabled, v => v.gridAdvancedDNSSettings.IsEnabled).DisposeWith(disposables);
         });
-    }
-
-    private async Task<bool> UpdateViewHandler(EViewAction action, object? obj)
-    {
-        switch (action)
-        {
-            case EViewAction.CloseWindow:
-                Close(true);
-                break;
-        }
-        return await Task.FromResult(true);
     }
 
     private void linkDnsObjectDoc_Click(object? sender, RoutedEventArgs e)

@@ -51,7 +51,7 @@ public class Utils
 
         try
         {
-            str = str.Replace(Environment.NewLine, string.Empty);
+            str = str.ReplaceLineBreaks(string.Empty);
             return new List<string>(str.Split(',', StringSplitOptions.RemoveEmptyEntries));
         }
         catch (Exception ex)
@@ -114,9 +114,7 @@ public class Utils
             }
 
             plainText = plainText.Trim()
-                .Replace(Environment.NewLine, "")
-                .Replace("\n", "")
-                .Replace("\r", "")
+                .ReplaceLineBreaks("")
                 .Replace('_', '/')
                 .Replace('-', '+')
                 .Replace(" ", "");
@@ -321,7 +319,32 @@ public class Utils
             return text;
         }
 
-        return text.Replace("，", ",").Replace(Environment.NewLine, ",");
+        return text.Replace("，", ",")
+                    .Replace(" ", "")
+                    .ReplaceLineBreaks(",");
+    }
+
+    public static string ParseProcess(string text)
+    {
+        if (text.IsNullOrEmpty())
+        {
+            return string.Empty;
+        }
+        if (text.StartsWith('"'))
+        {
+            text = text[1..];
+        }
+        if (text.EndsWith('"'))
+        {
+            text = text[..^1];
+        }
+        return List2String(text.Replace("，", ",")
+            .Replace("\\", "/")
+            .ReplaceLineBreaks(",")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(x => x.TrimEx())
+            .Where(x => x.IsNotEmpty())
+            .ToList());
     }
 
     public static List<string> GetEnumNames<TEnum>() where TEnum : Enum
@@ -462,12 +485,17 @@ public class Utils
 
     public static string? DomainStrategy4Sbox(string? strategy)
     {
+        if (strategy is null)
+        {
+            return null;
+        }
+
         return strategy switch
         {
-            not null when strategy.StartsWith("UseIPv4") => "prefer_ipv4",
-            not null when strategy.StartsWith("UseIPv6") => "prefer_ipv6",
-            not null when strategy.StartsWith("ForceIPv4") => "ipv4_only",
-            not null when strategy.StartsWith("ForceIPv6") => "ipv6_only",
+            _ when strategy.StartsWith("UseIPv6") => "prefer_ipv6",
+            _ when strategy.StartsWith("UseIP") => "prefer_ipv4",
+            _ when strategy.StartsWith("ForceIPv6") => "ipv6_only",
+            _ when strategy.StartsWith("ForceIP") => "ipv4_only",
             _ => null
         };
     }
@@ -574,6 +602,58 @@ public class Utils
         {
             return null;
         }
+    }
+
+    public static bool TryParseRange(string? input, int min, int max, out int from, out int to)
+    {
+        from = to = 0;
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return true;
+        }
+        var parts = input.Split('-');
+        if (parts.Length == 1)
+        {
+            if (!int.TryParse(parts[0], out from))
+            {
+                return false;
+            }
+            to = from;
+            return from >= min && to <= max;
+        }
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], out from)
+            || !int.TryParse(parts[1], out to))
+        {
+            return false;
+        }
+        return from >= min && to <= max && from <= to;
+    }
+
+    public static bool TryParseMaxSplit(string? input, int min, int max, out int from, out int to)
+    {
+        from = to = 0;
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return true;
+        }
+        var parts = input.Split('-');
+        if (parts.Length == 1)
+        {
+            if (!int.TryParse(parts[0], out from))
+            {
+                return false;
+            }
+            to = from;
+            return from >= min && to <= max;
+        }
+        if (parts.Length != 2
+            || !int.TryParse(parts[0], out from)
+            || !int.TryParse(parts[1], out to))
+        {
+            return false;
+        }
+        return from >= min && to <= max && from <= to;
     }
 
     public static bool IsPrivateNetwork(string ip)
@@ -714,6 +794,24 @@ public class Utils
         }
 
         return (endpoints, connections);
+    }
+
+    public static bool IsLocalIP(string ipAddress)
+    {
+        if (!IPAddress.TryParse(ipAddress, out var targetAddress))
+        {
+            return false;
+        }
+
+        return NetworkInterface.GetAllNetworkInterfaces()
+               .SelectMany(ni => ni.GetIPProperties().UnicastAddresses)
+               .Any(ua => ua.Address.Equals(targetAddress));
+    }
+
+    public static bool ContainsInterfaceName(string inInterfaceName)
+    {
+        return NetworkInterface.GetAllNetworkInterfaces()
+            .Any(ni => ni.Name.Equals(inInterfaceName, StringComparison.OrdinalIgnoreCase));
     }
 
     #endregion Speed Test
@@ -864,15 +962,25 @@ public class Utils
 
     public static Dictionary<string, string> GetSystemHosts()
     {
-        var hosts = GetSystemHosts(@"C:\Windows\System32\drivers\etc\hosts");
-        var hostsIcs = GetSystemHosts(@"C:\Windows\System32\drivers\etc\hosts.ics");
-
-        foreach (var (key, value) in hostsIcs)
+        if (IsWindows())
         {
-            hosts[key] = value;
+            var hosts = GetSystemHosts(@"C:\Windows\System32\drivers\etc\hosts");
+            var hostsIcs = GetSystemHosts(@"C:\Windows\System32\drivers\etc\hosts.ics");
+
+            foreach (var (key, value) in hostsIcs)
+            {
+                hosts[key] = value;
+            }
+
+            return hosts;
         }
 
-        return hosts;
+        if (IsLinux() || IsMacOS())
+        {
+            return GetSystemHosts("/etc/hosts");
+        }
+
+        return new Dictionary<string, string>();
     }
 
     public static async Task<string?> GetCliWrapOutput(string filePath, string? arg)
@@ -972,21 +1080,12 @@ public class Utils
         return Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
     }
 
-    /// <summary>
-    /// 命名内核同步对象（EventWaitHandle/Mutex）用名称：
-    /// 若当前进程文件名为 <c>v2rayN.exe</c>（不区分大小写），则使用固定名，使不同目录下的副本仍互斥为单实例；
-    /// 否则使用 exe 全路径的 MD5，便于改名或便携多开互不干扰。
-    /// </summary>
     public static string GetSingleInstanceKernelObjectName()
     {
         var path = GetExePath();
-        var fileName = Path.GetFileName(path);
-        if (fileName.Equals("v2rayN.exe", StringComparison.OrdinalIgnoreCase))
-        {
-            return "v2rayN_SingleInstance_ByExeName_8C4F2A1E";
-        }
-
-        return GetMd5(path);
+        return Path.GetFileName(path).Equals("v2rayN.exe", StringComparison.OrdinalIgnoreCase)
+            ? "v2rayN_SingleInstance_ByExeName_8C4F2A1E"
+            : GetMd5(path);
     }
 
     public static string StartupPath()
@@ -1131,12 +1230,16 @@ public class Utils
 
     #region Platform
 
+    [SupportedOSPlatformGuard("windows")]
     public static bool IsWindows() => OperatingSystem.IsWindows();
 
+    [SupportedOSPlatformGuard("linux")]
     public static bool IsLinux() => OperatingSystem.IsLinux();
 
+    [SupportedOSPlatformGuard("macos")]
     public static bool IsMacOS() => OperatingSystem.IsMacOS();
 
+    [UnsupportedOSPlatformGuard("windows")]
     public static bool IsNonWindows() => !OperatingSystem.IsWindows();
 
     public static string GetExeName(string name)
@@ -1231,6 +1334,16 @@ public class Utils
     }
 
     public static bool SetUnixFileMode(string? fileName)
+    {
+        if (IsWindows())
+        {
+            return false;
+        }
+        return SetUnixFileModeInternal(fileName);
+    }
+
+    [UnsupportedOSPlatform("windows")]
+    private static bool SetUnixFileModeInternal(string? fileName)
     {
         try
         {

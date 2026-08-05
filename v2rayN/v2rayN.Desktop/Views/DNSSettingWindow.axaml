@@ -3,6 +3,7 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dd="clr-namespace:v2rayN.Desktop.DesignData"
     xmlns:local="using:v2rayN.Desktop.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:resx="clr-namespace:ServiceLib.Resx;assembly=ServiceLib"
@@ -11,6 +12,7 @@
     Width="900"
     Height="600"
     x:DataType="vms:DNSSettingViewModel"
+    Design.DataContext="{x:Static dd:DesignData.DNSSetting}"
     ShowInTaskbar="False"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
@@ -40,7 +42,7 @@
                         x:Name="gridBasicDNSSettings"
                         Margin="{StaticResource Margin8}"
                         ColumnDefinitions="Auto,Auto,*"
-                        RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+                        RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
 
                         <TextBlock
                             x:Name="txtBasicDNSSettingsInvalid"
@@ -165,28 +167,71 @@
                             Grid.Column="0"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbParallelQuery}" />
-                        <ToggleSwitch
-                            x:Name="togParallelQuery"
+                            Text="{x:Static resx:ResUI.TbProxyDialResolveStrategy}" />
+                        <ComboBox
+                            x:Name="cmbProxyDialDNSStrategy"
                             Grid.Row="7"
                             Grid.Column="1"
+                            Width="200"
                             Margin="{StaticResource Margin4}"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center" />
+                            VerticalAlignment="Center"
+                            PlaceholderText="Default" />
+                        <TextBlock
+                            Grid.Row="7"
+                            Grid.Column="2"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbProxyDialResolveStrategyTip}"
+                            TextWrapping="Wrap" />
 
                         <TextBlock
                             Grid.Row="8"
                             Grid.Column="0"
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
-                            Text="{x:Static resx:ResUI.TbServeStale}" />
+                            Text="{x:Static resx:ResUI.TbParallelQuery}" />
                         <ToggleSwitch
-                            x:Name="togServeStale"
+                            x:Name="togParallelQuery"
                             Grid.Row="8"
                             Grid.Column="1"
                             Margin="{StaticResource Margin4}"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center" />
+
+                        <TextBlock
+                            Grid.Row="9"
+                            Grid.Column="0"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbServeStale}" />
+                        <ToggleSwitch
+                            x:Name="togServeStale"
+                            Grid.Row="9"
+                            Grid.Column="1"
+                            Margin="{StaticResource Margin4}"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center" />
+
+                        <TextBlock
+                            Grid.Row="10"
+                            Grid.Column="0"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbEnableHappyEyeballs}" />
+                        <ToggleSwitch
+                            x:Name="togEnableHappyEyeballs"
+                            Grid.Row="10"
+                            Grid.Column="1"
+                            Margin="{StaticResource Margin4}"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center" />
+                        <TextBlock
+                            Grid.Row="10"
+                            Grid.Column="2"
+                            Margin="{StaticResource Margin4}"
+                            VerticalAlignment="Center"
+                            Text="{x:Static resx:ResUI.TbEnableHappyEyeballsTip}"
+                            TextWrapping="Wrap" />
                     </Grid>
                 </ScrollViewer>
             </TabItem>
@@ -241,13 +286,24 @@
                             Margin="{StaticResource Margin4}"
                             VerticalAlignment="Center"
                             Text="{x:Static resx:ResUI.TbFakeIP}" />
-                        <ToggleSwitch
-                            x:Name="togFakeIP"
+                        <Grid
                             Grid.Row="3"
                             Grid.Column="1"
-                            Margin="{StaticResource Margin4}"
-                            HorizontalAlignment="Left"
-                            VerticalAlignment="Center" />
+                            ColumnDefinitions="Auto,*">
+                            <ToggleSwitch
+                                x:Name="togFakeIP"
+                                Grid.Column="0"
+                                Margin="{StaticResource Margin4}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center" />
+                            <ComboBox
+                                x:Name="cmbFakeIPRange"
+                                Grid.Column="1"
+                                Margin="{StaticResource Margin4}"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center"
+                                IsEditable="True" />
+                        </Grid>
                         <TextBlock
                             Grid.Row="3"
                             Grid.Column="2"
@@ -316,8 +372,8 @@
                             VerticalAlignment="Stretch"
                             BorderThickness="1"
                             Classes="TextArea"
-                            TextWrapping="Wrap"
-                            Watermark="{x:Static resx:ResUI.TbDNSHostsConfig}" />
+                            PlaceholderText="{x:Static resx:ResUI.TbDNSHostsConfig}"
+                            TextWrapping="Wrap" />
                     </Grid>
                 </ScrollViewer>
             </TabItem>

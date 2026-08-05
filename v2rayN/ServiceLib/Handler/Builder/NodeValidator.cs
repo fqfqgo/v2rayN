@@ -29,35 +29,6 @@ public class NodeValidator
         return v.ToResult();
     }
 
-    private class ValidationContext
-    {
-        public List<string> Errors { get; } = [];
-        public List<string> Warnings { get; } = [];
-
-        public void Error(string message)
-        {
-            Errors.Add(message);
-        }
-
-        public void Warning(string message)
-        {
-            Warnings.Add(message);
-        }
-
-        public void Assert(bool condition, string errorMsg)
-        {
-            if (!condition)
-            {
-                Error(errorMsg);
-            }
-        }
-
-        public NodeValidatorResult ToResult()
-        {
-            return new NodeValidatorResult(Errors, Warnings);
-        }
-    }
-
     private static void ValidateNodeAndCoreSupport(ProfileItem item, ECoreType coreType, ValidationContext v)
     {
         if (item.ConfigType is EConfigType.Custom)
@@ -72,8 +43,8 @@ public class NodeValidator
         }
 
         // Basic Property Validation
-        v.Assert(!item.Address.IsNullOrEmpty(), string.Format(ResUI.MsgInvalidProperty, "Address"));
-        v.Assert(item.Port is > 0 and <= 65535, string.Format(ResUI.MsgInvalidProperty, "Port"));
+        v.Assert(!item.Address.IsNullOrEmpty(), string.Format(ResUI.MsgInvalidProperty, ResUI.TbAddress));
+        v.Assert(item.Port is > 0 and <= 65535, string.Format(ResUI.MsgInvalidProperty, ResUI.TbPort));
 
         // Network & Core Logic
         var net = item.GetNetwork();
@@ -104,41 +75,76 @@ public class NodeValidator
         {
             case EConfigType.VMess:
                 v.Assert(!item.Password.IsNullOrEmpty() && Utils.IsGuidByParse(item.Password),
-                    string.Format(ResUI.MsgInvalidProperty, "Password"));
+                    string.Format(ResUI.MsgInvalidProperty, ResUI.TbId));
                 break;
 
             case EConfigType.VLESS:
                 v.Assert(
                     !item.Password.IsNullOrEmpty()
                     && (Utils.IsGuidByParse(item.Password) || item.Password.Length <= 30),
-                    string.Format(ResUI.MsgInvalidProperty, "Password")
+                    string.Format(ResUI.MsgInvalidProperty, ResUI.TbId5)
                 );
                 v.Assert(Global.Flows.Contains(protocolExtra.Flow ?? string.Empty),
-                    string.Format(ResUI.MsgInvalidProperty, "Flow"));
+                    string.Format(ResUI.MsgInvalidProperty, ResUI.TbFlow5));
                 break;
 
             case EConfigType.Shadowsocks:
-                v.Assert(!item.Password.IsNullOrEmpty(), string.Format(ResUI.MsgInvalidProperty, "Password"));
+                v.Assert(!item.Password.IsNullOrEmpty(), string.Format(ResUI.MsgInvalidProperty, ResUI.TbId3));
                 v.Assert(
                     !string.IsNullOrEmpty(protocolExtra.SsMethod) &&
                     Global.SsSecuritiesInSingbox.Contains(protocolExtra.SsMethod),
-                    string.Format(ResUI.MsgInvalidProperty, "SsMethod"));
+                    string.Format(ResUI.MsgInvalidProperty, ResUI.TbSecurity3));
                 break;
+        }
+
+        if (coreType is ECoreType.Xray
+            && (protocolExtra.Flow ?? string.Empty).StartsWith("xtls", StringComparison.OrdinalIgnoreCase)
+            && item.MuxEnabled == true)
+        {
+            v.Warning(string.Format(ResUI.MsgOptionsConflict, "XTLS", "Mux.Cool"));
+        }
+
+        if (item.GetNetwork() is nameof(ETransport.ws)
+            && item.EchConfigList.IsNullOrEmpty()
+            && item.GetAlpn()?.FirstOrDefault() == "h3")
+        {
+            v.Warning(
+                "WebSocket but ALPN is set to h3, the core may ignore the ALPN setting or cause unexpected issues.");
         }
 
         // TLS & Security
         if (item.StreamSecurity == Global.StreamSecurity)
         {
-            if (!item.Cert.IsNullOrEmpty() && CertPemManager.ParsePemChain(item.Cert).Count == 0 &&
-                !item.CertSha.IsNullOrEmpty())
+            var isCertProvided = !item.Cert.IsNullOrEmpty();
+            if (!item.Cert.IsNullOrEmpty() && CertPemManager.ParsePemChain(item.Cert).Count == 0)
             {
-                v.Error(string.Format(ResUI.MsgInvalidProperty, "TLS Certificate"));
+                v.Error(string.Format(ResUI.MsgInvalidProperty, ResUI.TbFullCertTips));
+                isCertProvided = false;
+            }
+
+            // Check for deprecated allowInsecure property when TLS is enabled
+            if (item.GetAllowInsecure()
+                && item.Cert.IsNullOrEmpty()
+                && item.CertSha.IsNullOrEmpty())
+            {
+                v.Warning(ResUI.MsgAllowInsecureDeprecated);
+            }
+
+            if ((coreType == ECoreType.Xray
+                && item.GetAllowInsecure()
+                && !isCertProvided
+                && item.CertSha.IsNullOrEmpty())
+                || (coreType == ECoreType.sing_box
+                    && item.GetAllowInsecure()
+                    && !isCertProvided))
+            {
+                v.Warning(ResUI.MsgInsecureConfiguration);
             }
         }
 
         if (item.StreamSecurity == Global.StreamSecurityReality)
         {
-            v.Assert(!item.PublicKey.IsNullOrEmpty(), string.Format(ResUI.MsgInvalidProperty, "PublicKey"));
+            v.Assert(!item.PublicKey.IsNullOrEmpty(), string.Format(ResUI.MsgInvalidProperty, ResUI.TbPublicKey));
         }
 
         var transport = item.GetTransportExtra();
@@ -146,7 +152,7 @@ public class NodeValidator
         {
             if (JsonUtils.ParseJson(transport.XhttpExtra) is not JsonObject)
             {
-                v.Error(string.Format(ResUI.MsgInvalidProperty, "XHTTP Extra"));
+                v.Error(string.Format(ResUI.MsgInvalidProperty, ResUI.TransportExtra));
             }
         }
 
@@ -154,7 +160,7 @@ public class NodeValidator
         {
             if (JsonUtils.ParseJson(item.Finalmask) is not JsonObject)
             {
-                v.Error(string.Format(ResUI.MsgInvalidProperty, "Finalmask"));
+                v.Error(string.Format(ResUI.MsgInvalidProperty, ResUI.TbFinalmask));
             }
         }
     }
@@ -182,5 +188,34 @@ public class NodeValidator
         }
 
         return null;
+    }
+
+    private class ValidationContext
+    {
+        public List<string> Errors { get; } = [];
+        public List<string> Warnings { get; } = [];
+
+        public void Error(string message)
+        {
+            Errors.Add(message);
+        }
+
+        public void Warning(string message)
+        {
+            Warnings.Add(message);
+        }
+
+        public void Assert(bool condition, string errorMsg)
+        {
+            if (!condition)
+            {
+                Error(errorMsg);
+            }
+        }
+
+        public NodeValidatorResult ToResult()
+        {
+            return new NodeValidatorResult(Errors, Warnings);
+        }
     }
 }

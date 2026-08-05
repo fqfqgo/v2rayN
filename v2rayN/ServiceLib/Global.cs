@@ -2,12 +2,8 @@ namespace ServiceLib;
 
 public class Global
 {
-    #region const
-
     public const string AppName = "v2rayN";
-    /// <summary>用于标题栏等界面显示，文件名与路径仍使用 AppName</summary>
     public const string AppDisplayName = "v2rayN for V2free";
-    /// <summary>帮助菜单中 V2free 官网链接</summary>
     public const string V2freeWebsiteUrl = "https://cdn.v2ai.top/auth/register?code=PLwV";
     public const string GithubUrl = "https://github.com";
     public const string GithubApiUrl = "https://api.github.com/repos";
@@ -46,6 +42,11 @@ public class Global
     public const string KillAsSudoOSXShellFileName = NamespaceSample + "kill_as_sudo_osx_sh";
     public const string KillAsSudoLinuxShellFileName = NamespaceSample + "kill_as_sudo_linux_sh";
     public const string SingboxFakeIPFilterFileName = NamespaceSample + "singbox_fakeip_filter";
+    public const string ChromeRootCertFileName = NamespaceSample + "chrome_roots_pem";
+    public const string MozillaRootCertFileName = NamespaceSample + "mozilla_roots_pem";
+
+    public const string ChromeRootProvider = "chrome";
+    public const string MozillaRootProvider = "mozilla";
 
     public const string DefaultSecurity = "auto";
     public const string DefaultNetwork = "raw";
@@ -59,7 +60,7 @@ public class Global
     public const string DnsOutboundTag = "dns";
     public const string DnsTag = "dns-module";
     public const string DirectDnsTag = "direct-dns";
-    public const string BalancerTagSuffix = "-round";
+    public const string BalancerTagSuffix = "-balancer";
     public const string StreamSecurity = "tls";
     public const string StreamSecurityReality = "reality";
     public const string Loopback = "127.0.0.1";
@@ -94,6 +95,9 @@ public class Global
     public const string XrayLocalCert = "XRAY_LOCATION_CERT";
     public const int SpeedTestPageSize = 1000;
     public const string LinuxBash = "/bin/bash";
+    public const string StringTrue = "true";
+    public const string StringFalse = "false";
+    public const int SqliteMaxBatchSize = 10000;
 
     public const string SingboxDirectDNSTag = "direct_dns";
     public const string SingboxRemoteDNSTag = "remote_dns";
@@ -102,9 +106,7 @@ public class Global
     public const string SingboxFakeDNSTag = "fake_dns";
 
     public const int Hysteria2DefaultHopInt = 30;
-
     public const string PolicyGroupExcludeKeywords = @"剩余|过期|到期|重置|[Rr]emaining|[Ee]xpir|[Rr]eset";
-
     public const string PolicyGroupDefaultAllFilter = $"^(?!.*(?:{PolicyGroupExcludeKeywords})).*$";
 
     public static readonly List<string> PolicyGroupDefaultFilterList =
@@ -153,6 +155,9 @@ public class Global
     public static readonly List<string> SpeedTestUrls =
     [
         @"https://cachefly.cachefly.net/50mb.test",
+        @"https://cachefly.cachefly.net/100mb.test",
+        @"https://cachefly.cachefly.net/1mb.test",
+        @"https://cachefly.cachefly.net/10mb.test",
         @"https://speed.cloudflare.com/__down?bytes=10000000",
         @"https://speed.cloudflare.com/__down?bytes=50000000",
         @"https://speed.cloudflare.com/__down?bytes=99999999",
@@ -161,6 +166,8 @@ public class Global
     public static readonly List<string> SpeedPingTestUrls =
     [
         @"https://www.google.com/generate_204",
+        @"https://www.youtube.com/generate_204",
+        @"https://www.googlevideo.com/generate_204",
         @"https://www.gstatic.com/generate_204",
         @"https://www.apple.com/library/test/success.html",
         @"http://www.msftconnecttest.com/connecttest.txt"
@@ -207,9 +214,17 @@ public class Global
 
     public const string Hysteria2ProtocolShare = "hy2://";
 
+    public const string Hysteria2RealmProtocolShare = "hysteria2+realm://";
+
+    public const string Hysteria2HttpRealmProtocolShare = "hysteria2+realm+http://";
+
     public const string NaiveHttpsProtocolShare = "naive+https://";
 
     public const string NaiveQuicProtocolShare = "naive+quic://";
+
+    public const string SOCKS5Protocol = "socks5://";
+
+    public const string SOCKS4Protocol = "socks4://";
 
     public static readonly Dictionary<EConfigType, string> ProtocolShares = new()
     {
@@ -325,12 +340,12 @@ public class Global
 
     public static readonly Dictionary<string, string> KcpHeaderMaskMap = new()
     {
-        { "srtp", "header-srtp" },
-        { "utp", "header-utp" },
-        { "wechat-video", "header-wechat" },
-        { "dtls", "header-dtls" },
-        { "wireguard", "header-wireguard" },
-        { "dns", "header-dns" }
+        { "srtp", "srtp" },
+        { "utp", "utp" },
+        { "wechat-video", "wechat" },
+        { "dtls", "dtls" },
+        { "wireguard", "wireguard" },
+        { "dns", "dns" }
     };
 
     public static readonly List<string> CoreTypes =
@@ -399,6 +414,16 @@ public class Global
         ""
     ];
 
+    public static readonly List<string> FragmentPacketsOptions =
+    [
+        "tlshello",
+        "1-1",
+        "1-2",
+        "1-3",
+        "1-4",
+        "1-5"
+    ];
+
     public static readonly List<string> UserAgent =
     [
         "chrome",
@@ -414,13 +439,6 @@ public class Global
         "packet-up",
         "stream-up",
         "stream-one"
-    ];
-
-    public static readonly List<string> AllowInsecure =
-    [
-        "true",
-        "false",
-        ""
     ];
 
     public static readonly List<string> DomainStrategy =
@@ -473,10 +491,11 @@ public class Global
         "zh-Hans",
         "zh-Hant",
         "en",
-        "fa-Ir",
+        "fa",
         "fr",
         "ru",
-        "hu"
+        "hu",
+        "id"
     ];
 
     public static readonly List<string> Alpns =
@@ -509,6 +528,7 @@ public class Global
 
     public static readonly List<string> InboundTags =
     [
+        "tun",
         "socks",
         "socks2",
         "socks3"
@@ -535,7 +555,6 @@ public class Global
         "http",
         "tls",
         "quic",
-        "fakedns",
     ];
 
     public static readonly List<int> TunMtus =
@@ -665,6 +684,14 @@ public class Global
         "mcbe:bedrock.talonmc.net",
     ];
 
+    public static readonly List<string> DefaultRealmStunList =
+    [
+        "turn.cloudflare.com:3478",
+        "stun.nextcloud.com:3478",
+        "stun.sip.us:3478",
+        "global.stun.twilio.com:3478",
+    ];
+
     public static readonly List<string> OutboundTags =
     [
         ProxyTag,
@@ -679,15 +706,15 @@ public class Global
         { "one.one.one.one", ["1.1.1.1", "1.0.0.1", "2606:4700:4700::1111", "2606:4700:4700::1001"] },
         { "1dot1dot1dot1.cloudflare-dns.com", ["1.1.1.1", "1.0.0.1", "2606:4700:4700::1111", "2606:4700:4700::1001"] },
         { "cloudflare-dns.com", ["104.16.249.249", "104.16.248.249", "2606:4700::6810:f8f9", "2606:4700::6810:f9f9"] },
-        { "dns.cloudflare.com", ["104.16.132.229", "104.16.133.229", "2606:4700::6810:84e5", "2606:4700::6810:85e5"] },
+        { "dns.cloudflare.com", ["162.159.61.8", "172.64.41.8", "2a06:98c1:52::8", "2803:f800:53::8"] },
         { "dot.pub", ["1.12.12.12", "120.53.53.53"] },
         { "doh.pub", ["1.12.12.12", "120.53.53.53"] },
         { "dns.quad9.net", ["9.9.9.9", "149.112.112.112", "2620:fe::fe", "2620:fe::9"] },
         { "dns.yandex.net", ["77.88.8.8", "77.88.8.1", "2a02:6b8::feed:0ff", "2a02:6b8:0:1::feed:0ff"] },
-        { "dns.sb", ["185.222.222.222", "2a09::"] },
+        { "dns.sb", ["45.11.45.11", "185.222.222.222", "2a09::", "2a11::"] },
         { "dns.umbrella.com", ["208.67.220.220", "208.67.222.222", "2620:119:35::35", "2620:119:53::53"] },
         { "dns.sse.cisco.com", ["208.67.220.220", "208.67.222.222", "2620:119:35::35", "2620:119:53::53"] },
-        { "engage.cloudflareclient.com", ["162.159.192.1"] }
+        { "engage.cloudflareclient.com", ["162.159.192.1", "2606:4700:d0::a29f:c001"] }
     };
 
     public static readonly List<string> ExpectedIPs =
@@ -707,5 +734,42 @@ public class Global
         "reply",
     ];
 
-    #endregion const
+    public static readonly List<string> FakeIPRanges =
+    [
+        "198.18.0.0/15",
+        "11.0.0.0/8",
+    ];
+
+    public static readonly List<string> RootCertProviders =
+    [
+        "system",
+        ChromeRootProvider,
+        MozillaRootProvider,
+    ];
+
+    public static readonly IReadOnlyList<string> TunIPv4Address =
+    [
+        "172.18.0.1/30",
+        "172.31.0.1/30",
+        "172.20.0.1/30",
+        "172.16.0.1/30",
+        "192.168.100.1/30",
+        "10.10.14.1/30",
+        "10.1.0.1/30",
+        "10.0.0.1/30",
+    ];
+
+    // Prefixes must leave room for a peer address (max /126); the sing-box system
+    // stack derives a gateway from the first prefix and rejects single-address prefixes.
+    public static readonly IReadOnlyList<string> TunIPv6Address =
+    [
+        "fc00::172:18:0:1/126",
+        "fc00::172:31:0:1/126",
+        "fc00::172:20:0:1/126",
+        "fc00::172:16:0:1/126",
+        "fc00::192:168:100:1/126",
+        "fc00::10:10:14:1/126",
+        "fc00::10:1:0:1/126",
+        "fc00::10:0:0:1/126",
+    ];
 }

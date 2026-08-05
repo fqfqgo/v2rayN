@@ -16,10 +16,9 @@ public class ClashConnectionsViewModel : MyReactiveObject
     [Reactive]
     public bool AutoRefresh { get; set; }
 
-    public ClashConnectionsViewModel(Func<EViewAction, object?, Task<bool>>? updateView)
+    public ClashConnectionsViewModel()
     {
         _config = AppManager.Instance.Config;
-        _updateView = updateView;
         AutoRefresh = _config.ClashUIItem.ConnectionsAutoRefresh;
 
         var canEditRemove = this.WhenAnyValue(
@@ -69,7 +68,7 @@ public class ClashConnectionsViewModel : MyReactiveObject
 
         var dtNow = DateTime.Now;
         var lstModel = new List<ClashConnectionModel>();
-        foreach (var item in connections ?? new())
+        foreach (var item in connections ?? [])
         {
             var host = $"{(item.metadata.host.IsNullOrEmpty() ? item.metadata.destinationIP : item.metadata.host)}:{item.metadata.destinationPort}";
             if (HostFilter.IsNotEmpty() && !host.Contains(HostFilter))
@@ -85,7 +84,7 @@ public class ClashConnectionsViewModel : MyReactiveObject
                 Host = host,
                 Time = (dtNow - item.start).TotalSeconds < 0 ? 1 : (dtNow - item.start).TotalSeconds,
                 Elapsed = (dtNow - item.start).ToString(@"hh\:mm\:ss"),
-                Chain = $"{item.rule} , {string.Join("->", item.chains ?? new())}"
+                Chain = $"{item.rule} , {string.Join("->", item.chains ?? [])}"
             };
 
             lstModel.Add(model);

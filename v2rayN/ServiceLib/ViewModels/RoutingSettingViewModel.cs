@@ -2,6 +2,8 @@ namespace ServiceLib.ViewModels;
 
 public class RoutingSettingViewModel : MyReactiveObject
 {
+    public Interaction<string, bool> ShowYesNoInteraction { get; } = new();
+
     #region Reactive
 
     public IObservableCollection<RoutingItemModel> RoutingItems { get; } = new ObservableCollectionExtended<RoutingItemModel>();
@@ -26,10 +28,9 @@ public class RoutingSettingViewModel : MyReactiveObject
 
     #endregion Reactive
 
-    public RoutingSettingViewModel(Func<EViewAction, object?, Task<bool>>? updateView)
+    public RoutingSettingViewModel()
     {
         _config = AppManager.Instance.Config;
-        _updateView = updateView;
 
         var canEditRemove = this.WhenAnyValue(
             x => x.SelectedSource,
@@ -83,6 +84,7 @@ public class RoutingSettingViewModel : MyReactiveObject
     public async Task RefreshRoutingItems()
     {
         RoutingItems.Clear();
+        var models = new List<RoutingItemModel>();
 
         var routings = await AppManager.Instance.RoutingItems();
         foreach (var item in routings)
@@ -98,8 +100,9 @@ public class RoutingSettingViewModel : MyReactiveObject
                 CustomRulesetPath4Singbox = item.CustomRulesetPath4Singbox,
                 Sort = item.Sort,
             };
-            RoutingItems.Add(it);
+            models.Add(it);
         }
+        RoutingItems.AddRange(models);
     }
 
     /// <summary>
@@ -129,7 +132,8 @@ public class RoutingSettingViewModel : MyReactiveObject
                 return;
             }
         }
-        if (await _updateView?.Invoke(EViewAction.RoutingRuleSettingWindow, item) == true)
+        var routingRuleSettingViewModel = new RoutingRuleSettingViewModel(item);
+        if (await AppManager.Instance.WindowDialog.ShowDialogAsync(routingRuleSettingViewModel) == true)
         {
             await RefreshRoutingItems();
             IsModified = true;
@@ -143,7 +147,7 @@ public class RoutingSettingViewModel : MyReactiveObject
             NoticeManager.Instance.Enqueue(ResUI.PleaseSelectRules);
             return;
         }
-        if (await _updateView?.Invoke(EViewAction.ShowYesNo, null) == false)
+        if (await ShowYesNoInteraction.Handle(ResUI.RemoveServer) == false)
         {
             return;
         }

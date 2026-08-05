@@ -312,9 +312,6 @@
   <data name="LvUrl" xml:space="preserve">
     <value>URL (optional)</value>
   </data>
-  <data name="SubUrlLinkHint" xml:space="preserve">
-    <value>Enter subscription link here</value>
-  </data>
   <data name="LvLoginPassword" xml:space="preserve">
     <value>Login password</value>
   </data>
@@ -437,12 +434,6 @@
   </data>
   <data name="menuReload" xml:space="preserve">
     <value>Reload</value>
-  </data>
-  <data name="menuStartBrowser" xml:space="preserve">
-    <value>Start Browser</value>
-  </data>
-  <data name="menuLog" xml:space="preserve">
-    <value>Log</value>
   </data>
   <data name="menuRoutingSetting" xml:space="preserve">
     <value>Routing Setting</value>
@@ -712,7 +703,7 @@
     <value>Automatically adjust column width after subscription update</value>
   </data>
   <data name="TbSettingsEnableCheckPreReleaseUpdate" xml:space="preserve">
-    <value>Check for pre-release updates</value>
+    <value>Check for pre-release</value>
   </data>
   <data name="TbSettingsException" xml:space="preserve">
     <value>Exception</value>
@@ -825,9 +816,6 @@
   <data name="menuWebsiteItem" xml:space="preserve">
     <value>{0} Website</value>
   </data>
-  <data name="menuWebsiteV2free" xml:space="preserve">
-    <value>V2free Website</value>
-  </data>
   <data name="menuRoutingAdvancedAdd" xml:space="preserve">
     <value>Add</value>
   </data>
@@ -888,14 +876,14 @@
   <data name="SubUrlTips" xml:space="preserve">
     <value>For group please leave blank here</value>
   </data>
+  <data name="SubUrlLinkHint" xml:space="preserve">
+    <value>Enter the subscription URL here</value>
+  </data>
   <data name="TipChangeRouting" xml:space="preserve">
     <value>Routing setting has changed</value>
   </data>
   <data name="TipChangeSystemProxy" xml:space="preserve">
     <value>System proxy setting has changed</value>
-  </data>
-  <data name="TipMixedListenPortAutoAdjusted" xml:space="preserve">
-    <value>Mixed listen port changed from {0} to {1} due to conflict (saved; reloading core)</value>
   </data>
   <data name="TbSettingsRouteOnly" xml:space="preserve">
     <value>Route Only</value>
@@ -923,15 +911,6 @@
   </data>
   <data name="TbEnableTunAs" xml:space="preserve">
     <value>Enable Tun</value>
-  </data>
-  <data name="BtnStartConnection" xml:space="preserve">
-    <value>Start connection</value>
-  </data>
-  <data name="BtnConnected" xml:space="preserve">
-    <value>Connected</value>
-  </data>
-  <data name="BtnStopConnection" xml:space="preserve">
-    <value>Stop connection</value>
   </data>
   <data name="TbSettingsNewPort4LAN" xml:space="preserve">
     <value>New Port for LAN</value>
@@ -1011,9 +990,6 @@
   <data name="SpeedtestingPressEscToExit" xml:space="preserve">
     <value>Press ESC to terminate the test</value>
   </data>
-  <data name="SpeedtestingBatchWarning" xml:space="preserve">
-    <value>Batch speed testing consumes a lot of traffic and may use several GB each run. Continue?</value>
-  </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>Please turn off when there is an abnormal disconnection</value>
   </data>
@@ -1083,6 +1059,12 @@
   <data name="TbHeaderType8" xml:space="preserve">
     <value>Congestion control</value>
   </data>
+  <data name="TbHttpOutboundHeaders" xml:space="preserve">
+    <value>HTTP headers</value>
+  </data>
+  <data name="TipHttpOutboundHeaders" xml:space="preserve">
+    <value>Custom HTTP outbound request headers as a JSON object with string or string array values.</value>
+  </data>
   <data name="LvPrevProfile" xml:space="preserve">
     <value>Previous proxy remarks</value>
   </data>
@@ -1142,6 +1124,39 @@
   </data>
   <data name="TbSettingsEnableFragment" xml:space="preserve">
     <value>Enable fragment</value>
+  </data>
+  <data name="TbSettingsFragmentPackets" xml:space="preserve">
+    <value>Fragment Packets</value>
+  </data>
+  <data name="TbSettingsFragmentPacketsTip" xml:space="preserve">
+    <value>Packets to fragment: tlshello (TLS ClientHello) or 1-1 to 1-5 (first N TCP packets)</value>
+  </data>
+  <data name="TbSettingsFragmentLength" xml:space="preserve">
+    <value>Fragment Length</value>
+  </data>
+  <data name="TbSettingsFragmentLengthTip" xml:space="preserve">
+    <value>Fragment size range in bytes (e.g., 50-100). First value must be &lt;= second. Empty = default.</value>
+  </data>
+  <data name="TbSettingsFragmentInterval" xml:space="preserve">
+    <value>Fragment Interval</value>
+  </data>
+  <data name="TbSettingsFragmentIntervalTip" xml:space="preserve">
+    <value>Delay between fragments in ms (e.g., 10-20). Range 1-100. First value must be &lt;= second. Empty = default.</value>
+  </data>
+  <data name="TbSettingsFragmentMaxSplit" xml:space="preserve">
+    <value>Max Split</value>
+  </data>
+  <data name="TbSettingsFragmentMaxSplitTip" xml:space="preserve">
+    <value>Maximum number of fragments per packet (0-10000, 0 = unlimited). Xray only. Empty = default.</value>
+  </data>
+  <data name="TbSettingsFragmentFallbackDelay" xml:space="preserve">
+    <value>Fallback Delay</value>
+  </data>
+  <data name="TbSettingsFragmentFallbackDelayTip" xml:space="preserve">
+    <value>Fallback delay when ACK detection unavailable (e.g., 500ms). sing-box only. Empty = default.</value>
+  </data>
+  <data name="FillFragmentParameterError" xml:space="preserve">
+    <value>Invalid range format. Use 'from-to' (e.g., 50-100).</value>
   </data>
   <data name="TbSettingsEnableCacheFile4Sbox" xml:space="preserve">
     <value>Enable cache file for sing-box (ruleset files)</value>
@@ -1342,7 +1357,7 @@
     <value>Invalid subscription URL format. It must be a single line starting with http:// or https:// (node links such as vmess:// or vless:// are not allowed).</value>
   </data>
   <data name="SubUrlUnreachableTip" xml:space="preserve">
-    <value>Unable to reach this subscription URL (DNS resolution failed or connection timed out). The tutorial provides several subscription links, please switch to another one and try again.</value>
+    <value>Unable to reach this subscription URL (DNS resolution failed or connection timed out).</value>
   </data>
   <data name="TbSettingsCurrentFontFamilyLinuxTip" xml:space="preserve">
     <value>Install the font to the system, select or fill in the font name, restart the settings</value>
@@ -1381,7 +1396,7 @@
     <value>Enable second mixed port</value>
   </data>
   <data name="TbRoutingInboundTagTips" xml:space="preserve">
-    <value>socks: local port, socks2: second local port, socks3: LAN port</value>
+    <value>tun: TUN inbound, socks: local port, socks2: second local port, socks3: LAN port</value>
   </data>
   <data name="TbSettingsTheme" xml:space="preserve">
     <value>Theme</value>
@@ -1506,11 +1521,8 @@
   <data name="TbSelectProfile" xml:space="preserve">
     <value>Select Profile</value>
   </data>
-  <data name="TbShowPassword" xml:space="preserve">
-    <value>Show Password</value>
-  </data>
   <data name="TbFakeIPTips" xml:space="preserve">
-    <value>Applies globally by default, with built-in FakeIP filtering (sing-box only).</value>
+    <value>Applies globally by default, and built-in FakeIP filtering is only built into sing-box.</value>
   </data>
   <data name="PleaseAddAtLeastOneServer" xml:space="preserve">
     <value>Please Add At Least One Configuration</value>
@@ -1629,6 +1641,9 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="TbEchConfigList" xml:space="preserve">
     <value>EchConfigList</value>
   </data>
+  <data name="TbVerifyPeerCertByName" xml:space="preserve">
+    <value>Verify Peer Cert By Name</value>
+  </data>
   <data name="TbFullCertTips" xml:space="preserve">
     <value>Full certificate (chain), PEM format</value>
   </data>
@@ -1746,12 +1761,6 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="TransportExtra" xml:space="preserve">
     <value>XHTTP Extra</value>
   </data>
-  <data name="TbAllowInsecureCertFetch" xml:space="preserve">
-    <value>Allow insecure cert fetch (self-signed)</value>
-  </data>
-  <data name="TbAllowInsecureCertFetchTips" xml:space="preserve">
-    <value>Only for fetching self-signed certificates. This may expose you to MITM risks.</value>
-  </data>
   <data name="menuUdpTestServer" xml:space="preserve">
     <value>Test Configurations UDP Delay</value>
   </data>
@@ -1764,19 +1773,124 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="TbSettingsSendThroughTip" xml:space="preserve">
     <value>For multi-interface environments, enter the local machine's IPv4 address</value>
   </data>
-  <data name="FillCorrectSendThroughIPv4" xml:space="preserve">
-    <value>Please fill in the correct IPv4 address for SendThrough.</value>
-  </data>
   <data name="TbSettingsBindInterface" xml:space="preserve">
     <value>Bind Interface</value>
   </data>
   <data name="TbSettingsBindInterfaceTip" xml:space="preserve">
-    <value>For multi-interface environments, enter the name of the interface to bind. Only effective on Windows systems or TUN mode</value>
+    <value>For multi-interface environments, enter the interface name for outbound connections. On Linux/macOS, it only works when TUN mode is enabled.</value>
   </data>
   <data name="TbPreSharedKey" xml:space="preserve">
     <value>PreSharedKey</value>
   </data>
   <data name="menuExport2InnerUri" xml:space="preserve">
     <value>Export v2rayN Internal Share Link to Clipboard</value>
+  </data>
+  <data name="MsgCheckUpdateHasNewVersion" xml:space="preserve">
+    <value>{0} has a new version available: {1}</value>
+  </data>
+  <data name="menuCheckOnly" xml:space="preserve">
+    <value>Only Check</value>
+  </data>
+  <data name="MsgNotSupport" xml:space="preserve">
+    <value>Not Support</value>
+  </data>
+  <data name="LvTestIpInfo" xml:space="preserve">
+    <value>IP Info</value>
+  </data>
+  <data name="menuNewUpdate" xml:space="preserve">
+    <value>New Update</value>
+  </data>
+  <data name="MsgAllowInsecureDeprecated" xml:space="preserve">
+    <value>The current node uses an unencrypted connection, meaning your communications could be directly monitored by network intermediaries controlled by authoritarian governments. For security reasons, nodes of this type cannot connect via Xray-core versions 26.2.6 or higher. If this is a self-built node, please enable TLS or other secure encryption, or pin the certificate using pinSHA256. If this is an airport/provider node, please contact your service provider for a technical upgrade. If the provider refuses to cooperate, it is recommended to switch to a service provider that prioritizes user security. For more information, please visit https://github.com/2dust/v2rayN/discussions/9460.</value>
+  </data>
+  <data name="TbRouteExcludeAddress" xml:space="preserve">
+    <value>Route Exclude Address</value>
+  </data>
+  <data name="TbRouteExcludeAddressTip" xml:space="preserve">
+    <value>Use commas (,) to separate.</value>
+  </data>
+  <data name="MsgTunRouteExcludeInvalidAddress" xml:space="preserve">
+    <value>Invalid address in TUN route exclude list: {0}</value>
+  </data>
+  <data name="MsgOptionsConflict" xml:space="preserve">
+    <value>Conflict between {0} and {1}</value>
+  </data>
+  <data name="TbEnableFinalFragment" xml:space="preserve">
+    <value>Enable Final Fragment</value>
+  </data>
+  <data name="TbEnableFinalFragmentTip" xml:space="preserve">
+    <value>Split the tail of packets into smaller fragments. This may affect throughput and latency.</value>
+  </data>
+  <data name="TbEnabletDnsViaProxy" xml:space="preserve">
+    <value>DNS via Bridge</value>
+  </data>
+  <data name="MsgInsecureConfiguration" xml:space="preserve">
+    <value>Insecure configuration detected: AllowInsecure is enabled but no certificate is provided. This may cause MITM attacks.</value>
+  </data>
+  <data name="TbHy2RealmUrl" xml:space="preserve">
+    <value>Realm URL</value>
+  </data>
+  <data name="InvalidHy2RealmUrl" xml:space="preserve">
+    <value>Invalid Realm URL.</value>
+  </data>
+  <data name="InvalidHttpOutboundHeaders" xml:space="preserve">
+    <value>Please enter valid HTTP request headers JSON.</value>
+  </data>
+  <data name="TbHy2RealmUrlTip" xml:space="preserve">
+    <value>Format: realm://&lt;token&gt;@&lt;rendezvous-host&gt;[:port]/&lt;realm-name&gt;?stun=&lt;stun-host&gt;[:port]</value>
+  </data>
+  <data name="TbGeckoPacketSize" xml:space="preserve">
+    <value>Gecko Packet Size (min/max)</value>
+  </data>
+  <data name="TbLegacyProtectTip" xml:space="preserve">
+    <value>If enabled, use sing-box TUN; otherwise, use xray TUN.</value>
+  </data>
+  <data name="TbRootCertificateProvider" xml:space="preserve">
+    <value>Root Certificate Provider</value>
+  </data>
+  <data name="TbRootCertificateProviderTip" xml:space="preserve">
+    <value>Only applies to the v2rayN GUI's downloads and network requests. Does not affect the core's certificate validation.</value>
+  </data>
+  <data name="TbProxyDialResolveStrategy" xml:space="preserve">
+    <value>Proxy Dial Resolution Strategy</value>
+  </data>
+  <data name="TbProxyDialResolveStrategyTip" xml:space="preserve">
+    <value>Not recommended; may cause routing loops.</value>
+  </data>
+  <data name="TbEnableHappyEyeballs" xml:space="preserve">
+    <value>Enable Happy Eyeballs</value>
+  </data>
+  <data name="TbEnableHappyEyeballsTip" xml:space="preserve">
+    <value>Requires the UseIP Strategy. When enabled, it attempts IPv4 and IPv6 connections simultaneously and automatically selects the faster available path.</value>
+  </data>
+  <data name="TbIpv6Address" xml:space="preserve">
+    <value>Ipv6 Address</value>
+  </data>
+  <data name="TbIpv4Address" xml:space="preserve">
+    <value>Ipv4 Address</value>
+  </data>
+  <data name="menuStartBrowser" xml:space="preserve">
+    <value>Start Browser</value>
+  </data>
+  <data name="menuLog" xml:space="preserve">
+    <value>Log</value>
+  </data>
+  <data name="menuWebsiteV2free" xml:space="preserve">
+    <value>V2free Website</value>
+  </data>
+  <data name="BtnStartConnection" xml:space="preserve">
+    <value>Start connection</value>
+  </data>
+  <data name="BtnStopConnection" xml:space="preserve">
+    <value>Stop connection</value>
+  </data>
+  <data name="SpeedtestingBatchWarning" xml:space="preserve">
+    <value>Batch speed testing consumes a lot of traffic and may use several GB each run. Continue?</value>
+  </data>
+  <data name="TipMixedListenPortAutoAdjusted" xml:space="preserve">
+    <value>Mixed listen port changed from {0} to {1} due to conflict (saved; reloading core)</value>
+  </data>
+  <data name="TipStartConnectionAfterSelectingNode" xml:space="preserve">
+    <value>Selected {0}. Start the connection from the status bar to use this node.</value>
   </data>
 </root>

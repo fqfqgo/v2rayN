@@ -28,13 +28,13 @@ public partial class CoreConfigV2rayService
                 _coreConfig.routing.rules.Add(new RulesItem4Ray
                 {
                     type = "field",
-                    inboundTag = new List<string> { Global.DnsTag },
+                    inboundTag = [Global.DnsTag],
                     outboundTag = Global.ProxyTag,
                 });
                 return;
             }
             var simpleDnsItem = context.SimpleDnsItem;
-            var dnsItem = _coreConfig.dns is Dns4Ray dns4Ray ? dns4Ray : new Dns4Ray();
+            var dnsItem = _coreConfig.dns as Dns4Ray ?? new Dns4Ray();
 
             var strategy4Freedom = simpleDnsItem?.Strategy4Freedom ?? Global.AsIs;
             //Outbound Freedom domainStrategy
@@ -43,11 +43,7 @@ public partial class CoreConfigV2rayService
                 var outbound = _coreConfig.outbounds.FirstOrDefault(t => t is { protocol: "freedom", tag: Global.DirectTag });
                 if (outbound != null)
                 {
-                    outbound.settings = new()
-                    {
-                        domainStrategy = strategy4Freedom,
-                        userLevel = 0
-                    };
+                    FillSockoptDomainStrategy(outbound, strategy4Freedom);
                 }
             }
 
@@ -62,6 +58,22 @@ public partial class CoreConfigV2rayService
                     .Where(t => xraySupportConfigTypeNames.Contains(t.protocol))
                     .ToList()
                     .ForEach(outbound => outbound.targetStrategy = strategy4Proxy);
+            }
+
+            var strategy4DialProxy = simpleDnsItem?.Strategy4ProxyDial ?? Global.AsIs;
+            //Outbound DialProxy domainStrategy
+            if (strategy4DialProxy.IsNotEmpty() && strategy4DialProxy != Global.AsIs)
+            {
+                var xraySupportConfigTypeNames = Global.XraySupportConfigType
+                        .Select(x => x == EConfigType.Hysteria2 ? "hysteria" : Global.ProtocolTypes[x])
+                        .ToHashSet();
+                _coreConfig.outbounds
+                    .Where(t => xraySupportConfigTypeNames.Contains(t.protocol))
+                    .ToList()
+                    .ForEach(outbound =>
+                    {
+                        FillSockoptDomainStrategy(outbound, strategy4DialProxy);
+                    });
             }
 
             FillDnsServers(dnsItem);
@@ -106,6 +118,33 @@ public partial class CoreConfigV2rayService
         {
             Logging.SaveLog(_tag, ex);
         }
+    }
+
+    private void GenFakeDns()
+    {
+        var fakeipRange = _config.SimpleDNSItem.FakeIPRange.IsNullOrEmpty() ? Global.FakeIPRanges.First() : _config.SimpleDNSItem.FakeIPRange;
+        var poolSize = 65535L;
+        try
+        {
+            var fakeipNetwork = IPNetwork2.Parse(fakeipRange);
+            var totalIPs = fakeipNetwork.Total;
+            // see https://github.com/XTLS/Xray-core/blob/6e3322d219140a025285ded1114fe17a5edb74d8/app/dns/fakedns/fake.go#L88
+            // if math.Log2(float64(lruSize)) >= float64(rooms) { return errors.New("LRU size is bigger than subnet size").AtError() }
+            totalIPs -= 1;
+            if (totalIPs > 0)
+            {
+                poolSize = (totalIPs >= long.MaxValue) ? long.MaxValue : (long)totalIPs;
+            }
+        }
+        catch
+        {
+            // Ignore
+        }
+        _coreConfig.fakedns = new()
+        {
+            ipPool = fakeipRange,
+            poolSize = poolSize,
+        };
     }
 
     private void FillDnsServers(Dns4Ray dnsItem)
@@ -234,6 +273,23 @@ public partial class CoreConfigV2rayService
 
         var directDnsTagIndex = 1;
 
+        if (simpleDNSItem.FakeIP == true)
+        {
+            var fakeIPMatchDomain = new HashSet<string>(proxyDomainList);
+            fakeIPMatchDomain.UnionWith(proxyGeositeList);
+            if (simpleDNSItem.GlobalFakeIp != false)
+            {
+                fakeIPMatchDomain.UnionWith(directDomainList);
+                fakeIPMatchDomain.UnionWith(directGeositeList);
+                fakeIPMatchDomain.UnionWith(expectedDomainList);
+            }
+            if (fakeIPMatchDomain.Count > 0)
+            {
+                GenFakeDns();
+                AddDnsServers(["fakedns"], fakeIPMatchDomain.ToList());
+            }
+        }
+
         AddDnsServers(remoteDNSAddress, proxyDomainList);
         AddDnsServers(directDNSAddress, directDomainList, true);
         AddDnsServers(remoteDNSAddress, proxyGeositeList);
@@ -246,7 +302,7 @@ public partial class CoreConfigV2rayService
 
         var useDirectDns = false;
 
-        if (rules?.LastOrDefault() is { } lastRule && lastRule.OutboundTag == Global.DirectTag)
+        if (rules?.LastOrDefault() is { OutboundTag: Global.DirectTag } lastRule)
         {
             var noDomain = lastRule.Domain == null || lastRule.Domain.Count == 0;
             var noProcess = lastRule.Process == null || lastRule.Process.Count == 0;
@@ -384,9 +440,9 @@ public partial class CoreConfigV2rayService
                 var outbound = _coreConfig.outbounds.FirstOrDefault(t => t is { protocol: "freedom", tag: Global.DirectTag });
                 if (outbound != null)
                 {
-                    outbound.settings = new();
-                    outbound.settings.domainStrategy = domainStrategy4Freedom;
-                    outbound.settings.userLevel = 0;
+                    outbound.streamSettings ??= new();
+                    outbound.streamSettings.sockopt ??= new();
+                    outbound.streamSettings.sockopt.domainStrategy = domainStrategy4Freedom;
                 }
             }
 
@@ -468,5 +524,29 @@ public partial class CoreConfigV2rayService
             domains = domainList.ToList(),
         };
         servers.AsArray().Add(JsonUtils.SerializeToNode(dnsServer));
+    }
+
+    private void FillSockoptDomainStrategy(Outbounds4Ray outbound, string? domainStrategy, bool skipHappyEyeballs = false)
+    {
+        if (domainStrategy.IsNullOrEmpty())
+        {
+            return;
+        }
+        outbound.streamSettings ??= new();
+        outbound.streamSettings.sockopt ??= new();
+        var sockopt = outbound.streamSettings.sockopt;
+        sockopt.domainStrategy = domainStrategy;
+
+        if (skipHappyEyeballs || _config.SimpleDNSItem.EnableHappyEyeballs != true)
+        {
+            return;
+        }
+        var happyEyeballsItem = _config.HappyEyeballs4RayItem;
+        sockopt.happyEyeballs ??= new();
+        var happyEyeballs = sockopt.happyEyeballs;
+        happyEyeballs.tryDelayMs = happyEyeballsItem.TryDelayMs;
+        happyEyeballs.prioritizeIPv6 = happyEyeballsItem.PrioritizeIPv6;
+        happyEyeballs.interleave = happyEyeballsItem.Interleave;
+        happyEyeballs.maxConcurrentTry = happyEyeballsItem.MaxConcurrentTry;
     }
 }

@@ -7,6 +7,7 @@
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<AssemblyName>v2rayN</AssemblyName>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<CETCompat>false</CETCompat>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -15,7 +16,7 @@
 			<TreatAsUsed>true</TreatAsUsed>
 		</PackageReference>
 		<PackageReference Include="Avalonia.Desktop" />
-		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" />
+		<PackageReference Condition="'$(Configuration)' == 'Debug'" Include="AvaloniaUI.DiagnosticsSupport" />
 		<PackageReference Include="DialogHost.Avalonia" />
 		<PackageReference Include="ReactiveUI.Avalonia" />
 		<PackageReference Include="Semi.Avalonia" />
@@ -29,6 +30,7 @@
 		<PackageReference Include="ReactiveUI.Fody">
 			<TreatAsUsed>true</TreatAsUsed>
 		</PackageReference>
+		<PackageReference Include="SkiaSharp.NativeAssets.Linux" />
 	</ItemGroup>
 
 	<ItemGroup>

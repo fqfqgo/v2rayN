@@ -426,9 +426,6 @@
   <data name="menuReload" xml:space="preserve">
     <value>Redémarrer</value>
   </data>
-  <data name="menuLog" xml:space="preserve">
-    <value>Journal</value>
-  </data>
   <data name="menuRoutingSetting" xml:space="preserve">
     <value>Paramètres de routage</value>
   </data>
@@ -981,9 +978,6 @@
   <data name="SpeedtestingPressEscToExit" xml:space="preserve">
     <value>Appuyer sur Échap pour arrêter</value>
   </data>
-  <data name="SpeedtestingBatchWarning" xml:space="preserve">
-    <value>Le test de vitesse en lot consomme beaucoup de données et peut utiliser plusieurs Go à chaque exécution. Continuer ?</value>
-  </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>Désactiver cette option si coupure anormale</value>
   </data>
@@ -1109,6 +1103,39 @@
   </data>
   <data name="TbSettingsEnableFragment" xml:space="preserve">
     <value>Activer le fragmentation (Fragment)</value>
+  </data>
+  <data name="TbSettingsFragmentPackets" xml:space="preserve">
+    <value>Paquets fragmentés</value>
+  </data>
+  <data name="TbSettingsFragmentPacketsTip" xml:space="preserve">
+    <value>Paquets à fragmenter : tlshello (TLS ClientHello) ou 1-1 à 1-5 (premiers N paquets TCP)</value>
+  </data>
+  <data name="TbSettingsFragmentLength" xml:space="preserve">
+    <value>Longueur fragment</value>
+  </data>
+  <data name="TbSettingsFragmentLengthTip" xml:space="preserve">
+    <value>Plage de taille fragment (ex: 50-100). Première valeur ≤ seconde. Vide = défaut.</value>
+  </data>
+  <data name="TbSettingsFragmentInterval" xml:space="preserve">
+    <value>Intervalle fragment</value>
+  </data>
+  <data name="TbSettingsFragmentIntervalTip" xml:space="preserve">
+    <value>Délai entre fragments en ms (ex: 10-20). Plage 1-100. Première valeur ≤ seconde. Vide = défaut.</value>
+  </data>
+  <data name="TbSettingsFragmentMaxSplit" xml:space="preserve">
+    <value>Max Split</value>
+  </data>
+  <data name="TbSettingsFragmentMaxSplitTip" xml:space="preserve">
+    <value>Nb max de splits (0 = illimité, 0-10000). Xray-core seulement. Vide = défaut.</value>
+  </data>
+  <data name="TbSettingsFragmentFallbackDelay" xml:space="preserve">
+    <value>Délai fallback</value>
+  </data>
+  <data name="TbSettingsFragmentFallbackDelayTip" xml:space="preserve">
+    <value>Délai fallback pour fragment TLS. sing-box seulement. Vide = défaut.</value>
+  </data>
+  <data name="FillFragmentParameterError" xml:space="preserve">
+    <value>Format de plage invalide. Utilisez 'from-to' (ex: 50-100).</value>
   </data>
   <data name="TbSettingsEnableCacheFile4Sbox" xml:space="preserve">
     <value>Activer le fichier de cache de sing-box (fichiers règles)</value>
@@ -1468,7 +1495,7 @@
     <value>Choisir une config.</value>
   </data>
   <data name="TbFakeIPTips" xml:space="preserve">
-    <value>Actif globalement par défaut, avec filtre FakeIP intégré ; ne fonctionne que dans sing-box</value>
+    <value>Applies globally by default, and built-in FakeIP filtering is only built into sing-box.</value>
   </data>
   <data name="PleaseAddAtLeastOneServer" xml:space="preserve">
     <value>Veuillez ajouter au moins une configuration</value>
@@ -1684,7 +1711,7 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
     <value>Ajouter [NaïveProxy]</value>
   </data>
   <data name="TbInsecureConcurrency" xml:space="preserve">
-    <value>Insecure Concurrency</value>
+    <value>Concurrence non sûre</value>
   </data>
   <data name="TbUsername" xml:space="preserve">
     <value>Nom d’utilisateur</value>
@@ -1704,20 +1731,11 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="TransportExtra" xml:space="preserve">
     <value>XHTTP Extra</value>
   </data>
-  <data name="TbAllowInsecureCertFetch" xml:space="preserve">
-    <value>Allow insecure cert fetch (self-signed)</value>
-  </data>
-  <data name="TbAllowInsecureCertFetchTips" xml:space="preserve">
-    <value>Only for fetching self-signed certificates. This may expose you to MITM risks.</value>
-  </data>
   <data name="TbSettingsSendThrough" xml:space="preserve">
-    <value>Adresse sortante locale (SendThrough)</value>
+    <value>Adresse de sortie locale (SendThrough)</value>
   </data>
   <data name="TbSettingsSendThroughTip" xml:space="preserve">
     <value>Pour environnements multi-interfaces, entrez l'adresse IPv4 de la machine locale</value>
-  </data>
-  <data name="FillCorrectSendThroughIPv4" xml:space="preserve">
-    <value>Veuillez saisir l’adresse IPv4 correcte de SendThrough.</value>
   </data>
   <data name="TbSettingsBindInterface" xml:space="preserve">
     <value>Lier l'interface</value>
@@ -1726,15 +1744,30 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
     <value>Pour les environnements multi-interfaces, entrez le nom de l'interface à lier. Ne fonctionne que sur les systèmes Windows et en mode TUN</value>
   </data>
   <data name="menuUdpTestServer" xml:space="preserve">
-    <value>Test Configurations UDP Delay</value>
+    <value>Tester la latence UDP des profils</value>
   </data>
   <data name="TbSettingsUdpTestUrl" xml:space="preserve">
-    <value>UDP Test Url</value>
+    <value>URL de test UDP</value>
   </data>
   <data name="TbPreSharedKey" xml:space="preserve">
     <value>PreSharedKey</value>
   </data>
   <data name="menuExport2InnerUri" xml:space="preserve">
-    <value>Export v2rayN Internal Share Link to Clipboard</value>
+    <value>Exporter le lien interne v2rayN vers le presse-papiers</value>
+  </data>
+  <data name="MsgCheckUpdateHasNewVersion" xml:space="preserve">
+    <value>{0} a une nouvelle version disponible: {1}</value>
+  </data>
+  <data name="menuCheckOnly" xml:space="preserve">
+    <value>Uniquement vérifier</value>
+  </data>
+  <data name="MsgNotSupport" xml:space="preserve">
+    <value>Non supporté</value>
+  </data>
+  <data name="LvTestIpInfo" xml:space="preserve">
+    <value>Détails IP</value>
+  </data>
+  <data name="menuNewUpdate" xml:space="preserve">
+    <value>Nouvelle MAJ</value>
   </data>
 </root>

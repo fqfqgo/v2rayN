@@ -1,8 +1,10 @@
 using AwesomeAssertions;
 using ServiceLib.Common;
 using ServiceLib.Enums;
+using ServiceLib.Handler.Fmt;
 using ServiceLib.Manager;
 using ServiceLib.Models;
+using ServiceLib.Models.Dto;
 using ServiceLib.Services.CoreConfig;
 using Xunit;
 
@@ -554,7 +556,74 @@ public class CoreConfigSingboxServiceTests
 
         cfg.dns.servers.Should().Contain(s => s.tag == "remote" && s.type == "udp" && s.server == "8.8.8.8");
         cfg.dns.servers.Should().Contain(s => s.tag == Global.SingboxLocalDNSTag);
-        cfg.dns.rules.Should().Contain(r => r.clash_mode == ERuleMode.Global.ToString());
-        cfg.dns.rules.Should().Contain(r => r.clash_mode == ERuleMode.Direct.ToString());
+        cfg.dns.rules.Should().Contain(r => r.clash_mode == nameof(ERuleMode.Global));
+        cfg.dns.rules.Should().Contain(r => r.clash_mode == nameof(ERuleMode.Direct));
     }
+
+    [Fact]
+    public void GenerateClientConfigContent_Hysteria2Realm_ShouldEmitHttpsServerUrl()
+    {
+        var shareLink =
+            "hysteria2+realm://public@realm.hy2.io/my-realm-id?auth=uuid&stun=turn.cloudflare.com%3A3478&sni=cloudflare.com&pinSHA256=xxx#Realm-Test";
+        var node = Hysteria2Fmt.ResolveRealm(shareLink, out _);
+        node.Should().NotBeNull();
+        node!.CoreType = ECoreType.sing_box;
+
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.sing_box);
+        config.CoreTypeItem =
+        [
+            new CoreTypeItem { ConfigType = EConfigType.Hysteria2, CoreType = ECoreType.sing_box }
+        ];
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.sing_box);
+
+        var result = new CoreConfigSingboxService(context).GenerateClientConfigContent();
+
+        result.Success.Should().BeTrue($"ret msg: {result.Msg}");
+        var cfg = JsonUtils.Deserialize<SingboxConfig>(result.Data!.ToString())!;
+        var proxy = cfg.outbounds.First(o => o.tag == Global.ProxyTag);
+
+        proxy.type.Should().Be("hysteria2");
+        proxy.realm.Should().NotBeNull();
+        proxy.realm!.server_url.Should().StartWith("https://");
+        proxy.realm.server_url.Should().Contain("realm.hy2.io");
+        proxy.realm.token.Should().Be("public");
+        proxy.realm.realm_id.Should().Be("my-realm-id");
+        proxy.realm.stun_servers.Should().Contain("turn.cloudflare.com:3478");
+        proxy.server.Should().BeNull();
+    }
+
+    [Fact]
+    public void GenerateClientConfigContent_TunSystemStackWithIpv6_ShouldUsePrefixWithPeerAddress()
+    {
+        // Regression test for #9820: sing-box fails with "need one more IPv6 address in
+        // first prefix for system stack" when the TUN inbound uses a /128 IPv6 prefix.
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.sing_box);
+        config.TunModeItem.EnableTun = true;
+        config.TunModeItem.Stack = "system";
+        config.TunModeItem.EnableIPv6Address = true;
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+
+        var node = CoreConfigTestFactory.CreateVmessNode(ECoreType.sing_box);
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.sing_box) with
+        {
+            IsTunEnabled = true,
+        };
+
+        var result = new CoreConfigSingboxService(context).GenerateClientConfigContent();
+
+        result.Success.Should().BeTrue($"ret msg: {result.Msg}");
+        var cfg = JsonUtils.Deserialize<SingboxConfig>(result.Data!.ToString())!;
+        var tun = cfg.inbounds.First(i => i.type == "tun");
+
+        tun.address.Should().NotBeNullOrEmpty();
+        foreach (var address in tun.address!)
+        {
+            var prefixLength = int.Parse(address[(address.LastIndexOf('/') + 1)..]);
+            var isIpv6 = address.Contains(':');
+            prefixLength.Should().BeLessThanOrEqualTo(isIpv6 ? 126 : 30,
+                $"'{address}' must leave room for the peer address the system stack derives");
+        }
+    }
+
 }

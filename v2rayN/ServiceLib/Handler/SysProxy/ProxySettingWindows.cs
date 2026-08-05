@@ -3,6 +3,7 @@ using Microsoft.Win32;
 
 namespace ServiceLib.Handler.SysProxy;
 
+[SupportedOSPlatform("windows")]
 public static class ProxySettingWindows
 {
     private const string _regPath = @"Software\Microsoft\Windows\CurrentVersion\Internet Settings";

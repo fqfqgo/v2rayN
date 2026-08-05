@@ -1,9 +1,12 @@
+using v2rayN.Manager;
+using v2rayN.Views;
+
 namespace v2rayN;
 
 /// <summary>
 /// Interaction logic for App.xaml
 /// </summary>
-public partial class App : Application
+public partial class App
 {
     public static EventWaitHandle ProgramStarted;
 
@@ -15,17 +18,17 @@ public partial class App : Application
     }
 
     /// <summary>
-    /// 单例：文件名为 v2rayN.exe 时跨目录仅一个进程；其它文件名则按 exe 路径区分。重复启动时 Set 事件唤醒已运行实例（MainWindow.OnProgramStarted）。
+    /// Open only one process
     /// </summary>
+    /// <param name="e"></param>
     protected override void OnStartup(StartupEventArgs e)
     {
         var exePathKey = Utils.GetSingleInstanceKernelObjectName();
 
-        var rebootas = (e.Args ?? Array.Empty<string>()).Any(t => t == Global.RebootAs);
+        var rebootas = e.Args.Any(t => t == Global.RebootAs);
         ProgramStarted = new EventWaitHandle(false, EventResetMode.AutoReset, exePathKey, out var bCreatedNew);
         if (!rebootas && !bCreatedNew)
         {
-            // 通知首个实例（已在 MainWindow 中 RegisterWaitForSingleObject）
             ProgramStarted.Set();
             Environment.Exit(0);
             return;
@@ -38,6 +41,8 @@ public partial class App : Application
             return;
         }
 
+        AppManager.Instance.WindowDialog = new WindowDialog();
+
         AppManager.Instance.InitComponents();
 
         RxAppBuilder.CreateReactiveUIBuilder()
@@ -45,6 +50,14 @@ public partial class App : Application
             .BuildApp();
 
         base.OnStartup(e);
+
+        var mainWindowViewModel = new MainWindowViewModel();
+        var viewFor = SimpleViewLocator.Instance.ResolveView(mainWindowViewModel);
+        viewFor!.ViewModel = mainWindowViewModel;
+
+        var mainWindow = (MainWindow)viewFor;
+        mainWindow.Show();
+        MainWindow = mainWindow;
     }
 
     private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

@@ -3,7 +3,7 @@ using System.Net.Http.Headers;
 namespace ServiceLib.Services;
 
 /// <summary>
-///Download
+/// Download
 /// </summary>
 public class DownloadService
 {
@@ -13,7 +13,10 @@ public class DownloadService
 
     private static readonly string _tag = "DownloadService";
 
-    public async Task<int> DownloadDataAsync(string url, WebProxy webProxy, int downloadTimeout, Func<bool, string, Task> updateFunc)
+    /// <summary>
+    /// Downloads data with the specified proxy and reports progress messages.
+    /// </summary>
+    public async Task<int> DownloadDataAsync(string url, IWebProxy webProxy, int downloadTimeout, Func<bool, string, Task> updateFunc)
     {
         try
         {
@@ -36,6 +39,9 @@ public class DownloadService
         return 0;
     }
 
+    /// <summary>
+    /// Downloads a file and reports progress through events.
+    /// </summary>
     public async Task DownloadFileAsync(string url, string fileName, bool blProxy, int downloadTimeout)
     {
         try
@@ -64,6 +70,9 @@ public class DownloadService
         }
     }
 
+    /// <summary>
+    /// Gets redirect target URL without following redirects automatically.
+    /// </summary>
     public async Task<string?> UrlRedirectAsync(string url, bool blProxy)
     {
         var webRequestHandler = new SocketsHttpHandler
@@ -71,9 +80,15 @@ public class DownloadService
             AllowAutoRedirect = false,
             Proxy = await GetWebProxy(blProxy)
         };
-        var client = new HttpClient(webRequestHandler);
+        var certificateChainPolicy = CertPemManager.Instance.BuildCertificateChainPolicy();
+        if (certificateChainPolicy != null)
+        {
+            webRequestHandler.SslOptions.CertificateChainPolicy = certificateChainPolicy;
+            webRequestHandler.SslOptions.RemoteCertificateValidationCallback = null;
+        }
+        using var client = new HttpClient(webRequestHandler);
 
-        var response = await client.GetAsync(url);
+        using var response = await client.GetAsync(url);
         if (response.StatusCode == HttpStatusCode.Redirect && response.Headers.Location is not null)
         {
             return response.Headers.Location.ToString();
@@ -86,76 +101,61 @@ public class DownloadService
         }
     }
 
+    /// <summary>
+    /// Tries to download string content using proxy switch setting.
+    /// </summary>
     public async Task<string?> TryDownloadString(string url, bool blProxy, string userAgent)
     {
-        var (content, _) = await TryDownloadStringWithHeaders(url, blProxy, userAgent);
-        return content;
+        return await TryDownloadString(url, await GetWebProxy(blProxy), userAgent);
     }
 
-    /// <summary>
-    /// Download string and return response headers (for subscription encryption detection).
-    /// </summary>
     public async Task<(string? Content, HttpHeaders? ResponseHeaders)> TryDownloadStringWithHeaders(string url, bool blProxy, string userAgent)
     {
-        try
-        {
-            var (content, headers) = await DownloadStringWithHeadersAsync(url, blProxy, userAgent, 15);
-            if (content.IsNotEmpty())
-            {
-                return (content, headers);
-            }
-        }
-        catch (Exception ex)
-        {
-            Logging.SaveLog(_tag, ex);
-            Error?.Invoke(this, new ErrorEventArgs(ex));
-            if (ex.InnerException != null)
-            {
-                Error?.Invoke(this, new ErrorEventArgs(ex.InnerException));
-            }
-        }
-
-        try
-        {
-            var result2 = await DownloadStringViaDownloader(url, blProxy, userAgent, 15);
-            if (result2.IsNotEmpty())
-            {
-                return (result2, null);
-            }
-        }
-        catch (Exception ex)
-        {
-            Logging.SaveLog(_tag, ex);
-            Error?.Invoke(this, new ErrorEventArgs(ex));
-            if (ex.InnerException != null)
-            {
-                Error?.Invoke(this, new ErrorEventArgs(ex.InnerException));
-            }
-        }
-
-        return (null, null);
+        var webProxy = await GetWebProxy(blProxy);
+        return await TryDownloadStringWithHeaders(url, webProxy, userAgent);
     }
 
     /// <summary>
-    /// DownloadString
+    /// Tries to download string content with a specified proxy.
     /// </summary>
-    /// <param name="url"></param>
-    private async Task<string?> DownloadStringAsync(string url, bool blProxy, string userAgent, int timeout)
+    public async Task<string?> TryDownloadString(string url, IWebProxy? webProxy, string userAgent)
     {
-        var (content, _) = await DownloadStringWithHeadersAsync(url, blProxy, userAgent, timeout);
-        return content;
+        var (content, _) = await TryDownloadStringWithHeaders(url, webProxy, userAgent);
+        return content.IsNotEmpty()
+            ? content
+            : await DownloadStringViaDownloader(url, webProxy, userAgent, 15);
     }
 
-    private async Task<(string? Content, HttpHeaders? ResponseHeaders)> DownloadStringWithHeadersAsync(string url, bool blProxy, string userAgent, int timeout)
+    public async Task<(string? Content, HttpHeaders? ResponseHeaders)> TryDownloadStringWithHeaders(string url, IWebProxy? webProxy, string userAgent)
+    {
+        return await DownloadStringWithHeadersAsync(url, webProxy, userAgent, 15);
+    }
+
+    /// <summary>
+    /// Downloads string content via HttpClient.
+    /// </summary>
+    private async Task<(string? Content, HttpHeaders? ResponseHeaders)> DownloadStringWithHeadersAsync(string url, IWebProxy? webProxy, string userAgent, int timeout)
     {
         try
         {
-            var webProxy = await GetWebProxy(blProxy);
-            var client = new HttpClient(new SocketsHttpHandler()
+            var connectTimeout = Math.Clamp(timeout / 5, 2, 5);
+            var handler = new SocketsHttpHandler
             {
                 Proxy = webProxy,
-                UseProxy = webProxy != null
-            });
+                UseProxy = webProxy != null,
+                ConnectTimeout = TimeSpan.FromSeconds(connectTimeout)
+            };
+            var certificateChainPolicy = CertPemManager.Instance.BuildCertificateChainPolicy();
+            if (certificateChainPolicy != null)
+            {
+                handler.SslOptions.CertificateChainPolicy = certificateChainPolicy;
+                handler.SslOptions.RemoteCertificateValidationCallback = null;
+            }
+
+            using var client = new HttpClient(handler)
+            {
+                Timeout = Timeout.InfiniteTimeSpan
+            };
 
             if (userAgent.IsNullOrEmpty())
             {
@@ -171,10 +171,11 @@ public class DownloadService
             }
 
             using var cts = new CancellationTokenSource();
-            using var response = await client.GetAsync(url, cts.Token).WaitAsync(TimeSpan.FromSeconds(timeout), cts.Token);
+            cts.CancelAfter(TimeSpan.FromSeconds(timeout));
+
+            using var response = await client.GetAsync(url, cts.Token);
             response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync(cts.Token);
-            return (content, response.Headers);
+            return (await response.Content.ReadAsStringAsync(cts.Token), response.Headers);
         }
         catch (Exception ex)
         {
@@ -185,19 +186,17 @@ public class DownloadService
                 Error?.Invoke(this, new ErrorEventArgs(ex.InnerException));
             }
         }
+
         return (null, null);
     }
 
     /// <summary>
-    /// DownloadString
+    /// Downloads string content via DownloaderHelper.
     /// </summary>
-    /// <param name="url"></param>
-    private async Task<string?> DownloadStringViaDownloader(string url, bool blProxy, string userAgent, int timeout)
+    private async Task<string?> DownloadStringViaDownloader(string url, IWebProxy? webProxy, string userAgent, int timeout)
     {
         try
         {
-            var webProxy = await GetWebProxy(blProxy);
-
             if (userAgent.IsNullOrEmpty())
             {
                 userAgent = Utils.GetVersion(false);
@@ -217,6 +216,9 @@ public class DownloadService
         return null;
     }
 
+    /// <summary>
+    /// Creates local SOCKS proxy when proxy switch is enabled.
+    /// </summary>
     private async Task<WebProxy?> GetWebProxy(bool blProxy)
     {
         if (!blProxy)
@@ -232,6 +234,9 @@ public class DownloadService
         return new WebProxy($"socks5://{Global.Loopback}:{port}");
     }
 
+    /// <summary>
+    /// Checks whether the specified TCP endpoint is reachable.
+    /// </summary>
     private async Task<bool> SocketCheck(string ip, int port)
     {
         try

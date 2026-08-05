@@ -73,6 +73,10 @@ public class BaseFmt
         {
             dicQuery.Add("ech", Utils.UrlEncode(item.EchConfigList));
         }
+        if (item.VerifyPeerCertByName.IsNotEmpty())
+        {
+            dicQuery.Add("vcn", Utils.UrlEncode(item.VerifyPeerCertByName));
+        }
         if (item.CertSha.IsNotEmpty())
         {
             dicQuery.Add("pcs", Utils.UrlEncode(item.CertSha));
@@ -199,7 +203,7 @@ public class BaseFmt
 
     private static int ToUriQueryAllowInsecure(ProfileItem item, ref Dictionary<string, string> dicQuery)
     {
-        if (item.AllowInsecure.Equals(Global.AllowInsecure.First()))
+        if (item.GetAllowInsecure())
         {
             // Add two for compatibility
             dicQuery.Add("insecure", "1");
@@ -227,6 +231,7 @@ public class BaseFmt
         item.SpiderX = GetQueryDecoded(query, "spx");
         item.Mldsa65Verify = GetQueryDecoded(query, "pqv");
         item.EchConfigList = GetQueryDecoded(query, "ech");
+        item.VerifyPeerCertByName = GetQueryDecoded(query, "vcn");
         item.CertSha = GetQueryDecoded(query, "pcs");
 
         var finalmaskDecoded = GetQueryDecoded(query, "fm");
@@ -249,11 +254,11 @@ public class BaseFmt
 
         if (_allowInsecureArray.Any(k => GetQueryDecoded(query, k) == "1"))
         {
-            item.AllowInsecure = Global.AllowInsecure.First();
+            item.AllowInsecure = Global.StringTrue;
         }
         else if (_allowInsecureArray.Any(k => GetQueryDecoded(query, k) == "0"))
         {
-            item.AllowInsecure = Global.AllowInsecure.Skip(1).First();
+            item.AllowInsecure = Global.StringFalse;
         }
         else
         {

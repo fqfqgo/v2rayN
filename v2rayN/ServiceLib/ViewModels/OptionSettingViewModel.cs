@@ -1,46 +1,39 @@
 namespace ServiceLib.ViewModels;
 
-public class OptionSettingViewModel : MyReactiveObject
+public class OptionSettingViewModel : MyReactiveObject, ICloseable
 {
+    public event EventHandler? RequestClose;
+
     #region Core
 
-    [Reactive] public int localPort { get; set; }
+    [Reactive] public int LocalPort { get; set; }
     [Reactive] public bool SecondLocalPortEnabled { get; set; }
-    [Reactive] public bool udpEnabled { get; set; }
-    [Reactive] public bool sniffingEnabled { get; set; }
-    public IList<string> destOverride { get; set; }
-    [Reactive] public bool routeOnly { get; set; }
-    [Reactive] public bool allowLANConn { get; set; }
-    [Reactive] public bool newPort4LAN { get; set; }
-    [Reactive] public string user { get; set; }
-    [Reactive] public string pass { get; set; }
-    [Reactive] public bool muxEnabled { get; set; }
-    [Reactive] public bool logEnabled { get; set; }
-    [Reactive] public string loglevel { get; set; }
-    [Reactive] public bool defAllowInsecure { get; set; }
-    [Reactive] public string defFingerprint { get; set; }
-    [Reactive] public string defUserAgent { get; set; }
-    [Reactive] public string sendThrough { get; set; }
-    [Reactive] public string bindInterface { get; set; }
-    [Reactive] public string mux4SboxProtocol { get; set; }
-    [Reactive] public bool enableCacheFile4Sbox { get; set; }
-    [Reactive] public int? hyUpMbps { get; set; }
-    [Reactive] public int? hyDownMbps { get; set; }
-    [Reactive] public bool enableFragment { get; set; }
+    [Reactive] public bool UdpEnabled { get; set; }
+    [Reactive] public bool SniffingEnabled { get; set; }
+    public IList<string> DestOverride { get; set; }
+    [Reactive] public bool RouteOnly { get; set; }
+    [Reactive] public bool AllowLANConn { get; set; }
+    [Reactive] public bool NewPort4LAN { get; set; }
+    [Reactive] public string User { get; set; }
+    [Reactive] public string Pass { get; set; }
+    [Reactive] public bool LogEnabled { get; set; }
+    [Reactive] public string Loglevel { get; set; }
+    [Reactive] public string DefFingerprint { get; set; }
+    [Reactive] public string DefUserAgent { get; set; }
+    [Reactive] public string SendThrough { get; set; }
+    [Reactive] public string BindInterface { get; set; }
+    [Reactive] public string Mux4SboxProtocol { get; set; }
+    [Reactive] public bool EnableCacheFile4Sbox { get; set; }
+    [Reactive] public int? HyUpMbps { get; set; }
+    [Reactive] public int? HyDownMbps { get; set; }
+    [Reactive] public bool EnableFragment { get; set; }
+    [Reactive] public bool EnableFinalFragment { get; set; }
+    [Reactive] public string FragmentPackets { get; set; }
+    [Reactive] public string FragmentLengths { get; set; }
+    [Reactive] public string FragmentDelays { get; set; }
+    [Reactive] public string FragmentMaxSplit { get; set; }
 
     #endregion Core
-
-    #region Core KCP
-
-    //[Reactive] public int Kcpmtu { get; set; }
-    //[Reactive] public int Kcptti { get; set; }
-    //[Reactive] public int KcpuplinkCapacity { get; set; }
-    //[Reactive] public int KcpdownlinkCapacity { get; set; }
-    //[Reactive] public int KcpreadBufferSize { get; set; }
-    //[Reactive] public int KcpwriteBufferSize { get; set; }
-    //[Reactive] public bool Kcpcongestion { get; set; }
-
-    #endregion Core KCP
 
     #region UI
 
@@ -69,6 +62,7 @@ public class OptionSettingViewModel : MyReactiveObject
     [Reactive] public string SrsFileSourceUrl { get; set; }
     [Reactive] public string RoutingRulesSourceUrl { get; set; }
     [Reactive] public string IPAPIUrl { get; set; }
+    [Reactive] public string RootCertProvider { get; set; }
 
     #endregion UI
 
@@ -83,9 +77,9 @@ public class OptionSettingViewModel : MyReactiveObject
 
     #region System proxy
 
-    [Reactive] public bool notProxyLocalAddress { get; set; }
-    [Reactive] public string systemProxyAdvancedProtocol { get; set; }
-    [Reactive] public string systemProxyExceptions { get; set; }
+    [Reactive] public bool NotProxyLocalAddress { get; set; }
+    [Reactive] public string SystemProxyAdvancedProtocol { get; set; }
+    [Reactive] public string SystemProxyExceptions { get; set; }
     [Reactive] public string CustomSystemProxyPacPath { get; set; }
     [Reactive] public string CustomSystemProxyScriptPath { get; set; }
 
@@ -100,6 +94,9 @@ public class OptionSettingViewModel : MyReactiveObject
     [Reactive] public bool TunEnableIPv6Address { get; set; }
     [Reactive] public string TunIcmpRouting { get; set; }
     [Reactive] public bool TunEnableLegacyProtect { get; set; }
+    [Reactive] public string TunRouteExcludeAddress { get; set; }
+    [Reactive] public string TunIPv4Address { get; set; }
+    [Reactive] public string TunIPv6Address { get; set; }
 
     #endregion Tun mode
 
@@ -118,10 +115,9 @@ public class OptionSettingViewModel : MyReactiveObject
 
     public ReactiveCommand<Unit, Unit> SaveCmd { get; }
 
-    public OptionSettingViewModel(Func<EViewAction, object?, Task<bool>>? updateView)
+    public OptionSettingViewModel()
     {
         _config = AppManager.Instance.Config;
-        _updateView = updateView;
         BlIsWindows = Utils.IsWindows();
         BlIsLinux = Utils.IsLinux();
         BlIsIsMacOS = Utils.IsMacOS();
@@ -137,47 +133,37 @@ public class OptionSettingViewModel : MyReactiveObject
 
     private async Task Init()
     {
-        await _updateView?.Invoke(EViewAction.InitSettingFont, null);
-
         #region Core
 
         var inbound = _config.Inbound.First();
-        localPort = inbound.LocalPort;
+        LocalPort = inbound.LocalPort;
         SecondLocalPortEnabled = inbound.SecondLocalPortEnabled;
-        udpEnabled = inbound.UdpEnabled;
-        sniffingEnabled = inbound.SniffingEnabled;
-        routeOnly = inbound.RouteOnly;
-        allowLANConn = inbound.AllowLANConn;
-        newPort4LAN = inbound.NewPort4LAN;
-        user = inbound.User;
-        pass = inbound.Pass;
-        muxEnabled = _config.CoreBasicItem.MuxEnabled;
-        logEnabled = _config.CoreBasicItem.LogEnabled;
-        loglevel = _config.CoreBasicItem.Loglevel;
-        defAllowInsecure = _config.CoreBasicItem.DefAllowInsecure;
-        defFingerprint = _config.CoreBasicItem.DefFingerprint;
-        defUserAgent = _config.CoreBasicItem.DefUserAgent;
-        sendThrough = _config.CoreBasicItem.SendThrough ?? string.Empty;
-        bindInterface = _config.CoreBasicItem.BindInterface ?? string.Empty;
-        mux4SboxProtocol = _config.Mux4SboxItem.Protocol;
-        enableCacheFile4Sbox = _config.CoreBasicItem.EnableCacheFile4Sbox;
-        hyUpMbps = _config.HysteriaItem.UpMbps;
-        hyDownMbps = _config.HysteriaItem.DownMbps;
-        enableFragment = _config.CoreBasicItem.EnableFragment;
+        UdpEnabled = inbound.UdpEnabled;
+        SniffingEnabled = inbound.SniffingEnabled;
+        DestOverride = inbound.DestOverride ?? [];
+        RouteOnly = inbound.RouteOnly;
+        AllowLANConn = inbound.AllowLANConn;
+        NewPort4LAN = inbound.NewPort4LAN;
+        User = inbound.User;
+        Pass = inbound.Pass;
+        LogEnabled = _config.CoreBasicItem.LogEnabled;
+        Loglevel = _config.CoreBasicItem.Loglevel;
+        DefFingerprint = _config.CoreBasicItem.DefFingerprint;
+        DefUserAgent = _config.CoreBasicItem.DefUserAgent;
+        SendThrough = _config.CoreBasicItem.SendThrough ?? string.Empty;
+        BindInterface = _config.CoreBasicItem.BindInterface ?? string.Empty;
+        Mux4SboxProtocol = _config.Mux4SboxItem.Protocol;
+        EnableCacheFile4Sbox = _config.CoreBasicItem.EnableCacheFile4Sbox;
+        HyUpMbps = _config.HysteriaItem.UpMbps;
+        HyDownMbps = _config.HysteriaItem.DownMbps;
+        EnableFragment = _config.CoreBasicItem.EnableFragment;
+        EnableFinalFragment = _config.CoreBasicItem.EnableFinalFragment;
+        FragmentPackets = _config.Fragment4RayItem?.Packets;
+        FragmentLengths = Utils.List2String(_config.Fragment4RayItem?.Lengths);
+        FragmentDelays = Utils.List2String(_config.Fragment4RayItem?.Delays);
+        FragmentMaxSplit = _config.Fragment4RayItem?.MaxSplit;
 
         #endregion Core
-
-        #region Core KCP
-
-        //Kcpmtu = _config.kcpItem.mtu;
-        //Kcptti = _config.kcpItem.tti;
-        //KcpuplinkCapacity = _config.kcpItem.uplinkCapacity;
-        //KcpdownlinkCapacity = _config.kcpItem.downlinkCapacity;
-        //KcpreadBufferSize = _config.kcpItem.readBufferSize;
-        //KcpwriteBufferSize = _config.kcpItem.writeBufferSize;
-        //Kcpcongestion = _config.kcpItem.congestion;
-
-        #endregion Core KCP
 
         #region UI
 
@@ -206,14 +192,15 @@ public class OptionSettingViewModel : MyReactiveObject
         SrsFileSourceUrl = _config.ConstItem.SrsSourceUrl;
         RoutingRulesSourceUrl = _config.ConstItem.RouteRulesTemplateSourceUrl;
         IPAPIUrl = _config.SpeedTestItem.IPAPIUrl;
+        RootCertProvider = _config.GuiItem.RootCertProvider;
 
         #endregion UI
 
         #region System proxy
 
-        notProxyLocalAddress = _config.SystemProxyItem.NotProxyLocalAddress;
-        systemProxyAdvancedProtocol = _config.SystemProxyItem.SystemProxyAdvancedProtocol;
-        systemProxyExceptions = _config.SystemProxyItem.SystemProxyExceptions;
+        NotProxyLocalAddress = _config.SystemProxyItem.NotProxyLocalAddress;
+        SystemProxyAdvancedProtocol = _config.SystemProxyItem.SystemProxyAdvancedProtocol;
+        SystemProxyExceptions = _config.SystemProxyItem.SystemProxyExceptions;
         CustomSystemProxyPacPath = _config.SystemProxyItem.CustomSystemProxyPacPath;
         CustomSystemProxyScriptPath = _config.SystemProxyItem.CustomSystemProxyScriptPath;
 
@@ -228,6 +215,9 @@ public class OptionSettingViewModel : MyReactiveObject
         TunEnableIPv6Address = _config.TunModeItem.EnableIPv6Address;
         TunIcmpRouting = _config.TunModeItem.IcmpRouting;
         TunEnableLegacyProtect = _config.TunModeItem.EnableLegacyProtect;
+        TunRouteExcludeAddress = Utils.List2String(_config.TunModeItem.RouteExcludeAddress, true);
+        TunIPv4Address = _config.TunModeItem.IPv4Address;
+        TunIPv6Address = _config.TunModeItem.IPv6Address;
 
         #endregion Tun mode
 
@@ -236,12 +226,9 @@ public class OptionSettingViewModel : MyReactiveObject
 
     private async Task InitCoreType()
     {
-        if (_config.CoreTypeItem == null)
-        {
-            _config.CoreTypeItem = new List<CoreTypeItem>();
-        }
+        _config.CoreTypeItem ??= [];
 
-        foreach (EConfigType it in Enum.GetValues(typeof(EConfigType)))
+        foreach (var it in Enum.GetValues<EConfigType>())
         {
             if (_config.CoreTypeItem.FindIndex(t => t.ConfigType == it) >= 0)
             {
@@ -297,64 +284,60 @@ public class OptionSettingViewModel : MyReactiveObject
 
     private async Task SaveSettingAsync()
     {
-        if (localPort.ToString().IsNullOrEmpty() || !Utils.IsNumeric(localPort.ToString())
-           || localPort <= 0 || localPort >= Global.MaxPort)
+        if (LocalPort.ToString().IsNullOrEmpty() || !Utils.IsNumeric(LocalPort.ToString())
+           || LocalPort <= 0 || LocalPort >= Global.MaxPort)
         {
             NoticeManager.Instance.Enqueue(ResUI.FillLocalListeningPort);
             return;
         }
-        var sendThroughValue = sendThrough.TrimEx();
-        if (sendThroughValue.IsNotEmpty() && !Utils.IsIpv4(sendThroughValue))
+        var fragmentLengths = Utils.String2List(FragmentLengths) ?? [];
+        var fragmentDelays = Utils.String2List(FragmentDelays) ?? [];
+        if (fragmentLengths.Any(item => !Utils.TryParseRange(item, 0, int.MaxValue, out _, out _))
+            || fragmentDelays.Any(item => !Utils.TryParseRange(item, 0, int.MaxValue, out _, out _))
+            || (FragmentMaxSplit.IsNotEmpty() && !Utils.TryParseMaxSplit(FragmentMaxSplit, 0, 10000, out _, out _)))
         {
-            NoticeManager.Instance.Enqueue(ResUI.FillCorrectSendThroughIPv4);
+            NoticeManager.Instance.Enqueue(ResUI.FillFragmentParameterError);
             return;
         }
         var needReboot = EnableStatistics != _config.GuiItem.EnableStatistics
                           || DisplayRealTimeSpeed != _config.GuiItem.DisplayRealTimeSpeed
                         || EnableDragDropSort != _config.UiItem.EnableDragDropSort
                         || EnableHWA != _config.GuiItem.EnableHWA
-                        || CurrentFontFamily != _config.UiItem.CurrentFontFamily
-                        || MainGirdOrientation != (int)_config.UiItem.MainGirdOrientation;
-
-        //if (Utile.IsNullOrEmpty(Kcpmtu.ToString()) || !Utile.IsNumeric(Kcpmtu.ToString())
-        //       || Utile.IsNullOrEmpty(Kcptti.ToString()) || !Utile.IsNumeric(Kcptti.ToString())
-        //       || Utile.IsNullOrEmpty(KcpuplinkCapacity.ToString()) || !Utile.IsNumeric(KcpuplinkCapacity.ToString())
-        //       || Utile.IsNullOrEmpty(KcpdownlinkCapacity.ToString()) || !Utile.IsNumeric(KcpdownlinkCapacity.ToString())
-        //       || Utile.IsNullOrEmpty(KcpreadBufferSize.ToString()) || !Utile.IsNumeric(KcpreadBufferSize.ToString())
-        //       || Utile.IsNullOrEmpty(KcpwriteBufferSize.ToString()) || !Utile.IsNumeric(KcpwriteBufferSize.ToString()))
-        //{
-        //    NoticeHandler.Instance.Enqueue(ResUI.FillKcpParameters);
-        //    return;
-        //}
+                        || CurrentFontFamily != _config.UiItem.CurrentFontFamily;
 
         //Core
-        _config.Inbound.First().LocalPort = localPort;
-        _config.Inbound.First().SecondLocalPortEnabled = SecondLocalPortEnabled;
-        _config.Inbound.First().UdpEnabled = udpEnabled;
-        _config.Inbound.First().SniffingEnabled = sniffingEnabled;
-        _config.Inbound.First().DestOverride = destOverride?.ToList();
-        _config.Inbound.First().RouteOnly = routeOnly;
-        _config.Inbound.First().AllowLANConn = allowLANConn;
-        _config.Inbound.First().NewPort4LAN = newPort4LAN;
-        _config.Inbound.First().User = user;
-        _config.Inbound.First().Pass = pass;
+        var inbound = _config.Inbound.First();
+        inbound.LocalPort = LocalPort;
+        inbound.SecondLocalPortEnabled = SecondLocalPortEnabled;
+        inbound.UdpEnabled = UdpEnabled;
+        inbound.SniffingEnabled = SniffingEnabled;
+        inbound.DestOverride = DestOverride?.ToList();
+        inbound.RouteOnly = RouteOnly;
+        inbound.AllowLANConn = AllowLANConn;
+        inbound.NewPort4LAN = NewPort4LAN;
+        inbound.User = User;
+        inbound.Pass = Pass;
         if (_config.Inbound.Count > 1)
         {
             _config.Inbound.RemoveAt(1);
         }
-        _config.CoreBasicItem.LogEnabled = logEnabled;
-        _config.CoreBasicItem.Loglevel = loglevel;
-        _config.CoreBasicItem.MuxEnabled = muxEnabled;
-        _config.CoreBasicItem.DefAllowInsecure = defAllowInsecure;
-        _config.CoreBasicItem.DefFingerprint = defFingerprint;
-        _config.CoreBasicItem.DefUserAgent = defUserAgent;
-        _config.CoreBasicItem.SendThrough = sendThrough.TrimEx();
-        _config.CoreBasicItem.BindInterface = bindInterface.TrimEx();
-        _config.Mux4SboxItem.Protocol = mux4SboxProtocol;
-        _config.CoreBasicItem.EnableCacheFile4Sbox = enableCacheFile4Sbox;
-        _config.HysteriaItem.UpMbps = hyUpMbps ?? 0;
-        _config.HysteriaItem.DownMbps = hyDownMbps ?? 0;
-        _config.CoreBasicItem.EnableFragment = enableFragment;
+        _config.CoreBasicItem.LogEnabled = LogEnabled;
+        _config.CoreBasicItem.Loglevel = Loglevel;
+        _config.CoreBasicItem.DefFingerprint = DefFingerprint;
+        _config.CoreBasicItem.DefUserAgent = DefUserAgent;
+        _config.CoreBasicItem.SendThrough = SendThrough.TrimEx();
+        _config.CoreBasicItem.BindInterface = BindInterface.TrimEx();
+        _config.Mux4SboxItem.Protocol = Mux4SboxProtocol;
+        _config.CoreBasicItem.EnableCacheFile4Sbox = EnableCacheFile4Sbox;
+        _config.HysteriaItem.UpMbps = HyUpMbps ?? 0;
+        _config.HysteriaItem.DownMbps = HyDownMbps ?? 0;
+        _config.CoreBasicItem.EnableFragment = EnableFragment;
+        _config.CoreBasicItem.EnableFinalFragment = EnableFinalFragment;
+        _config.Fragment4RayItem ??= new();
+        _config.Fragment4RayItem.Packets = FragmentPackets;
+        _config.Fragment4RayItem.Lengths = fragmentLengths;
+        _config.Fragment4RayItem.Delays = fragmentDelays;
+        _config.Fragment4RayItem.MaxSplit = FragmentMaxSplit;
 
         _config.GuiItem.AutoRun = AutoRun;
         _config.GuiItem.EnableStatistics = EnableStatistics;
@@ -381,11 +364,12 @@ public class OptionSettingViewModel : MyReactiveObject
         _config.ConstItem.SrsSourceUrl = SrsFileSourceUrl;
         _config.ConstItem.RouteRulesTemplateSourceUrl = RoutingRulesSourceUrl;
         _config.SpeedTestItem.IPAPIUrl = IPAPIUrl;
+        _config.GuiItem.RootCertProvider = RootCertProvider;
 
         //systemProxy
-        _config.SystemProxyItem.SystemProxyExceptions = systemProxyExceptions;
-        _config.SystemProxyItem.NotProxyLocalAddress = notProxyLocalAddress;
-        _config.SystemProxyItem.SystemProxyAdvancedProtocol = systemProxyAdvancedProtocol;
+        _config.SystemProxyItem.SystemProxyExceptions = SystemProxyExceptions;
+        _config.SystemProxyItem.NotProxyLocalAddress = NotProxyLocalAddress;
+        _config.SystemProxyItem.SystemProxyAdvancedProtocol = SystemProxyAdvancedProtocol;
         _config.SystemProxyItem.CustomSystemProxyPacPath = CustomSystemProxyPacPath;
         _config.SystemProxyItem.CustomSystemProxyScriptPath = CustomSystemProxyScriptPath;
 
@@ -397,6 +381,9 @@ public class OptionSettingViewModel : MyReactiveObject
         _config.TunModeItem.EnableIPv6Address = TunEnableIPv6Address;
         _config.TunModeItem.IcmpRouting = TunIcmpRouting;
         _config.TunModeItem.EnableLegacyProtect = TunEnableLegacyProtect;
+        _config.TunModeItem.RouteExcludeAddress = Utils.String2List(TunRouteExcludeAddress);
+        _config.TunModeItem.IPv4Address = TunIPv4Address;
+        _config.TunModeItem.IPv6Address = TunIPv6Address;
 
         //coreType
         await SaveCoreType();
@@ -407,7 +394,7 @@ public class OptionSettingViewModel : MyReactiveObject
             AppManager.Instance.Reset();
 
             NoticeManager.Instance.Enqueue(needReboot ? ResUI.NeedRebootTips : ResUI.OperationSuccess);
-            _updateView?.Invoke(EViewAction.CloseWindow, null);
+            RequestClose?.Invoke(this, EventArgs.Empty);
         }
         else
         {
@@ -458,7 +445,7 @@ public class OptionSettingViewModel : MyReactiveObject
                 default:
                     continue;
             }
-            item.CoreType = (ECoreType)Enum.Parse(typeof(ECoreType), type);
+            item.CoreType = Enum.Parse<ECoreType>(type);
         }
         await Task.CompletedTask;
     }

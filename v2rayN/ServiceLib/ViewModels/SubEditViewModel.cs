@@ -1,17 +1,43 @@
 namespace ServiceLib.ViewModels;
 
-public class SubEditViewModel : MyReactiveObject
+public class SubEditViewModel : MyReactiveObject, ICloseable
 {
+    public event EventHandler? RequestClose;
+
+    public Interaction<string, Unit> ShowMsgInteraction { get; } = new();
+
+    public bool FocusLoginPassword { get; }
+
     [Reactive]
     public SubItem SelectedSource { get; set; }
 
+    public ReactiveCommand<Unit, Unit> SelectPrevProfileCmd { get; }
+    public ReactiveCommand<Unit, Unit> SelectNextProfileCmd { get; }
     public ReactiveCommand<Unit, Unit> SaveCmd { get; }
 
-    public SubEditViewModel(SubItem subItem, Func<EViewAction, object?, Task<bool>>? updateView)
+    public SubEditViewModel(SubItem subItem, bool focusLoginPassword = false)
     {
         _config = AppManager.Instance.Config;
-        _updateView = updateView;
+        FocusLoginPassword = focusLoginPassword;
 
+        SelectPrevProfileCmd = ReactiveCommand.CreateFromTask(async () =>
+        {
+            var profileItem = await SelectProfileAsync();
+            if (profileItem != null)
+            {
+                SelectedSource?.PrevProfile = profileItem.Remarks;
+                SelectedSource = JsonUtils.DeepCopy(SelectedSource);
+            }
+        });
+        SelectNextProfileCmd = ReactiveCommand.CreateFromTask(async () =>
+        {
+            var profileItem = await SelectProfileAsync();
+            if (profileItem != null)
+            {
+                SelectedSource?.NextProfile = profileItem.Remarks;
+                SelectedSource = JsonUtils.DeepCopy(SelectedSource);
+            }
+        });
         SaveCmd = ReactiveCommand.CreateFromTask(async () =>
         {
             await SaveSubAsync();
@@ -25,25 +51,24 @@ public class SubEditViewModel : MyReactiveObject
         var remarks = SelectedSource.Remarks;
         if (remarks.IsNullOrEmpty())
         {
-            await _updateView?.Invoke(EViewAction.ShowMsgBox, ResUI.PleaseFillRemarks);
+            await ShowMsgInteraction.Handle(ResUI.PleaseFillRemarks);
             return;
         }
 
         var url = SelectedSource.Url?.Trim();
         if (url.IsNotEmpty())
         {
-            // 订阅地址只能是单行、以 http(s):// 开头，不能是 vmess:// / vless:// 等节点链接
             if (url.Any(c => c is '\r' or '\n')
                 || !(url.StartsWith(Global.HttpsProtocol, StringComparison.OrdinalIgnoreCase)
                      || url.StartsWith(Global.HttpProtocol, StringComparison.OrdinalIgnoreCase)))
             {
-                await _updateView?.Invoke(EViewAction.ShowMsgBox, ResUI.InvalidSubUrlFormatTip);
+                await ShowMsgInteraction.Handle(ResUI.InvalidSubUrlFormatTip);
                 return;
             }
             var uri = Utils.TryUri(url);
             if (uri == null)
             {
-                await _updateView?.Invoke(EViewAction.ShowMsgBox, ResUI.InvalidUrlTip);
+                await ShowMsgInteraction.Handle(ResUI.InvalidUrlTip);
                 return;
             }
             //Do not allow http protocol
@@ -52,10 +77,9 @@ public class SubEditViewModel : MyReactiveObject
                 NoticeManager.Instance.Enqueue(ResUI.InsecureUrlProtocol);
                 //return;
             }
-            // 可达性校验：拿到任意 HTTP 响应（含 403/503）即视为通；仅解析失败/超时等视为无效
             if (!await HttpClientHelper.Instance.CheckReachableAsync(url))
             {
-                await _updateView?.Invoke(EViewAction.ShowMsgBox, ResUI.SubUrlUnreachableTip);
+                await ShowMsgInteraction.Handle(ResUI.SubUrlUnreachableTip);
                 return;
             }
         }
@@ -64,11 +88,24 @@ public class SubEditViewModel : MyReactiveObject
         if (await ConfigHandler.AddSubItem(_config, SelectedSource) == 0)
         {
             NoticeManager.Instance.Enqueue(ResUI.OperationSuccess);
-            _updateView?.Invoke(EViewAction.CloseWindow, null);
+            RequestClose?.Invoke(this, EventArgs.Empty);
         }
         else
         {
             NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
         }
+    }
+
+    private async Task<ProfileItem?> SelectProfileAsync()
+    {
+        var profileSelectViewModel = new ProfilesSelectViewModel();
+        profileSelectViewModel.SetConfigTypeFilter([EConfigType.Custom], exclude: true);
+        var result = await AppManager.Instance.WindowDialog.ShowDialogAsync(profileSelectViewModel);
+        if (result != true)
+        {
+            return null;
+        }
+        var profileItem = await profileSelectViewModel.GetProfileItem();
+        return profileItem;
     }
 }

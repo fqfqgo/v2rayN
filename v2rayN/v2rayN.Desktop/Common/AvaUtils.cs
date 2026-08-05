@@ -42,8 +42,7 @@ internal class AvaUtils
     public static WindowIcon GetAppIcon(Config config)
     {
         var proxyOn = config.SystemProxyItem.SysProxyType is ESysProxyType.ForcedChange or ESysProxyType.Pac;
-        var tunOn = config.TunModeItem.EnableTun;
-        var index = (proxyOn || tunOn ? 1 : 0) + 1;
+        var index = (proxyOn || config.TunModeItem.EnableTun ? 1 : 0) + 1;
         var fileName = Utils.GetPath($"NotifyIcon{index}.ico");
         if (File.Exists(fileName))
         {

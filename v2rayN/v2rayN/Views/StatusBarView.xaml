@@ -83,14 +83,13 @@
                         <ComboBoxItem Content="{x:Static resx:ResUI.menuSystemProxyNothing}" />
                         <ComboBoxItem Content="{x:Static resx:ResUI.menuSystemProxyPac}" />
                     </ComboBox>
+
                     <Button
                         x:Name="btnStartConnection"
                         MinWidth="110"
                         Margin="{StaticResource MarginLeftRight8}"
                         Padding="14,8"
                         VerticalAlignment="Center"
-                        FontSize="14"
-                        FontWeight="Bold"
                         Style="{StaticResource AccentButton}" />
 
                     <ComboBox
@@ -104,9 +103,7 @@
                         Style="{StaticResource MaterialDesignFloatingHintComboBox}" />
                 </StackPanel>
 
-                <StackPanel
-                    Margin="{StaticResource MarginLeftRight8}"
-                    VerticalAlignment="Center">
+                <StackPanel Margin="{StaticResource MarginLeftRight8}" VerticalAlignment="Center">
                     <TextBlock x:Name="txtRunningServerDisplay" Style="{StaticResource StatusbarItem}" />
                     <Border Margin="1" />
                     <TextBlock x:Name="txtRunningInfoDisplay" Style="{StaticResource StatusbarItem}" />
@@ -118,7 +115,7 @@
             x:Name="tbNotify"
             IconSource="/Resources/v2rayN.ico"
             NoLeftClickDelay="True"
-            ToolTipText="v2rayN for V2free">
+            ToolTipText="v2rayN">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu Style="{StaticResource DefContextMenu}">
                     <MenuItem

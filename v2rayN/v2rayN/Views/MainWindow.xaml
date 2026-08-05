@@ -37,12 +37,6 @@
         SnackbarMessageQueue="{Binding ElementName=MainSnackbar, Path=MessageQueue}"
         Style="{StaticResource MaterialDesignEmbeddedDialogHost}">
         <Grid>
-            <materialDesign:Snackbar
-                x:Name="MainSnackbar"
-                Panel.ZIndex="1000"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                MessageQueue="{materialDesign:MessageQueue}" />
             <DockPanel>
                 <ToolBarTray DockPanel.Dock="Top">
                     <ToolBar
@@ -278,7 +272,7 @@
                             </MenuItem>
                         </Menu>
                         <Separator />
-                        <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}" Visibility="{Binding BlIsWindows, Converter={StaticResource BoolToVisConverter}}">
+                        <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
                             <MenuItem
                                 x:Name="menuStartBrowser"
                                 Padding="{StaticResource MarginLeftRight8}"
@@ -305,20 +299,19 @@
                                         <materialDesign:PackIcon
                                             Margin="{StaticResource MarginRight8}"
                                             VerticalAlignment="Center"
-                                            Kind="MessageTextOutline" />
+                                            Kind="TextBoxOutline" />
                                         <TextBlock Text="{x:Static resx:ResUI.menuLog}" />
                                     </StackPanel>
                                 </MenuItem.Header>
                             </MenuItem>
                         </Menu>
                         <Separator />
-                        <!-- 推广菜单已隐藏 -->
-                        <!--
                         <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
                             <MenuItem
                                 x:Name="menuPromotion"
                                 Padding="{StaticResource MarginLeftRight8}"
-                                AutomationProperties.Name="{x:Static resx:ResUI.menuPromotion}">
+                                AutomationProperties.Name="{x:Static resx:ResUI.menuPromotion}"
+                                Visibility="Collapsed">
                                 <MenuItem.Header>
                                     <StackPanel Orientation="Horizontal">
                                         <materialDesign:PackIcon
@@ -330,7 +323,6 @@
                                 </MenuItem.Header>
                             </MenuItem>
                         </Menu>
-                        -->
                         <Separator />
                         <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
                             <MenuItem
@@ -356,10 +348,17 @@
                             Style="{StaticResource MaterialDesignToolForegroundPopupBox}">
                             <ContentControl x:Name="pbTheme" />
                         </materialDesign:PopupBox>
+
+                        <Button
+                            x:Name="btnNewUpdate"
+                            Margin="{StaticResource MarginLeftRight8}"
+                            Content="{x:Static resx:ResUI.menuNewUpdate}"
+                            Style="{StaticResource DefButton}"
+                            Visibility="Hidden" />
                     </ToolBar>
                 </ToolBarTray>
 
-                <view:StatusBarView DockPanel.Dock="Bottom" />
+                <ContentControl x:Name="contentStatusBarView" DockPanel.Dock="Bottom" />
 
                 <Grid>
                     <Grid x:Name="gridMain" Visibility="Collapsed">
@@ -482,6 +481,12 @@
                     </Grid>
                 </Grid>
             </DockPanel>
+            <materialDesign:Snackbar
+                x:Name="MainSnackbar"
+                Panel.ZIndex="1000"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                MessageQueue="{materialDesign:MessageQueue}" />
         </Grid>
     </materialDesign:DialogHost>
 </base:WindowBase>

@@ -3,12 +3,14 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dd="clr-namespace:v2rayN.Desktop.DesignData"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:resx="clr-namespace:ServiceLib.Resx;assembly=ServiceLib"
     xmlns:vms="clr-namespace:ServiceLib.ViewModels;assembly=ServiceLib"
     Title="{x:Static resx:ResUI.menuSubSetting}"
     Width="700"
     Height="600"
+    Design.DataContext="{x:Static dd:DesignData.SubEdit}"
     ShowInTaskbar="False"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
@@ -68,15 +70,15 @@
                     Margin="{StaticResource Margin4}"
                     VerticalAlignment="Center"
                     TextWrapping="Wrap"
-                    Watermark="{x:Static resx:ResUI.SubUrlLinkHint}" />
+                    PlaceholderText="{x:Static resx:ResUI.SubUrlLinkHint}" />
                 <Button
                     Grid.Row="2"
                     Grid.Column="2"
-                    Classes="IconButton"
+                    Margin="{StaticResource MarginLr8}"
                     HorizontalAlignment="Left"
-                    Margin="{StaticResource MarginLr8}">
+                    Classes="IconButton">
                     <Button.Content>
-                        <PathIcon Data="{StaticResource SemiIconMore}" >
+                        <PathIcon Data="{StaticResource SemiIconMore}">
                             <PathIcon.RenderTransform>
                                 <RotateTransform Angle="90" />
                             </PathIcon.RenderTransform>
@@ -99,7 +101,7 @@
                                     Classes="TextArea"
                                     MinLines="4"
                                     TextWrapping="Wrap"
-                                    Watermark="{x:Static resx:ResUI.SubUrlTips}" />
+                                    PlaceholderText="{x:Static resx:ResUI.SubUrlTips}" />
                             </StackPanel>
                         </Flyout>
                     </Button.Flyout>
@@ -110,37 +112,10 @@
                     Grid.Column="0"
                     Margin="{StaticResource Margin4}"
                     VerticalAlignment="Center"
-                    Text="{x:Static resx:ResUI.LvLoginPassword}" />
-                <Grid Grid.Row="3" Grid.Column="1" Margin="{StaticResource Margin4}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <CheckBox
-                        x:Name="chkShowPassword"
-                        Grid.Column="1"
-                        VerticalAlignment="Center"
-                        Content="{x:Static resx:ResUI.TbShowPassword}"
-                        IsChecked="False" />
-                    <TextBox
-                        x:Name="txtLoginPassword"
-                        Grid.Column="0"
-                        Margin="0,0,8,0"
-                        VerticalAlignment="Center"
-                        PasswordChar="*"
-                        Watermark="{x:Static resx:ResUI.SubLoginPasswordTips}"
-                        RevealPassword="{Binding #chkShowPassword.IsChecked}" />
-                </Grid>
-
-                <TextBlock
-                    Grid.Row="4"
-                    Grid.Column="0"
-                    Margin="{StaticResource Margin4}"
-                    VerticalAlignment="Center"
                     Text="{x:Static resx:ResUI.LvEnabled}" />
 
                 <DockPanel
-                    Grid.Row="4"
+                    Grid.Row="3"
                     Grid.Column="1"
                     Margin="{StaticResource Margin4}">
                     <ToggleSwitch
@@ -155,7 +130,7 @@
                         Margin="{StaticResource Margin4}"
                         VerticalAlignment="Center"
                         DockPanel.Dock="Right"
-                        Watermark="{x:Static resx:ResUI.SubUrlTips}" />
+                        PlaceholderText="{x:Static resx:ResUI.SubUrlTips}" />
 
                     <TextBlock
                         Margin="{StaticResource Margin4}"
@@ -163,6 +138,35 @@
                         VerticalAlignment="Center"
                         Text="{x:Static resx:ResUI.LvAutoUpdateInterval}" />
                 </DockPanel>
+
+                <TextBlock
+                    Grid.Row="4"
+                    Grid.Column="0"
+                    Margin="{StaticResource Margin4}"
+                    VerticalAlignment="Center"
+                    Text="{x:Static resx:ResUI.LvLoginPassword}" />
+                <Grid
+                    Grid.Row="4"
+                    Grid.Column="1"
+                    Margin="{StaticResource Margin4}">
+                    <TextBox
+                        x:Name="pwdLoginPassword"
+                        VerticalAlignment="Center"
+                        PasswordChar="●"
+                        PlaceholderText="{x:Static resx:ResUI.SubLoginPasswordTips}" />
+                    <TextBox
+                        x:Name="txtLoginPassword"
+                        VerticalAlignment="Center"
+                        IsVisible="False"
+                        PlaceholderText="{x:Static resx:ResUI.SubLoginPasswordTips}" />
+                </Grid>
+                <CheckBox
+                    x:Name="chkShowLoginPassword"
+                    Grid.Row="4"
+                    Grid.Column="2"
+                    Margin="{StaticResource Margin4}"
+                    VerticalAlignment="Center"
+                    Content="显示密码" />
 
                 <TextBlock
                     Grid.Row="5"
@@ -176,7 +180,7 @@
                     Grid.Column="1"
                     Margin="{StaticResource Margin4}"
                     VerticalAlignment="Center"
-                    Watermark="{x:Static resx:ResUI.SubUrlTips}" />
+                    PlaceholderText="{x:Static resx:ResUI.SubUrlTips}" />
 
                 <TextBlock
                     Grid.Row="6"
@@ -205,7 +209,7 @@
                     Margin="{StaticResource Margin4}"
                     VerticalAlignment="Center"
                     TextWrapping="Wrap"
-                    Watermark="{x:Static resx:ResUI.SubUrlTips}" />
+                    PlaceholderText="{x:Static resx:ResUI.SubUrlTips}" />
 
                 <TextBlock
                     Grid.Row="8"
@@ -233,12 +237,12 @@
                     Grid.Column="1"
                     Margin="{StaticResource Margin4}"
                     VerticalAlignment="Center"
-                    Watermark="{x:Static resx:ResUI.LvPrevProfileTip}" />
+                    PlaceholderText="{x:Static resx:ResUI.LvPrevProfileTip}" />
                 <Button
+                    x:Name="btnSelectPrevProfile"
                     Grid.Row="9"
                     Grid.Column="2"
                     Margin="{StaticResource Margin4}"
-                    Click="BtnSelectPrevProfile_Click"
                     Content="{x:Static resx:ResUI.TbSelectProfile}" />
 
                 <TextBlock
@@ -253,12 +257,12 @@
                     Grid.Column="1"
                     Margin="{StaticResource Margin4}"
                     VerticalAlignment="Center"
-                    Watermark="{x:Static resx:ResUI.LvPrevProfileTip}" />
+                    PlaceholderText="{x:Static resx:ResUI.LvPrevProfileTip}" />
                 <Button
+                    x:Name="btnSelectNextProfile"
                     Grid.Row="10"
                     Grid.Column="2"
                     Margin="{StaticResource Margin4}"
-                    Click="BtnSelectNextProfile_Click"
                     Content="{x:Static resx:ResUI.TbSelectProfile}" />
 
                 <TextBlock
@@ -275,7 +279,7 @@
                     Margin="{StaticResource Margin4}"
                     HorizontalAlignment="Left"
                     ToolTip.Tip="{x:Static resx:ResUI.TipPreSocksPort}"
-                    Watermark="{x:Static resx:ResUI.TipPreSocksPort}" />
+                    PlaceholderText="{x:Static resx:ResUI.TipPreSocksPort}" />
 
                 <TextBlock
                     Grid.Row="12"

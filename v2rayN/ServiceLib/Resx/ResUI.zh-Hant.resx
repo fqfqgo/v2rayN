@@ -121,7 +121,7 @@
     <value>匯出分享連結至剪貼簿成功</value>
   </data>
   <data name="CheckServerSettings" xml:space="preserve">
-    <value>配置項目無效，請檢查或重新選擇</value>
+    <value>請匯入並選擇節點</value>
   </data>
   <data name="ConfigurationFormatIncorrect" xml:space="preserve">
     <value>設定格式不正確</value>
@@ -228,9 +228,6 @@
   <data name="MsgSubscriptionDecodingFailed" xml:space="preserve">
     <value>無效的訂閱內容</value>
   </data>
-  <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
-    <value>訂閱解密失敗，請在訂閱分組設定中輸入你在訂閱網站的登入密碼</value>
-  </data>
   <data name="MsgUnpacking" xml:space="preserve">
     <value>正在解壓......</value>
   </data>
@@ -268,7 +265,7 @@
     <value>請選擇協定</value>
   </data>
   <data name="PleaseSelectServer" xml:space="preserve">
-    <value>請先選擇設定</value>
+    <value>請先選擇節點</value>
   </data>
   <data name="RemoveDuplicateServerResult" xml:space="preserve">
     <value>去重完成。原數量: {0}，現數量: {1}。</value>
@@ -314,6 +311,18 @@
   </data>
   <data name="LvUrl" xml:space="preserve">
     <value>訂閱連結</value>
+  </data>
+  <data name="LvLoginPassword" xml:space="preserve">
+    <value>網站登入密碼</value>
+  </data>
+  <data name="SubLoginPasswordTips" xml:space="preserve">
+    <value>請輸入網站登入密碼</value>
+  </data>
+  <data name="PleaseFillLoginPassword" xml:space="preserve">
+    <value>請輸入網站登入密碼</value>
+  </data>
+  <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
+    <value>訂閱解密失敗，請在訂閱分組設定中輸入你在訂閱網站的登入密碼</value>
   </data>
   <data name="LvCount" xml:space="preserve">
     <value>數量</value>
@@ -425,9 +434,6 @@
   </data>
   <data name="menuReload" xml:space="preserve">
     <value>重啟服務</value>
-  </data>
-  <data name="menuLog" xml:space="preserve">
-    <value>日誌</value>
   </data>
   <data name="menuRoutingSetting" xml:space="preserve">
     <value>路由設定</value>
@@ -697,7 +703,7 @@
     <value>在更新訂閱後自動調整列寬</value>
   </data>
   <data name="TbSettingsEnableCheckPreReleaseUpdate" xml:space="preserve">
-    <value>檢查 Pre-Release 更新 (請謹慎啟用)</value>
+    <value>檢查 Pre-Release</value>
   </data>
   <data name="TbSettingsException" xml:space="preserve">
     <value>例外</value>
@@ -870,6 +876,9 @@
   <data name="SubUrlTips" xml:space="preserve">
     <value>普通分組此處請留空</value>
   </data>
+  <data name="SubUrlLinkHint" xml:space="preserve">
+    <value>此處填寫訂閱連結</value>
+  </data>
   <data name="TipChangeRouting" xml:space="preserve">
     <value>路由設定已改變</value>
   </data>
@@ -981,9 +990,6 @@
   <data name="SpeedtestingPressEscToExit" xml:space="preserve">
     <value>按 ECS 以終止測試</value>
   </data>
-  <data name="SpeedtestingBatchWarning" xml:space="preserve">
-    <value>批量測速會消耗大量流量，測一次消耗幾GB，是否繼續？</value>
-  </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>當有異常斷流時請關閉</value>
   </data>
@@ -1050,6 +1056,12 @@
   <data name="TbHeaderType8" xml:space="preserve">
     <value>擁塞控制算法</value>
   </data>
+  <data name="TbHttpOutboundHeaders" xml:space="preserve">
+    <value>HTTP 請求頭</value>
+  </data>
+  <data name="TipHttpOutboundHeaders" xml:space="preserve">
+    <value>自訂 HTTP 出站請求頭，請輸入值為字串或字串陣列的 JSON 物件。</value>
+  </data>
   <data name="LvPrevProfile" xml:space="preserve">
     <value>前置代理節點別名</value>
   </data>
@@ -1109,6 +1121,39 @@
   </data>
   <data name="TbSettingsEnableFragment" xml:space="preserve">
     <value>啟用分片（Fragment）</value>
+  </data>
+  <data name="TbSettingsFragmentPackets" xml:space="preserve">
+    <value>分片封包類型</value>
+  </data>
+  <data name="TbSettingsFragmentPacketsTip" xml:space="preserve">
+    <value>要分片的封包類型：tlshello (TLS ClientHello) 或 1-1 到 1-5 (前 N 個 TCP 封包)</value>
+  </data>
+  <data name="TbSettingsFragmentLength" xml:space="preserve">
+    <value>分片長度</value>
+  </data>
+  <data name="TbSettingsFragmentLengthTip" xml:space="preserve">
+    <value>分片大小範圍(位元組)，如 50-100。第一個值必須 &lt;= 第二個值。留空使用預設值。</value>
+  </data>
+  <data name="TbSettingsFragmentInterval" xml:space="preserve">
+    <value>分片間隔</value>
+  </data>
+  <data name="TbSettingsFragmentIntervalTip" xml:space="preserve">
+    <value>分片間延遲(毫秒)，如 10-20。範圍 1-100。第一個值必須 &lt;= 第二個值。留空使用預設值。</value>
+  </data>
+  <data name="TbSettingsFragmentMaxSplit" xml:space="preserve">
+    <value>最大分片數</value>
+  </data>
+  <data name="TbSettingsFragmentMaxSplitTip" xml:space="preserve">
+    <value>每個封包最大分片數 (0-10000, 0=無限制)。僅 Xray。留空使用預設值。</value>
+  </data>
+  <data name="TbSettingsFragmentFallbackDelay" xml:space="preserve">
+    <value>回退延遲</value>
+  </data>
+  <data name="TbSettingsFragmentFallbackDelayTip" xml:space="preserve">
+    <value>ACK 偵測不可用時的回退延遲 (如 500ms)。僅 sing-box。留空使用預設值。</value>
+  </data>
+  <data name="FillFragmentParameterError" xml:space="preserve">
+    <value>無效的範圍格式。請使用 'from-to' (如 50-100)。</value>
   </data>
   <data name="TbSettingsEnableCacheFile4Sbox" xml:space="preserve">
     <value>啟用 sing-box（規則集檔案）的快取檔案</value>
@@ -1302,14 +1347,14 @@
   <data name="InvalidUrlTip" xml:space="preserve">
     <value>位址 (Url) 無效</value>
   </data>
-  <data name="InvalidSubUrlFormatTip" xml:space="preserve">
-    <value>訂閱位址格式不正確，必須為單行且以 http:// 或 https:// 開頭（不能是 vmess:// 、vless:// 等節點連結）</value>
-  </data>
-  <data name="SubUrlUnreachableTip" xml:space="preserve">
-    <value>該訂閱連結無法連線（網域無法解析或連線逾時），教學中有多個訂閱連結，請更換連結後重試</value>
-  </data>
   <data name="InsecureUrlProtocol" xml:space="preserve">
     <value>請不要使用不安全的 HTTP 協定訂閱位址</value>
+  </data>
+  <data name="InvalidSubUrlFormatTip" xml:space="preserve">
+    <value>訂閱連結格式不正確，必須為單行且以 http:// 或 https:// 開頭（不能是 vmess://、vless:// 等節點連結）</value>
+  </data>
+  <data name="SubUrlUnreachableTip" xml:space="preserve">
+    <value>該訂閱連結無法連線（網域無法解析或連線逾時）</value>
   </data>
   <data name="TbSettingsCurrentFontFamilyLinuxTip" xml:space="preserve">
     <value>安裝字體到系統中，選擇或填入字體名稱，重新啟動後生效</value>
@@ -1348,7 +1393,7 @@
     <value>開啟第二個本機監聽埠</value>
   </data>
   <data name="TbRoutingInboundTagTips" xml:space="preserve">
-    <value>socks：本地埠，socks2：第二個本地埠，socks3：區域網路埠</value>
+    <value>Tun：TUN 入站，Socks：本機連接埠，Socks2：第二個本機連接埠，Socks3：區域網路連接埠</value>
   </data>
   <data name="TbSettingsTheme" xml:space="preserve">
     <value>主題</value>
@@ -1474,7 +1519,7 @@
     <value>選擇節點</value>
   </data>
   <data name="TbFakeIPTips" xml:space="preserve">
-    <value>默認全域生效，內置 FakeIP 過濾，僅在 sing-box 中生效</value>
+    <value>默認全局生效，僅在 sing-box 中內置 FakeIP 過濾。</value>
   </data>
   <data name="PleaseAddAtLeastOneServer" xml:space="preserve">
     <value>請至少添加一個節點</value>
@@ -1710,12 +1755,6 @@
   <data name="TransportExtra" xml:space="preserve">
     <value>XHTTP Extra</value>
   </data>
-  <data name="TbAllowInsecureCertFetch" xml:space="preserve">
-    <value>允許不安全獲取證書（自簽名）</value>
-  </data>
-  <data name="TbAllowInsecureCertFetchTips" xml:space="preserve">
-    <value>僅用於抓取自簽證書，存在中間人風險。</value>
-  </data>
   <data name="menuUdpTestServer" xml:space="preserve">
     <value>測試 UDP 延遲（多選）</value>
   </data>
@@ -1728,9 +1767,6 @@
   <data name="TbSettingsSendThroughTip" xml:space="preserve">
     <value>適用於多網路介面環境，請填寫本機 IPv4 位址</value>
   </data>
-  <data name="FillCorrectSendThroughIPv4" xml:space="preserve">
-    <value>請填寫正確的 SendThrough IPv4 位址。</value>
-  </data>
   <data name="TbSettingsBindInterface" xml:space="preserve">
     <value>綁定網路介面</value>
   </data>
@@ -1742,5 +1778,96 @@
   </data>
   <data name="menuExport2InnerUri" xml:space="preserve">
     <value>匯出 v2rayN 內部分享連結至剪貼簿（多選）</value>
+  </data>
+  <data name="MsgCheckUpdateHasNewVersion" xml:space="preserve">
+    <value>{0} 有新版本可用：{1}</value>
+  </data>
+  <data name="menuCheckOnly" xml:space="preserve">
+    <value>僅檢查</value>
+  </data>
+  <data name="MsgNotSupport" xml:space="preserve">
+    <value>不支援</value>
+  </data>
+  <data name="LvTestIpInfo" xml:space="preserve">
+    <value>IP 資訊</value>
+  </data>
+  <data name="menuNewUpdate" xml:space="preserve">
+    <value>有更新</value>
+  </data>
+  <data name="MsgAllowInsecureDeprecated" xml:space="preserve">
+    <value>目前節點使用未加密連接，您的通訊可能會被威權政府掌控的網路中間設施直接查看
+為了安全，此類節點無法透過 26.2.6+ 版本的Xray核心連接
+如果是自建節點請啟用 TLS 等安全加密，或固定憑證 pinSHA256
+若機場節點請聯絡服務商完成技術升級，如服務商拒絕配合，建議更換更重視用戶安全的服務商
+更多的信息，請訪問 https://github.com/2dust/v2rayN/discussions/9460</value>
+  </data>
+  <data name="TbVerifyPeerCertByName" xml:space="preserve">
+    <value>Verify Peer Cert By Name</value>
+  </data>
+  <data name="TbRouteExcludeAddress" xml:space="preserve">
+    <value>路由排除位址</value>
+  </data>
+  <data name="TbRouteExcludeAddressTip" xml:space="preserve">
+    <value>使用逗號 (,) 分隔</value>
+  </data>
+  <data name="MsgTunRouteExcludeInvalidAddress" xml:space="preserve">
+    <value>TUN 路由排除清單中的位址無效: {0}</value>
+  </data>
+  <data name="MsgOptionsConflict" xml:space="preserve">
+    <value>{0} 與 {1} 發生衝突</value>
+  </data>
+  <data name="TbEnableFinalFragment" xml:space="preserve">
+    <value>啟用末端分片</value>
+  </data>
+  <data name="TbEnableFinalFragmentTip" xml:space="preserve">
+    <value>將封包末端拆分為更小的片段進行傳送，可能會影響吞吐量與延遲</value>
+  </data>
+  <data name="TbEnabletDnsViaProxy" xml:space="preserve">
+    <value>DNS 透過 Bridge</value>
+  </data>
+  <data name="MsgInsecureConfiguration" xml:space="preserve">
+    <value>偵測到不安全的設定：已啟用 AllowInsecure，但未提供憑證。這可能導致中間人攻擊（MITM）</value>
+  </data>
+  <data name="TbHy2RealmUrl" xml:space="preserve">
+    <value>Realm URL</value>
+  </data>
+  <data name="InvalidHy2RealmUrl" xml:space="preserve">
+    <value>無效的 Realm URL.</value>
+  </data>
+  <data name="TbHy2RealmUrlTip" xml:space="preserve">
+    <value>格式: realm://&lt;token&gt;@&lt;rendezvous-host&gt;[:port]/&lt;realm-name&gt;?stun=&lt;stun-host&gt;[:port]</value>
+  </data>
+  <data name="TbGeckoPacketSize" xml:space="preserve">
+    <value>Gecko 封包大小 (min/max)</value>
+  </data>
+  <data name="TbLegacyProtectTip" xml:space="preserve">
+    <value>啟用則使用 sing-box TUN ,否則使用 xray TUN</value>
+  </data>
+  <data name="InvalidHttpOutboundHeaders" xml:space="preserve">
+    <value>請填寫合法的HTTP請求頭JSON。</value>
+  </data>
+  <data name="TbRootCertificateProvider" xml:space="preserve">
+    <value>根憑證提供者</value>
+  </data>
+  <data name="TbRootCertificateProviderTip" xml:space="preserve">
+    <value>僅適用於 v2rayN GUI 的下載與網路請求，不影響核心的憑證驗證</value>
+  </data>
+  <data name="TbProxyDialResolveStrategy" xml:space="preserve">
+    <value>連線代理解析策略</value>
+  </data>
+  <data name="TbProxyDialResolveStrategyTip" xml:space="preserve">
+    <value>不建議啟用，特殊情況可能造成連線循環</value>
+  </data>
+  <data name="TbEnableHappyEyeballs" xml:space="preserve">
+    <value>啟用 Happy Eyeballs</value>
+  </data>
+  <data name="TbEnableHappyEyeballsTip" xml:space="preserve">
+    <value>需搭配 UseIP 策略，啟用後會同時嘗試 IPv4 與 IPv6 連線，並自動選擇速度較快的路徑</value>
+  </data>
+  <data name="TbIpv6Address" xml:space="preserve">
+    <value>Ipv6 位址</value>
+  </data>
+  <data name="TbIpv4Address" xml:space="preserve">
+    <value>Ipv4 位址</value>
   </data>
 </root>

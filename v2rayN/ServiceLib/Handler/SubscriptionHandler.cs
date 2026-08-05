@@ -1,6 +1,4 @@
 using System.Net.Http.Headers;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace ServiceLib.Handler;
 
@@ -48,7 +46,10 @@ public static class SubscriptionHandler
                 if (decryptFailed)
                 {
                     await updateFunc?.Invoke(false, $"{hashCode}{ResUI.MsgSubscriptionDecryptFailed}");
-                    await decryptFailedFunc?.Invoke(item);
+                    if (decryptFailedFunc != null)
+                    {
+                        await decryptFailedFunc(item);
+                    }
                     continue;
                 }
 
@@ -105,53 +106,39 @@ public static class SubscriptionHandler
         return downloadHandle;
     }
 
-    private const string SubscriptionEncryptionHeader = "Subscription-Encryption";
-    private const string AesEncryptionValue = "true";
-
-    private static bool IsAesEncrypted(HttpHeaders? headers)
+    private static bool IsEncrypted(HttpHeaders? headers)
     {
-        if (headers == null || !headers.TryGetValues(SubscriptionEncryptionHeader, out var values))
-            return false;
-        return values?.Any(v => string.Equals(v.Trim(), AesEncryptionValue, StringComparison.OrdinalIgnoreCase)) == true;
+        return headers?.TryGetValues("Subscription-Encryption", out var values) == true
+               && values.Any(value => value.Trim().Equals("true", StringComparison.OrdinalIgnoreCase));
     }
 
-    private static async Task<(string Content, HttpHeaders? Headers)> DownloadSubscriptionContentWithHeaders(DownloadService downloadHandle, string url, bool blProxy, string userAgent)
+    private static async Task<(string Content, HttpHeaders? Headers)> DownloadSubscriptionContent(DownloadService downloadHandle, string url, bool blProxy, string userAgent)
     {
-        var (content, headers) = await downloadHandle.TryDownloadStringWithHeaders(url, blProxy, userAgent);
+        var (result, headers) = await downloadHandle.TryDownloadStringWithHeaders(url, blProxy, userAgent);
 
         // If download with proxy fails, try direct connection
-        if (blProxy && content.IsNullOrEmpty())
+        if (blProxy && result.IsNullOrEmpty())
         {
-            (content, headers) = await downloadHandle.TryDownloadStringWithHeaders(url, false, userAgent);
+            (result, headers) = await downloadHandle.TryDownloadStringWithHeaders(url, false, userAgent);
         }
 
-        return (content ?? string.Empty, headers);
+        return (result ?? string.Empty, headers);
     }
 
     private static async Task<(string Result, bool DecryptFailed)> DownloadAllSubscriptions(Config config, SubItem item, bool blProxy, DownloadService downloadHandle)
     {
-        var decryptFailed = false;
-        // Download main subscription content (with headers for encryption detection)
-        var (result, mainHeaders) = await DownloadMainSubscriptionWithHeaders(config, item, blProxy, downloadHandle);
-        if (IsAesEncrypted(mainHeaders))
+        // Download main subscription content
+        var (result, headers) = await DownloadMainSubscription(config, item, blProxy, downloadHandle);
+        if (IsEncrypted(headers))
         {
-            var loginPwd = (item.LoginPassword ?? string.Empty).Trim();
-            if (loginPwd.IsNullOrEmpty())
+            if (!TryDecryptSubscription(item.LoginPassword, result, out result))
             {
                 return (string.Empty, true);
             }
-            if (!TryDecryptSubscription(loginPwd, result, out var decrypted))
-            {
-                return (string.Empty, true);
-            }
-            result = decrypted;
         }
-        else
+        else if (result.IsNotEmpty() && Utils.IsBase64String(result))
         {
-            if (result.IsNotEmpty() && Utils.IsBase64String(result))
-            {
-                result = Utils.Base64Decode(result);
-            }
+            result = Utils.Base64Decode(result);
         }
 
         // Process additional subscription links (if any)
@@ -165,10 +152,10 @@ public static class SubscriptionHandler
             result = additional.Result;
         }
 
-        return (result, decryptFailed);
+        return (result, false);
     }
 
-    private static async Task<(string Content, HttpHeaders? Headers)> DownloadMainSubscriptionWithHeaders(Config config, SubItem item, bool blProxy, DownloadService downloadHandle)
+    private static async Task<(string Content, HttpHeaders? Headers)> DownloadMainSubscription(Config config, SubItem item, bool blProxy, DownloadService downloadHandle)
     {
         // Prepare subscription URL and download directly
         var url = Utils.GetPunycode(item.Url.TrimEx());
@@ -184,17 +171,17 @@ public static class SubscriptionHandler
 
             if (!url.Contains("target="))
             {
-                url += string.Format("&target={0}", item.ConvertTarget);
+                url += $"&target={item.ConvertTarget}";
             }
 
             if (!url.Contains("config="))
             {
-                url += string.Format("&config={0}", Global.SubConvertConfig.FirstOrDefault());
+                url += $"&config={Global.SubConvertConfig.FirstOrDefault()}";
             }
         }
 
-        // Download and return result with headers
-        return await DownloadSubscriptionContentWithHeaders(downloadHandle, url, blProxy, item.UserAgent);
+        // Download and return result directly
+        return await DownloadSubscriptionContent(downloadHandle, url, blProxy, item.UserAgent);
     }
 
     private static async Task<(string Result, bool DecryptFailed)> DownloadAdditionalSubscriptions(SubItem item, string mainResult, bool blProxy, DownloadService downloadHandle)
@@ -211,31 +198,26 @@ public static class SubscriptionHandler
                 continue;
             }
 
-            var (additionalContent, additionalHeaders) = await DownloadSubscriptionContentWithHeaders(downloadHandle, url2, blProxy, item.UserAgent);
+            var (additionalResult, headers) = await DownloadSubscriptionContent(downloadHandle, url2, blProxy, item.UserAgent);
 
-            if (additionalContent.IsNotEmpty())
+            if (additionalResult.IsNotEmpty())
             {
-                // Check header for encryption; decrypt only when Subscription-Encryption present
-                if (IsAesEncrypted(additionalHeaders))
+                // Process additional subscription results, add to main result
+                if (IsEncrypted(headers))
                 {
-                    var loginPwd = (item.LoginPassword ?? string.Empty).Trim();
-                    if (loginPwd.IsNullOrEmpty())
+                    if (!TryDecryptSubscription(item.LoginPassword, additionalResult, out additionalResult))
                     {
                         return (string.Empty, true);
                     }
-                    if (!TryDecryptSubscription(loginPwd, additionalContent, out var decrypted))
-                    {
-                        return (string.Empty, true);
-                    }
-                    result += Environment.NewLine + decrypted;
+                    result += Environment.NewLine + additionalResult;
                 }
-                else if (Utils.IsBase64String(additionalContent))
+                else if (Utils.IsBase64String(additionalResult))
                 {
-                    result += Environment.NewLine + Utils.Base64Decode(additionalContent);
+                    result += Environment.NewLine + Utils.Base64Decode(additionalResult);
                 }
                 else
                 {
-                    result += Environment.NewLine + additionalContent;
+                    result += Environment.NewLine + additionalResult;
                 }
             }
         }
@@ -243,78 +225,41 @@ public static class SubscriptionHandler
         return (result, false);
     }
 
-    private static bool TryDecryptSubscription(string loginPassword, string base64Data, out string decrypted)
+    private static bool TryDecryptSubscription(string? loginPassword, string base64Data, out string decrypted)
     {
         decrypted = string.Empty;
-        if (base64Data.IsNullOrEmpty())
-        {
-            return false;
-        }
-
-        var pass = Utils.GetMd5(loginPassword);
-        if (pass.Length != 32)
+        var password = loginPassword?.Trim();
+        if (password.IsNullOrEmpty() || base64Data.IsNullOrEmpty())
         {
             return false;
         }
 
         try
         {
-            var key = Convert.FromHexString(pass);
-            var raw = TryBase64DecodeBytes(base64Data);
-            if (raw == null || raw.Length <= 16)
+            var encoded = base64Data.Trim()
+                .Replace("\r", "")
+                .Replace("\n", "")
+                .Replace(" ", "")
+                .Replace('_', '/')
+                .Replace('-', '+');
+            var raw = Convert.FromBase64String(encoded.PadRight((encoded.Length + 3) / 4 * 4, '='));
+            if (raw.Length <= 16)
             {
                 return false;
             }
 
-            var iv = raw[..16];
-            var cipher = raw[16..];
-
             using var aes = Aes.Create();
-            aes.Key = key;
-            aes.IV = iv;
+            aes.Key = Convert.FromHexString(Utils.GetMd5(password));
+            aes.IV = raw[..16];
             aes.Mode = CipherMode.CBC;
             aes.Padding = PaddingMode.PKCS7;
-
-            using var decryptor = aes.CreateDecryptor();
-            var plainBytes = decryptor.TransformFinalBlock(cipher, 0, cipher.Length);
-            decrypted = Encoding.UTF8.GetString(plainBytes);
+            decrypted = Encoding.UTF8.GetString(aes.CreateDecryptor().TransformFinalBlock(raw, 16, raw.Length - 16));
             return decrypted.IsNotEmpty();
         }
         catch (Exception ex)
         {
             Logging.SaveLog("SubscriptionDecryptFailed", ex);
             return false;
-        }
-    }
-
-    private static byte[]? TryBase64DecodeBytes(string plainText)
-    {
-        try
-        {
-            if (plainText.IsNullOrEmpty())
-            {
-                return null;
-            }
-
-            plainText = plainText.Trim()
-                .Replace(Environment.NewLine, "")
-                .Replace("\n", "")
-                .Replace("\r", "")
-                .Replace('_', '/')
-                .Replace('-', '+')
-                .Replace(" ", "");
-
-            if (plainText.Length % 4 > 0)
-            {
-                plainText = plainText.PadRight(plainText.Length + 4 - (plainText.Length % 4), '=');
-            }
-
-            return Convert.FromBase64String(plainText);
-        }
-        catch (Exception ex)
-        {
-            Logging.SaveLog("SubscriptionBase64DecodeFailed", ex);
-            return null;
         }
     }
 

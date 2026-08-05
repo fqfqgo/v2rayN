@@ -17,7 +17,7 @@ internal static class CoreConfigTestFactory
     {
         return new Config
         {
-            CoreBasicItem = new CoreBasicItem { Loglevel = "warning", MuxEnabled = false },
+            CoreBasicItem = new CoreBasicItem { Loglevel = "warning" },
             TunModeItem = new TunModeItem { EnableTun = false, IcmpRouting = "default" },
             KcpItem = new KcpItem(),
             GrpcItem = new GrpcItem(),
@@ -59,7 +59,7 @@ internal static class CoreConfigTestFactory
                 },
             WebDavItem = new WebDavItem(),
             CheckUpdateItem = new CheckUpdateItem(),
-            Fragment4RayItem = new Fragment4RayItem { Packets = "tlshello", Length = "100-200", Interval = "10-20" },
+            Fragment4RayItem = new Fragment4RayItem { Packets = "tlshello", Lengths = ["100-200"], Delays = ["10-20"] },
             Inbound =
             [
                 new InItem
@@ -84,6 +84,7 @@ internal static class CoreConfigTestFactory
                 ParallelQuery = false,
                 Strategy4Freedom = Global.AsIs,
                 Strategy4Proxy = Global.AsIs,
+                Strategy4ProxyDial = Global.AsIs,
             },
             IndexId = string.Empty,
             SubIndexId = string.Empty,
@@ -122,6 +123,25 @@ internal static class CoreConfigTestFactory
             Remarks = remarks,
             Address = "127.0.0.1",
             Port = 1080,
+            Password = "pass",
+            Username = "user",
+            Network = nameof(ETransport.raw),
+            StreamSecurity = string.Empty,
+            Subid = string.Empty,
+        };
+    }
+
+    public static ProfileItem CreateHttpNode(ECoreType coreType, string indexId = "node-http-1",
+        string remarks = "demo-http")
+    {
+        return new ProfileItem
+        {
+            IndexId = indexId,
+            ConfigType = EConfigType.HTTP,
+            CoreType = coreType,
+            Remarks = remarks,
+            Address = "proxy.example.com",
+            Port = 8080,
             Password = "pass",
             Username = "user",
             Network = nameof(ETransport.raw),
@@ -187,7 +207,7 @@ internal static class CoreConfigTestFactory
             SimpleDnsItem = config.SimpleDNSItem,
             AllProxiesMap = new Dictionary<string, ProfileItem> { [node.IndexId] = node },
             FullConfigTemplate = null,
-            IsTunEnabled = false,
+            IsTunEnabled = config.TunModeItem.EnableTun,
             ProtectDomainList = [],
         };
     }
@@ -204,6 +224,14 @@ internal static class CoreConfigTestFactory
     {
         var config = CreateConfig(coreType);
         config.SimpleDNSItem.BootstrapDNS = bootstrapDns;
+        return config;
+    }
+
+    public static Config CreateConfigWithTunRouteExcludeAddress(ECoreType coreType)
+    {
+        var config = CreateConfig(coreType);
+        config.TunModeItem.EnableTun = true;
+        config.TunModeItem.RouteExcludeAddress = ["10.0.0.1/32", "192.168.1.0/24", "fc00::/7"];
         return config;
     }
 }

@@ -7,15 +7,20 @@ public class CoreManager
 {
     private static readonly Lazy<CoreManager> _instance = new(() => new());
     public static CoreManager Instance => _instance.Value;
+    public EventChannel<Unit> ReloadRequested { get; } = new();
+    public EventChannel<Unit> InboundDisplayRequested { get; } = new();
     private Config _config;
+
+    [SupportedOSPlatform("windows")]
     private WindowsJobService? _processJob;
+
     private ProcessService? _processService;
     private ProcessService? _processPreService;
     private bool _linuxSudo = false;
     private Func<bool, string, Task>? _updateFunc;
     private const string _tag = "CoreHandler";
     private bool HasRunningCoreProcess() =>
-        (_processService is { HasExited: false }) || (_processPreService is { HasExited: false });
+        _processService is { HasExited: false } || _processPreService is { HasExited: false };
 
     public async Task Init(Config config, Func<bool, string, Task> updateFunc)
     {
@@ -59,9 +64,33 @@ public class CoreManager
         }
     }
 
+    public async Task PreparePrimaryMixedPort(bool allowPortBump)
+    {
+        if (!allowPortBump
+            || HasRunningCoreProcess()
+            || !MixedListenPortRecoveryHandler.TryBumpPrimaryMixedPortIfCurrentBusy(_config, out var oldPort, out var newPort))
+        {
+            return;
+        }
+
+        if (await ConfigHandler.SaveConfig(_config) != 0)
+        {
+            var inbound = _config.Inbound?.FirstOrDefault(t => t.Protocol == nameof(EInboundProtocol.socks));
+            if (inbound is not null)
+            {
+                inbound.LocalPort = oldPort;
+            }
+            return;
+        }
+
+        Logging.SaveLog($"{_tag}: primary mixed listen {oldPort} -> {newPort} (pre-start bind check)");
+        await UpdateFunc(true, string.Format(ResUI.TipMixedListenPortAutoAdjusted, oldPort, newPort));
+        InboundDisplayRequested.Publish();
+    }
+
     /// <param name="mainContext">Resolved main context (with pre-socks ports already merged if applicable).</param>
     /// <param name="preContext">Optional pre-socks context passed to <see cref="CoreStartPreService"/>.</param>
-    public async Task LoadCore(CoreConfigContext? mainContext, CoreConfigContext? preContext, bool allowPreStartPortBump = true)
+    public async Task LoadCore(CoreConfigContext? mainContext, CoreConfigContext? preContext)
     {
         if (mainContext == null)
         {
@@ -78,46 +107,20 @@ public class CoreManager
             return;
         }
 
-        // mixed 主端口（及 socks2/socks3）若已被占用，递增并保存后再生成配置，避免核心启动失败。
-        // 仅在当前核心未运行时执行该检测，避免把“旧核心仍在监听”误判为端口冲突。
-        if (allowPreStartPortBump
-            && !HasRunningCoreProcess()
-            && MixedListenPortRecoveryHandler.TryBumpPrimaryMixedPortIfCurrentBusy(_config, out var oldMixedPort, out var newMixedPort))
-        {
-            if (await ConfigHandler.SaveConfig(_config) == 0)
-            {
-                Logging.SaveLog($"{_tag}: primary mixed listen {oldMixedPort} -> {newMixedPort} (pre-start bind check)");
-                await UpdateFunc(true, string.Format(ResUI.TipMixedListenPortAutoAdjusted, oldMixedPort, newMixedPort));
-                result = await CoreConfigHandler.GenerateClientConfig(mainContext, fileName);
-                if (result.Success != true)
-                {
-                    await UpdateFunc(true, result.Msg);
-                    return;
-                }
-            }
-            else
-            {
-                var inbound = _config.Inbound?.FirstOrDefault(t => t.Protocol == nameof(EInboundProtocol.socks));
-                if (inbound is not null)
-                {
-                    inbound.LocalPort = oldMixedPort;
-                }
-            }
-        }
-
         await UpdateFunc(false, $"{node.GetSummary()}");
         await UpdateFunc(false, $"{Utils.GetRuntimeInfo()}");
         await UpdateFunc(false, string.Format(ResUI.StartService, DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")));
         await CoreStop();
         await WaitForSingboxCacheUnlocked();
 
-        if (Utils.IsWindows() && _config.TunModeItem.EnableTun)
+        if (Utils.IsWindows() && (mainContext?.IsTunEnabled == true || preContext?.IsTunEnabled == true))
         {
             await Task.Delay(100);
             await WindowsUtils.RemoveTunDevice();
         }
 
         await CoreStart(mainContext);
+        await WaitForProxyPort(preContext);
         await CoreStartPreService(preContext);
 
         AppManager.Instance.RunningCoreType = preContext?.RunCoreType ?? mainContext.RunCoreType;
@@ -199,9 +202,6 @@ public class CoreManager
         }
     }
 
-    /// <summary>
-    /// 等待旧 sing-box 释放 cache.db，避免 Reload/开 TUN 后出现 initialize cache-file: timeout
-    /// </summary>
     private static async Task WaitForSingboxCacheUnlocked()
     {
         var path = Utils.GetBinPath("cache.db");
@@ -215,7 +215,7 @@ public class CoreManager
         {
             try
             {
-                await using var fs = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                await using var stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
                 return;
             }
             catch
@@ -234,7 +234,7 @@ public class CoreManager
         var coreInfo = CoreInfoManager.Instance.GetCoreInfo(coreType);
 
         var displayLog = node.ConfigType != EConfigType.Custom || node.DisplayLog;
-        var proc = await RunProcess(coreInfo, Global.CoreConfigFileName, displayLog, true);
+        var proc = await RunProcess(coreInfo, Global.CoreConfigFileName, displayLog, true, context.IsTunEnabled, true);
         if (proc is null)
         {
             return;
@@ -252,7 +252,7 @@ public class CoreManager
             if (result.Success)
             {
                 var coreInfo = CoreInfoManager.Instance.GetCoreInfo(preCoreType);
-                var proc = await RunProcess(coreInfo, Global.CorePreConfigFileName, true, true);
+                var proc = await RunProcess(coreInfo, Global.CorePreConfigFileName, true, true, preContext.IsTunEnabled);
                 if (proc is null)
                 {
                     return;
@@ -267,11 +267,104 @@ public class CoreManager
         await _updateFunc?.Invoke(notify, msg);
     }
 
+    private async Task CoreLogUpdate(bool notify, string msg)
+    {
+        await UpdateFunc(notify, msg);
+        if (await MixedListenPortRecoveryHandler.RecoverFromCoreLog(_config, msg))
+        {
+            InboundDisplayRequested.Publish();
+            ReloadRequested.Publish();
+        }
+    }
+
+    private static async Task WaitForProxyPort(CoreConfigContext? preContext, int timeoutMs = 5000)
+    {
+        if (preContext is null)
+        {
+            return;
+        }
+        if (!preContext.IsTunEnabled)
+        {
+            return;
+        }
+
+        using var rootCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(timeoutMs));
+        var rootToken = rootCts.Token;
+
+        var port = preContext.Node.Port;
+        // SOCKS5 client greeting: VER=5, NMETHODS=1, METHOD=0x00 (no auth)
+        ReadOnlyMemory<byte> greeting = new byte[] { 0x05, 0x01, 0x00 };
+        var buf = new byte[2];
+
+        while (!rootToken.IsCancellationRequested)
+        {
+            using var tcp = new TcpClient();
+            using var attemptCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(rootToken, attemptCts.Token);
+            var linkedToken = linkedCts.Token;
+            try
+            {
+                await tcp.ConnectAsync(Global.Loopback, port, linkedToken);
+                var stream = tcp.GetStream();
+
+                await stream.WriteAsync(greeting, linkedToken);
+
+                var read = await stream.ReadAsync(buf.AsMemory(0, 2), linkedToken);
+
+                // Server selection: VER=5, METHOD=0x00 — proxy is fully ready
+                if (read == 2 && buf[0] == 0x05)
+                {
+                    return;
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                if (!rootToken.IsCancellationRequested)
+                {
+                    continue;
+                }
+                Logging.SaveLog($"WaitForProxyPort Timeout waiting for proxy port {port} to be ready.");
+                return;
+            }
+            catch (SocketException ex) when (ex.SocketErrorCode == SocketError.ConnectionRefused)
+            {
+                // Connection refused, proxy not ready yet, wait 50ms before retrying
+                try
+                {
+                    await Task.Delay(50, rootToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    Logging.SaveLog($"WaitForProxyPort Timeout waiting for proxy port {port} to be ready.");
+                    return;
+                }
+            }
+            catch
+            {
+                // Ignore other exceptions and continue
+            }
+        }
+    }
+
     #endregion Private
 
     #region Process
 
-    private async Task<ProcessService?> RunProcess(CoreInfo? coreInfo, string configPath, bool displayLog, bool mayNeedSudo)
+    /// <summary>
+    ///     Decides whether a core launch must be elevated on non-Windows platforms.
+    ///     The TUN state comes from the immutable <see cref="CoreConfigContext" /> snapshot that
+    ///     generated the config, never from the live mutable config: the generated config and the
+    ///     launch mode must always agree, even if TUN is toggled while a reload is in flight.
+    /// </summary>
+    public static bool ShouldRunAsSudo(bool isTunLaunch, ECoreType? coreType, bool isNonWindows)
+    {
+        return isTunLaunch
+            && coreType is ECoreType.sing_box or ECoreType.mihomo or ECoreType.Xray
+            && isNonWindows;
+    }
+
+    private async Task<ProcessService?> RunProcess(CoreInfo? coreInfo, string configPath, bool displayLog, bool mayNeedSudo,
+        bool isTunLaunch = false, bool recoverMixedPort = false)
     {
         var fileName = CoreInfoManager.Instance.GetCoreExecFile(coreInfo, out var msg);
         if (fileName.IsNullOrEmpty())
@@ -283,16 +376,15 @@ public class CoreManager
         try
         {
             if (mayNeedSudo
-                && _config.TunModeItem.EnableTun
-                && (coreInfo.CoreType is ECoreType.sing_box or ECoreType.mihomo)
-                && Utils.IsNonWindows())
+                && ShouldRunAsSudo(isTunLaunch, coreInfo.CoreType, Utils.IsNonWindows()))
             {
                 _linuxSudo = true;
-                await CoreAdminManager.Instance.Init(_config, _updateFunc);
+                await CoreAdminManager.Instance.Init(_config, recoverMixedPort ? CoreLogUpdate : _updateFunc);
                 return await CoreAdminManager.Instance.RunProcessAsLinuxSudo(fileName, coreInfo, configPath);
             }
 
-            return await RunProcessNormal(fileName, coreInfo, configPath, displayLog);
+            return await RunProcessNormal(fileName, coreInfo, configPath, displayLog,
+                recoverMixedPort ? CoreLogUpdate : _updateFunc);
         }
         catch (Exception ex)
         {
@@ -302,7 +394,8 @@ public class CoreManager
         }
     }
 
-    private async Task<ProcessService?> RunProcessNormal(string fileName, CoreInfo? coreInfo, string configPath, bool displayLog)
+    private async Task<ProcessService?> RunProcessNormal(string fileName, CoreInfo? coreInfo, string configPath, bool displayLog,
+        Func<bool, string, Task>? updateFunc)
     {
         var environmentVars = new Dictionary<string, string>();
         foreach (var kv in coreInfo.Environment)
@@ -317,7 +410,7 @@ public class CoreManager
             displayLog: displayLog,
             redirectInput: false,
             environmentVars: environmentVars,
-            updateFunc: _updateFunc
+            updateFunc: updateFunc
         );
 
         await procService.StartAsync();

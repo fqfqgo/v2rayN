@@ -95,8 +95,7 @@ public sealed class WindowsManager
     private static int GetNotifyIconIndex(Config config)
     {
         var proxyOn = config.SystemProxyItem.SysProxyType is ESysProxyType.ForcedChange or ESysProxyType.Pac;
-        var tunOn = config.TunModeItem.EnableTun;
-        return (proxyOn || tunOn) ? 1 : 0;
+        return proxyOn || config.TunModeItem.EnableTun ? 1 : 0;
     }
 
     public void RegisterGlobalHotkey(Config config, Action<EGlobalHotkey> handler, Action<bool, string>? update)

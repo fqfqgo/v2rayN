@@ -56,7 +56,7 @@ public partial class CoreConfigV2rayService
             }
             else
             {
-                _coreConfig.burstObservatory.subjectSelector ??= new();
+                _coreConfig.burstObservatory.subjectSelector ??= [];
                 _coreConfig.burstObservatory.subjectSelector.Add(baseTagName);
             }
         }
@@ -75,7 +75,7 @@ public partial class CoreConfigV2rayService
             }
             else
             {
-                _coreConfig.observatory.subjectSelector ??= new();
+                _coreConfig.observatory.subjectSelector ??= [];
                 _coreConfig.observatory.subjectSelector.Add(baseTagName);
             }
         }
@@ -89,6 +89,7 @@ public partial class CoreConfigV2rayService
             EMultipleLoad.RoundRobin => "roundRobin",
             EMultipleLoad.LeastPing => "leastPing",
             EMultipleLoad.LeastLoad => "leastLoad",
+            EMultipleLoad.Fallback => "leastLoad",
             _ => "roundRobin",
         };
         var balancerTag = $"{selector}{Global.BalancerTagSuffix}";
@@ -98,14 +99,18 @@ public partial class CoreConfigV2rayService
             strategy = new()
             {
                 type = strategyType,
-                settings = new()
-                {
-                    expected = 1,
-                },
+                settings = strategyType == "leastLoad"
+                    ? new()
+                    {
+                        expected = 1,
+                        tolerance = multipleLoad == EMultipleLoad.Fallback ? 0.2 : null,
+                        maxRTT = multipleLoad == EMultipleLoad.Fallback ? "5000ms" : null,
+                    }
+                    : null,
             },
             tag = balancerTag,
         };
-        _coreConfig.routing.balancers ??= new();
+        _coreConfig.routing.balancers ??= [];
         _coreConfig.routing.balancers.Add(balancer);
     }
 }

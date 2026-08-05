@@ -16,7 +16,6 @@ public partial class ClashConnectionsView
         InitializeComponent();
         _config = AppManager.Instance.Config;
 
-        ViewModel = new ClashConnectionsViewModel(UpdateViewHandler);
         btnAutofitColumnWidth.Click += BtnAutofitColumnWidth_Click;
 
         this.WhenActivated(disposables =>
@@ -39,11 +38,6 @@ public partial class ClashConnectionsView
         });
 
         RestoreUI();
-    }
-
-    private async Task<bool> UpdateViewHandler(EViewAction action, object? obj)
-    {
-        return await Task.FromResult(true);
     }
 
     private void BtnAutofitColumnWidth_Click(object sender, RoutedEventArgs e)
@@ -111,7 +105,7 @@ public partial class ClashConnectionsView
     {
         try
         {
-            List<ColumnItem> lvColumnItem = new();
+            List<ColumnItem> lvColumnItem = [];
             foreach (var col in lstConnections.Columns.Cast<MyDGTextColumn>())
             {
                 var name = col.ExName;

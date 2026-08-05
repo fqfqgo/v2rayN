@@ -7,7 +7,9 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
     private static readonly string _tag = "SpeedtestService";
     private readonly Config? _config = config;
     private readonly Func<SpeedTestResult, Task>? _updateFunc = updateFunc;
-    private static readonly ConcurrentBag<string> _lstExitLoop = new();
+    private static readonly ConcurrentBag<string> _lstExitLoop = [];
+    private readonly int _speedTestPageSize = config.SpeedTestItem.SpeedTestPageSize ?? Global.SpeedTestPageSize;
+    private readonly TimeSpan _delayInterval = TimeSpan.FromSeconds(config.SpeedTestItem.SpeedTestDelayInterval ?? 1);
 
     public void RunLoop(ESpeedActionType actionType, List<ProfileItem> selecteds)
     {
@@ -31,7 +33,7 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
 
     private static bool ShouldStopTest(string exitLoopKey)
     {
-        return !_lstExitLoop.Any(p => p == exitLoopKey);
+        return _lstExitLoop.All(p => p != exitLoopKey);
     }
 
     private async Task RunAsync(ESpeedActionType actionType, List<ProfileItem> selecteds)
@@ -44,7 +46,7 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
         switch (actionType)
         {
             case ESpeedActionType.Tcping:
-                await RunTcpingAsync(lstSelected);
+                await RunTcpingAsync(lstSelected, exitLoopKey);
                 break;
 
             case ESpeedActionType.Realping:
@@ -133,38 +135,64 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
         return lstSelected;
     }
 
-    private async Task RunTcpingAsync(List<ServerTestItem> selecteds)
+    private async Task RunTcpingAsync(List<ServerTestItem> selecteds, string exitLoopKey)
     {
-        List<Task> tasks = [];
-        foreach (var it in selecteds)
-        {
-            tasks.Add(Task.Run(async () =>
-            {
-                try
-                {
-                    var responseTime = await GetTcpingTime(it.Address, it.Port);
+        var pageSize = Math.Min(selecteds.Count, _speedTestPageSize);
+        var lstBatch = GetTestBatchItem(selecteds, pageSize);
 
-                    ProfileExManager.Instance.SetTestDelay(it.IndexId, responseTime);
-                    await UpdateFunc(it.IndexId, responseTime.ToString());
-                }
-                catch (Exception ex)
+        foreach (var lst in lstBatch)
+        {
+            if (ShouldStopTest(exitLoopKey))
+            {
+                await UpdateFunc("", ResUI.SpeedtestingSkip);
+                return;
+            }
+
+            List<Task> tasks = [];
+
+            foreach (var it in lst)
+            {
+                if (ShouldStopTest(exitLoopKey))
                 {
-                    Logging.SaveLog(_tag, ex);
+                    return;
                 }
-            }));
+
+                tasks.Add(Task.Run(async () =>
+                {
+                    try
+                    {
+                        var responseTime = await GetTcpingTime(it.Address, it.Port);
+
+                        ProfileExManager.Instance.SetTestDelay(it.IndexId, responseTime);
+                        await UpdateFunc(it.IndexId, responseTime.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        Logging.SaveLog(_tag, ex);
+                    }
+                }));
+            }
+
+            await Task.WhenAll(tasks);
+
+            if (ShouldStopTest(exitLoopKey))
+            {
+                return;
+            }
+
+            await Task.Delay(_delayInterval);
         }
-        await Task.WhenAll(tasks);
     }
 
     private async Task RunRealPingBatchAsync(List<ServerTestItem> lstSelected, string exitLoopKey, int pageSize = 0)
     {
         if (pageSize <= 0)
         {
-            pageSize = lstSelected.Count < Global.SpeedTestPageSize ? lstSelected.Count : Global.SpeedTestPageSize;
+            pageSize = Math.Min(lstSelected.Count, _speedTestPageSize);
         }
         var lstTest = GetTestBatchItem(lstSelected, pageSize);
 
-        List<ServerTestItem> lstFailed = new();
+        List<ServerTestItem> lstFailed = [];
         foreach (var lst in lstTest)
         {
             var ret = await RunRealPingAsync(lst, exitLoopKey);
@@ -172,7 +200,7 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
             {
                 lstFailed.AddRange(lst);
             }
-            await Task.Delay(100);
+            await Task.Delay(_delayInterval);
         }
 
         //Retest the failed part
@@ -208,28 +236,9 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
             {
                 return false;
             }
-            
-            // 增加等待时间，确保端口完全就绪
-            await Task.Delay(1500);
-            
-            // 检查端口是否真的可用
-            var allPortsReady = true;
-            foreach (var it in selecteds.Where(x => x.AllowTest))
-            {
-                if (!await SocketCheck(Global.Loopback, it.Port))
-                {
-                    allPortsReady = false;
-                    break;
-                }
-            }
-            
-            // 如果端口未就绪，再等待一段时间
-            if (!allPortsReady)
-            {
-                await Task.Delay(1000);
-            }
+            await Task.Delay(1000);
 
-            List<Task> tasks = new();
+            List<Task> tasks = [];
             foreach (var it in selecteds)
             {
                 if (!it.AllowTest)
@@ -268,11 +277,11 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
     {
         if (pageSize <= 0)
         {
-            pageSize = lstSelected.Count < Global.SpeedTestPageSize ? lstSelected.Count : Global.SpeedTestPageSize;
+            pageSize = Math.Min(lstSelected.Count, _speedTestPageSize);
         }
         var lstTest = GetTestBatchItem(lstSelected, pageSize);
 
-        List<ServerTestItem> lstFailed = new();
+        List<ServerTestItem> lstFailed = [];
         foreach (var lst in lstTest)
         {
             var ret = await RunUdpTestAsync(lst, exitLoopKey);
@@ -280,7 +289,7 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
             {
                 lstFailed.AddRange(lst);
             }
-            await Task.Delay(100);
+            await Task.Delay(_delayInterval);
         }
 
         //Retest the failed part
@@ -310,7 +319,7 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
             }
             await Task.Delay(1000);
 
-            List<Task> tasks = new();
+            List<Task> tasks = [];
             foreach (var it in selecteds)
             {
                 if (!it.AllowTest)
@@ -348,7 +357,7 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
     {
         using var concurrencySemaphore = new SemaphoreSlim(concurrencyCount);
         var downloadHandle = new DownloadService();
-        List<Task> tasks = new();
+        List<Task> tasks = [];
         foreach (var it in selecteds)
         {
             if (ShouldStopTest(exitLoopKey))
@@ -410,46 +419,33 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
 
     private async Task<int> DoRealPing(ServerTestItem it)
     {
-        var maxRetries = 2; // 最多重试2次
-        var retryDelay = 500; // 重试延迟500ms
-        
-        for (int retry = 0; retry <= maxRetries; retry++)
+        var webProxy = new WebProxy($"socks5://{Global.Loopback}:{it.Port}");
+        var responseTime = -1;
+        for (var retry = 0; retry < 3 && responseTime <= 0; retry++)
         {
-            try
+            responseTime = await ConnectionHandler.GetRealPingTime(webProxy, 10);
+            if (responseTime <= 0 && retry < 2)
             {
-                var webProxy = new WebProxy($"socks5://{Global.Loopback}:{it.Port}");
-                var responseTime = await ConnectionHandler.GetRealPingTime(
-                    _config.SpeedTestItem.SpeedPingTestUrl, webProxy, 10);
-
-                // 如果成功（>0），立即返回
-                if (responseTime > 0)
-                {
-                    ProfileExManager.Instance.SetTestDelay(it.IndexId, responseTime);
-                    await UpdateFunc(it.IndexId, responseTime.ToString());
-                    return responseTime;
-                }
-                
-                // 如果失败且还有重试机会，等待后重试
-                if (retry < maxRetries)
-                {
-                    await Task.Delay(retryDelay);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logging.SaveLog(_tag, ex);
-                if (retry < maxRetries)
-                {
-                    await Task.Delay(retryDelay);
-                }
+                await Task.Delay(500);
             }
         }
-        
-        // 所有重试都失败，返回 -1
-        var finalDelay = -1;
-        ProfileExManager.Instance.SetTestDelay(it.IndexId, finalDelay);
-        await UpdateFunc(it.IndexId, finalDelay.ToString());
-        return finalDelay;
+
+        ProfileExManager.Instance.SetTestDelay(it.IndexId, responseTime);
+        await UpdateFunc(it.IndexId, responseTime.ToString());
+
+        if (!_config.UiItem.HideColumnIpInfo && responseTime > 0)
+        {
+            var ipInfo = await ConnectionHandler.GetIPInfo(webProxy);
+            var ipStr = ipInfo?.ToString() ?? Global.None;
+            ProfileExManager.Instance.SetTestIpInfo(it.IndexId, ipStr);
+            await UpdateIpInfoFunc(it.IndexId, ipStr);
+        }
+        else
+        {
+            await UpdateIpInfoFunc(it.IndexId, ResUI.SpeedtestingSkip);
+        }
+
+        return responseTime;
     }
 
     private async Task DoSpeedTest(DownloadService downloadHandle, ServerTestItem it)
@@ -520,7 +516,7 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
 
     private List<List<ServerTestItem>> GetTestBatchItem(List<ServerTestItem> lstSelected, int pageSize)
     {
-        List<List<ServerTestItem>> lstTest = new();
+        List<List<ServerTestItem>> lstTest = [];
         var lst1 = lstSelected.Where(t => t.CoreType == ECoreType.Xray).ToList();
         var lst2 = lstSelected.Where(t => t.CoreType == ECoreType.sing_box).ToList();
 
@@ -528,34 +524,12 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
         {
             lstTest.Add(lst1.Skip(num * pageSize).Take(pageSize).ToList());
         }
-
         for (var num = 0; num < (int)Math.Ceiling(lst2.Count * 1.0 / pageSize); num++)
         {
             lstTest.Add(lst2.Skip(num * pageSize).Take(pageSize).ToList());
         }
 
         return lstTest;
-    }
-
-    private async Task<bool> SocketCheck(string ip, int port)
-    {
-        try
-        {
-            using var client = new TcpClient();
-            var connectTask = client.ConnectAsync(ip, port);
-            var timeoutTask = Task.Delay(TimeSpan.FromMilliseconds(500));
-            var completedTask = await Task.WhenAny(connectTask, timeoutTask);
-            
-            if (completedTask == connectTask && client.Connected)
-            {
-                return true;
-            }
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
     }
 
     private async Task UpdateFunc(string indexId, string delay, string speed = "")
@@ -565,5 +539,10 @@ public class SpeedtestService(Config config, Func<SpeedTestResult, Task> updateF
         {
             ProfileExManager.Instance.SetTestMessage(indexId, speed);
         }
+    }
+
+    private async Task UpdateIpInfoFunc(string indexId, string ip)
+    {
+        await _updateFunc?.Invoke(new() { IndexId = indexId, IpInfo = ip });
     }
 }

@@ -426,9 +426,6 @@
   <data name="menuReload" xml:space="preserve">
     <value>Újratöltés</value>
   </data>
-  <data name="menuLog" xml:space="preserve">
-    <value>Napló</value>
-  </data>
   <data name="menuRoutingSetting" xml:space="preserve">
     <value>Útválasztási beállítás</value>
   </data>
@@ -981,9 +978,6 @@
   <data name="SpeedtestingPressEscToExit" xml:space="preserve">
     <value>ESC megnyomásával megszakítható</value>
   </data>
-  <data name="SpeedtestingBatchWarning" xml:space="preserve">
-    <value>A tömeges sebességteszt sok adatforgalmat fogyaszt, és egy futás több GB-ot is elhasználhat. Folytatja?</value>
-  </data>
   <data name="TipDisplayLog" xml:space="preserve">
     <value>Kérjük, kapcsolja ki rendellenes megszakadás esetén</value>
   </data>
@@ -1112,6 +1106,39 @@
   </data>
   <data name="TbSettingsEnableFragment" xml:space="preserve">
     <value>Fragment engedélyezése</value>
+  </data>
+  <data name="TbSettingsFragmentPackets" xml:space="preserve">
+    <value>Fragmentált csomagok</value>
+  </data>
+  <data name="TbSettingsFragmentPacketsTip" xml:space="preserve">
+    <value>Fragmentálandó csomagok: tlshello (TLS ClientHello) vagy 1-1 – 1-5 (az első N TCP csomag)</value>
+  </data>
+  <data name="TbSettingsFragmentLength" xml:space="preserve">
+    <value>Fragment hossz</value>
+  </data>
+  <data name="TbSettingsFragmentLengthTip" xml:space="preserve">
+    <value>Fragment méret tartománya bájtokban (pl. 50-100). Az első érték ≤ második. Üres = alapértelmezett.</value>
+  </data>
+  <data name="TbSettingsFragmentInterval" xml:space="preserve">
+    <value>Fragment intervallum</value>
+  </data>
+  <data name="TbSettingsFragmentIntervalTip" xml:space="preserve">
+    <value>Késleltetés a fragmented csomagok között ms-ben (pl. 10-20). Tartomány 1-100. Az első érték ≤ második. Üres = alapértelmezett.</value>
+  </data>
+  <data name="TbSettingsFragmentMaxSplit" xml:space="preserve">
+    <value>Max darabolás</value>
+  </data>
+  <data name="TbSettingsFragmentMaxSplitTip" xml:space="preserve">
+    <value>Maximális darabolások száma (0 = korlátlan, 0-10000). Csak Xray-core. Üres = alapértelmezett.</value>
+  </data>
+  <data name="TbSettingsFragmentFallbackDelay" xml:space="preserve">
+    <value>Fallback késleltetés</value>
+  </data>
+  <data name="TbSettingsFragmentFallbackDelayTip" xml:space="preserve">
+    <value>TLS fragment fallback késleltetés. Csak sing-box. Üres = alapértelmezett.</value>
+  </data>
+  <data name="FillFragmentParameterError" xml:space="preserve">
+    <value>Érvénytelen tartomány formátum. Használja 'from-to' (pl. 50-100).</value>
   </data>
   <data name="TbSettingsEnableCacheFile4Sbox" xml:space="preserve">
     <value>Gyorsítótár fájl engedélyezése sing-boxhoz (szabálykészlet fájlok)</value>
@@ -1471,7 +1498,7 @@
     <value>Select Profile</value>
   </data>
   <data name="TbFakeIPTips" xml:space="preserve">
-    <value>Applies globally by default, with built-in FakeIP filtering (sing-box only).</value>
+    <value>Applies globally by default, and built-in FakeIP filtering is only built into sing-box.</value>
   </data>
   <data name="PleaseAddAtLeastOneServer" xml:space="preserve">
     <value>Please Add At Least One Configuration</value>
@@ -1707,12 +1734,6 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="TransportExtra" xml:space="preserve">
     <value>XHTTP Extra</value>
   </data>
-  <data name="TbAllowInsecureCertFetch" xml:space="preserve">
-    <value>Allow insecure cert fetch (self-signed)</value>
-  </data>
-  <data name="TbAllowInsecureCertFetchTips" xml:space="preserve">
-    <value>Only for fetching self-signed certificates. This may expose you to MITM risks.</value>
-  </data>
   <data name="menuUdpTestServer" xml:space="preserve">
     <value>Test Configurations UDP Delay</value>
   </data>
@@ -1725,9 +1746,6 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   <data name="TbSettingsSendThroughTip" xml:space="preserve">
     <value>For multi-interface environments, enter the local machine's IPv4 address</value>
   </data>
-  <data name="FillCorrectSendThroughIPv4" xml:space="preserve">
-    <value>Please fill in the correct IPv4 address for SendThrough.</value>
-  </data>
   <data name="TbSettingsBindInterface" xml:space="preserve">
     <value>Bind Interface</value>
   </data>
@@ -1739,5 +1757,20 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   </data>
   <data name="menuExport2InnerUri" xml:space="preserve">
     <value>Export v2rayN Internal Share Link to Clipboard</value>
+  </data>
+  <data name="MsgCheckUpdateHasNewVersion" xml:space="preserve">
+    <value>{0} has a new version available: {1}</value>
+  </data>
+  <data name="menuCheckOnly" xml:space="preserve">
+    <value>Only Check</value>
+  </data>
+  <data name="MsgNotSupport" xml:space="preserve">
+    <value>Not Support</value>
+  </data>
+  <data name="LvTestIpInfo" xml:space="preserve">
+    <value>IP Info</value>
+  </data>
+  <data name="menuNewUpdate" xml:space="preserve">
+    <value>New Update</value>
   </data>
 </root>

@@ -15,8 +15,8 @@ public partial class CoreConfigSingboxService
             {
                 var inbound = new Inbound4Sbox()
                 {
-                    type = EInboundProtocol.mixed.ToString(),
-                    tag = EInboundProtocol.socks.ToString(),
+                    type = nameof(EInboundProtocol.mixed),
+                    tag = nameof(EInboundProtocol.socks),
                     listen = Global.Loopback,
                 };
                 _coreConfig.inbounds.Add(inbound);
@@ -67,10 +67,15 @@ public partial class CoreConfigSingboxService
                 tunInbound.auto_route = _config.TunModeItem.AutoRoute;
                 tunInbound.strict_route = _config.TunModeItem.StrictRoute;
                 tunInbound.stack = _config.TunModeItem.Stack;
-                if (_config.TunModeItem.EnableIPv6Address == false)
+
+                var address = _config.TunModeItem.IPv4Address.NullIfEmpty() ?? Global.TunIPv4Address.First();
+                tunInbound.address = [address];
+                if (_config.TunModeItem.EnableIPv6Address == true)
                 {
-                    tunInbound.address = ["172.18.0.1/30"];
+                    var address6 = _config.TunModeItem.IPv6Address.NullIfEmpty() ?? Global.TunIPv6Address.First();
+                    tunInbound.address.Add(address6);
                 }
+                tunInbound.route_exclude_address = _config.TunModeItem.RouteExcludeAddress;
 
                 _coreConfig.inbounds.Add(tunInbound);
             }
@@ -86,7 +91,7 @@ public partial class CoreConfigSingboxService
         var inbound = JsonUtils.DeepCopy(inItem);
         inbound.tag = protocol.ToString();
         inbound.listen_port = inItem.listen_port + (int)protocol;
-        inbound.type = EInboundProtocol.mixed.ToString();
+        inbound.type = nameof(EInboundProtocol.mixed);
         return inbound;
     }
 }

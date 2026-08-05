@@ -80,24 +80,15 @@ internal static partial class WindowsUtils
         return value == 0;
     }
 
-    /// <summary>
-    /// 将 WPF 主窗口置于前台（用于单例第二实例唤醒已运行窗口）。
-    /// </summary>
     public static void BringWindowToForeground(Window window)
     {
         try
         {
             var hWnd = new WindowInteropHelper(window).EnsureHandle();
-            if (hWnd == IntPtr.Zero)
-            {
-                return;
-            }
-
             if (IsIconic(hWnd))
             {
-                ShowWindow(hWnd, SW_RESTORE);
+                ShowWindow(hWnd, 9);
             }
-
             SetForegroundWindow(hWnd);
         }
         catch (Exception ex)
@@ -108,16 +99,17 @@ internal static partial class WindowsUtils
 
     #region Windows API
 
-    private const int SW_RESTORE = 9;
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetForegroundWindow(nint hWnd);
 
-    [DllImport("user32.dll")]
-    private static extern bool SetForegroundWindow(IntPtr hWnd);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool ShowWindow(nint hWnd, int nCmdShow);
 
-    [DllImport("user32.dll")]
-    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-    [DllImport("user32.dll")]
-    private static extern bool IsIconic(IntPtr hWnd);
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool IsIconic(nint hWnd);
 
     [Flags]
     public enum DWMWINDOWATTRIBUTE : uint

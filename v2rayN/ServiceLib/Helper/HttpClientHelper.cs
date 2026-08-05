@@ -40,10 +40,6 @@ public class HttpClientHelper
         }
     }
 
-    /// <summary>
-    /// 校验链接是否可达：拿到任意 HTTP 响应（含 403/503）即视为可达；
-    /// 仅域名无法解析、连接超时、拒绝连接等才返回 false
-    /// </summary>
     public async Task<bool> CheckReachableAsync(string url, int timeoutSeconds = 15)
     {
         if (url.IsNullOrEmpty())
@@ -53,9 +49,17 @@ public class HttpClientHelper
 
         try
         {
+            using var handler = new SocketsHttpHandler { UseCookies = false };
+            var certificateChainPolicy = CertPemManager.Instance.BuildCertificateChainPolicy();
+            if (certificateChainPolicy != null)
+            {
+                handler.SslOptions.CertificateChainPolicy = certificateChainPolicy;
+                handler.SslOptions.RemoteCertificateValidationCallback = null;
+            }
+            using var client = new HttpClient(handler);
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
-            using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token);
             return true;
         }
         catch

@@ -1,5 +1,6 @@
 namespace ServiceLib.Handler.SysProxy;
 
+[SupportedOSPlatform("macos")]
 public static class ProxySettingOSX
 {
     private static readonly string _proxySetFileName = $"{Global.ProxySetOSXShellFileName.Replace(Global.NamespaceSample, "")}.sh";
@@ -23,13 +24,12 @@ public static class ProxySettingOSX
 
     public static async Task<bool> IsProxySet(string host, int port)
     {
-        var services = await Utils.GetCliWrapOutput("networksetup", "-listallnetworkservices");
+        var services = await Utils.GetCliWrapOutput("networksetup", ["-listallnetworkservices"]);
         if (services.IsNullOrEmpty())
         {
             return false;
         }
 
-        // 任一可用网络服务匹配即可；要求全部服务生效会在 Bluetooth/Thunderbolt 等接口上误判失败
         foreach (var service in services.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Where(t => !t.Contains('*')))
         {
             if (await IsServiceProxySet(service, host, port))

@@ -2,20 +2,30 @@ namespace v2rayN.Views;
 
 public partial class SubEditWindow
 {
-    private readonly bool _focusLoginPassword;
-
-    public SubEditWindow(SubItem subItem, bool focusLoginPassword = false)
+    public SubEditWindow()
     {
         InitializeComponent();
-        _focusLoginPassword = focusLoginPassword;
 
-        Owner = Application.Current.MainWindow;
         Loaded += Window_Loaded;
-        chkShowPassword.Checked += ChkShowPassword_Changed;
-        chkShowPassword.Unchecked += ChkShowPassword_Changed;
-        pwdLoginPassword.PasswordChanged += PwdLoginPassword_PasswordChanged;
-
-        ViewModel = new SubEditViewModel(subItem, UpdateViewHandler);
+        pwdLoginPassword.PasswordChanged += (_, _) =>
+        {
+            if (ViewModel != null && pwdLoginPassword.Visibility == Visibility.Visible)
+            {
+                ViewModel.SelectedSource.LoginPassword = pwdLoginPassword.Password;
+            }
+        };
+        chkShowLoginPassword.Checked += (_, _) =>
+        {
+            txtLoginPassword.Text = pwdLoginPassword.Password;
+            pwdLoginPassword.Visibility = Visibility.Collapsed;
+            txtLoginPassword.Visibility = Visibility.Visible;
+        };
+        chkShowLoginPassword.Unchecked += (_, _) =>
+        {
+            pwdLoginPassword.Password = txtLoginPassword.Text ?? "";
+            txtLoginPassword.Visibility = Visibility.Collapsed;
+            pwdLoginPassword.Visibility = Visibility.Visible;
+        };
 
         cmbConvertTarget.ItemsSource = Global.SubConvertTargets;
 
@@ -24,8 +34,6 @@ public partial class SubEditWindow
             this.Bind(ViewModel, vm => vm.SelectedSource.Remarks, v => v.txtRemarks.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.Url, v => v.txtUrl.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.MoreUrl, v => v.txtMoreUrl.Text).DisposeWith(disposables);
-            this.Bind(ViewModel, vm => vm.SelectedSource.LoginPassword, v => v.txtLoginPassword.Text).DisposeWith(disposables);
-
             this.Bind(ViewModel, vm => vm.SelectedSource.Enabled, v => v.togEnable.IsChecked).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.AutoUpdateInterval, v => v.txtAutoUpdateInterval.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.UserAgent, v => v.txtUserAgent.Text).DisposeWith(disposables);
@@ -36,96 +44,29 @@ public partial class SubEditWindow
             this.Bind(ViewModel, vm => vm.SelectedSource.NextProfile, v => v.txtNextProfile.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.PreSocksPort, v => v.txtPreSocksPort.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.Memo, v => v.txtMemo.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.SelectedSource.LoginPassword, v => v.txtLoginPassword.Text).DisposeWith(disposables);
 
+            this.BindCommand(ViewModel, vm => vm.SelectPrevProfileCmd, v => v.btnSelectPrevProfile).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.SelectNextProfileCmd, v => v.btnSelectNextProfile).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.SaveCmd, v => v.btnSave).DisposeWith(disposables);
+
+            ViewModel.ShowMsgInteraction.RegisterHandler(interaction =>
+            {
+                UI.Show(interaction.Input);
+                interaction.SetOutput(Unit.Default);
+            }).DisposeWith(disposables);
         });
         WindowsUtils.SetDarkBorder(this, AppManager.Instance.Config.UiItem.CurrentTheme);
     }
 
-    private async Task<bool> UpdateViewHandler(EViewAction action, object? obj)
-    {
-        switch (action)
-        {
-            case EViewAction.CloseWindow:
-                DialogResult = true;
-                break;
-
-            case EViewAction.ShowMsgBox:
-                UI.Show(obj as string ?? string.Empty);
-                break;
-        }
-        return await Task.FromResult(true);
-    }
-
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
-        pwdLoginPassword.Password = ViewModel?.SelectedSource?.LoginPassword ?? "";
-        if (_focusLoginPassword)
+        pwdLoginPassword.Password = ViewModel?.SelectedSource.LoginPassword ?? "";
+        if (ViewModel?.FocusLoginPassword == true)
         {
-            if (chkShowPassword.IsChecked == true)
-            {
-                txtLoginPassword.Focus();
-                txtLoginPassword.SelectAll();
-            }
-            else
-            {
-                pwdLoginPassword.Focus();
-            }
+            pwdLoginPassword.Focus();
             return;
         }
         txtRemarks.Focus();
-    }
-
-    private void ChkShowPassword_Changed(object sender, RoutedEventArgs e)
-    {
-        if (chkShowPassword.IsChecked == true)
-        {
-            txtLoginPassword.Text = pwdLoginPassword.Password;
-            txtLoginPassword.Visibility = Visibility.Visible;
-            pwdLoginPassword.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            pwdLoginPassword.Password = txtLoginPassword.Text ?? "";
-            pwdLoginPassword.Visibility = Visibility.Visible;
-            txtLoginPassword.Visibility = Visibility.Collapsed;
-        }
-    }
-
-    private void PwdLoginPassword_PasswordChanged(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel != null && pwdLoginPassword.Visibility == Visibility.Visible)
-        {
-            ViewModel.SelectedSource.LoginPassword = pwdLoginPassword.Password;
-        }
-    }
-
-
-    private async void BtnSelectPrevProfile_Click(object sender, RoutedEventArgs e)
-    {
-        var selectWindow = new ProfilesSelectWindow();
-        selectWindow.SetConfigTypeFilter([EConfigType.Custom], exclude: true);
-        if (selectWindow.ShowDialog() == true)
-        {
-            var profile = await selectWindow.ProfileItem;
-            if (profile != null)
-            {
-                txtPrevProfile.Text = profile.Remarks;
-            }
-        }
-    }
-
-    private async void BtnSelectNextProfile_Click(object sender, RoutedEventArgs e)
-    {
-        var selectWindow = new ProfilesSelectWindow();
-        selectWindow.SetConfigTypeFilter([EConfigType.Custom], exclude: true);
-        if (selectWindow.ShowDialog() == true)
-        {
-            var profile = await selectWindow.ProfileItem;
-            if (profile != null)
-            {
-                txtNextProfile.Text = profile.Remarks;
-            }
-        }
     }
 }

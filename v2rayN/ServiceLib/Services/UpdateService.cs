@@ -100,6 +100,43 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
         }
     }
 
+    public async Task<UpdateResult> CheckHasUpdateOnly(ECoreType type, bool preRelease)
+    {
+        if (!CoreInfoManager.Instance.IsCheckUpdateSupported(type))
+        {
+            return new UpdateResult(false, ResUI.MsgNotSupport);
+        }
+
+        var downloadHandle = new DownloadService();
+        var checkPreRelease = CoreInfoManager.Instance.GetCheckPreRelease(type, preRelease);
+        return await CheckUpdateAsync(downloadHandle, type, checkPreRelease);
+    }
+
+    public async Task<List<string>> CheckHasUpdateOnlyAll(bool preRelease)
+    {
+        var msgs = new List<string>();
+        foreach (var type in CoreInfoManager.Instance.GetCheckUpdateCoreTypes())
+        {
+            if (!(_config.CheckUpdateItem.SelectedCoreTypes?.Contains(type.ToString()) ?? true))
+            {
+                continue;
+            }
+
+            var result = await CheckHasUpdateOnly(type, preRelease);
+            if (result.Success && result.Version != null)
+            {
+                var msg = string.Format(ResUI.MsgCheckUpdateHasNewVersion, type, result.Version);
+                msgs.Add(msg);
+                AppManager.Instance.SetLastCheckUpdateResult(type, msg);
+            }
+            else
+            {
+                AppManager.Instance.SetLastCheckUpdateResult(type, result.Msg);
+            }
+        }
+        return msgs;
+    }
+
     public async Task UpdateGeoFileAll()
     {
         await UpdateGeoFiles();
@@ -151,22 +188,19 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
         {
             var url = $"{coreInfo.Url.TrimEnd('/')}/latest";
             var lastUrl = await downloadHandle.UrlRedirectAsync(url, true);
-            if (lastUrl == null)
+            if (lastUrl == null
+                || !Uri.TryCreate(lastUrl, UriKind.Absolute, out var releaseUri)
+                || !releaseUri.AbsolutePath.Contains("/tag/", StringComparison.Ordinal))
             {
                 return new UpdateResult(false, "");
             }
 
-            tagName = lastUrl?.Split("/tag/").LastOrDefault();
+            tagName = releaseUri.AbsolutePath.Split("/tag/").LastOrDefault();
         }
-
-        // 防御：若 tag 像整段 URL（解析异常），不当作版本号，避免拼出错误下载地址
-        if (string.IsNullOrEmpty(tagName) ||
-            tagName.Contains("://", StringComparison.Ordinal) ||
-            tagName.Contains("github.com", StringComparison.OrdinalIgnoreCase))
+        if (!Regex.IsMatch(tagName ?? "", @"^v?\d+\.\d+(?:\.\d+){0,2}(?:[-+][0-9A-Za-z.-]+)?$"))
         {
             return new UpdateResult(false, "");
         }
-
         return new UpdateResult(true, new SemanticVersion(tagName));
     }
 
@@ -261,14 +295,7 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
                     {
                         curVersion = new SemanticVersion(Utils.GetVersionInfo());
                         message = string.Format(ResUI.IsLatestN, type, curVersion);
-                        var versionStr = version.ToString();
-                        // 二次防护：若版本串像 URL 则不再拼下载地址
-                        if (versionStr.Contains("://", StringComparison.Ordinal) ||
-                            versionStr.Contains("github.com", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return new UpdateResult(false, "");
-                        }
-                        url = string.Format(coreUrl, versionStr);
+                        url = string.Format(coreUrl, version);
                         break;
                     }
                 default:
@@ -280,7 +307,13 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
                 return new UpdateResult(false, message);
             }
 
-            result.Url = url;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var downloadUri)
+                || downloadUri.Scheme != Uri.UriSchemeHttps
+                || !downloadUri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
+            {
+                return new UpdateResult(false, "");
+            }
+            result.Url = downloadUri.ToString();
             return result;
         }
         catch (Exception ex)
@@ -317,14 +350,11 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
         }
         else if (Utils.IsLinux())
         {
-            var arch = RuntimeInformation.ProcessArchitecture;
-            if (arch.ToString().Equals("RiscV64", StringComparison.OrdinalIgnoreCase))
-            {
-                return coreInfo?.DownloadUrlLinuxRiscV64;
-            }
-            return arch switch
+            return RuntimeInformation.ProcessArchitecture switch
             {
                 Architecture.Arm64 => coreInfo?.DownloadUrlLinuxArm64,
+                Architecture.RiscV64 => coreInfo?.DownloadUrlLinuxRiscV64,
+                Architecture.LoongArch64 => coreInfo?.DownloadUrlLinuxLoong64,
                 Architecture.X64 => coreInfo?.DownloadUrlLinux64,
                 _ => null,
             };

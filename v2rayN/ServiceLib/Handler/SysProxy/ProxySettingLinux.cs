@@ -1,5 +1,6 @@
 namespace ServiceLib.Handler.SysProxy;
 
+[SupportedOSPlatform("linux")]
 public static class ProxySettingLinux
 {
     private static readonly string _proxySetFileName = $"{Global.ProxySetLinuxShellFileName.Replace(Global.NamespaceSample, "")}.sh";
@@ -18,17 +19,14 @@ public static class ProxySettingLinux
 
     public static async Task<bool> IsProxySet(string host, int port)
     {
-        if (IsKde())
-        {
-            return await IsGnomeProxySet(host, port) && await IsKdeProxySet(host, port);
-        }
-        return await IsGnomeProxySet(host, port);
+        return IsKde()
+            ? await IsKdeProxySet(host, port) || await IsGnomeProxySet(host, port)
+            : await IsGnomeProxySet(host, port);
     }
 
     private static async Task<bool> IsGnomeProxySet(string host, int port)
     {
-        var mode = await Utils.GetCliWrapOutput("gsettings", ["get", "org.gnome.system.proxy", "mode"]);
-        if (!string.Equals(mode?.Trim(), "'manual'", StringComparison.Ordinal))
+        if ((await Utils.GetCliWrapOutput("gsettings", ["get", "org.gnome.system.proxy", "mode"]))?.Trim() != "'manual'")
         {
             return false;
         }
@@ -37,8 +35,7 @@ public static class ProxySettingLinux
         {
             var proxyHost = await Utils.GetCliWrapOutput("gsettings", ["get", $"org.gnome.system.proxy.{protocol}", "host"]);
             var proxyPort = await Utils.GetCliWrapOutput("gsettings", ["get", $"org.gnome.system.proxy.{protocol}", "port"]);
-            if (!string.Equals(proxyHost?.Trim(), $"'{host}'", StringComparison.Ordinal)
-                || !string.Equals(proxyPort?.Trim(), port.ToString(), StringComparison.Ordinal))
+            if (proxyHost?.Trim() != $"'{host}'" || proxyPort?.Trim() != port.ToString())
             {
                 return false;
             }
@@ -49,8 +46,7 @@ public static class ProxySettingLinux
     private static async Task<bool> IsKdeProxySet(string host, int port)
     {
         var command = Environment.GetEnvironmentVariable("KDE_SESSION_VERSION") == "6" ? "kreadconfig6" : "kreadconfig5";
-        var proxyType = await Utils.GetCliWrapOutput(command, ["--file", "kioslaverc", "--group", "Proxy Settings", "--key", "ProxyType"]);
-        if (proxyType?.Trim() != "1")
+        if ((await Utils.GetCliWrapOutput(command, ["--file", "kioslaverc", "--group", "Proxy Settings", "--key", "ProxyType"]))?.Trim() != "1")
         {
             return false;
         }
@@ -70,7 +66,8 @@ public static class ProxySettingLinux
     private static bool IsKde()
     {
         var desktop = $"{Environment.GetEnvironmentVariable("XDG_CURRENT_DESKTOP")} {Environment.GetEnvironmentVariable("XDG_SESSION_DESKTOP")}";
-        return desktop.Contains("KDE", StringComparison.OrdinalIgnoreCase) || desktop.Contains("plasma", StringComparison.OrdinalIgnoreCase);
+        return desktop.Contains("KDE", StringComparison.OrdinalIgnoreCase)
+            || desktop.Contains("plasma", StringComparison.OrdinalIgnoreCase);
     }
 
     private static async Task ExecCmd(List<string> args)

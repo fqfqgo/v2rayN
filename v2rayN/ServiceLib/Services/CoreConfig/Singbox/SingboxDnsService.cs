@@ -26,7 +26,7 @@ public partial class CoreConfigSingboxService
             {
                 var rules = JsonUtils.Deserialize<List<RulesItem>>(routing.RuleSet) ?? [];
 
-                if (rules?.LastOrDefault() is { } lastRule && lastRule.OutboundTag == Global.DirectTag)
+                if (rules?.LastOrDefault() is { OutboundTag: Global.DirectTag } lastRule)
                 {
                     var noDomain = lastRule.Domain == null || lastRule.Domain.Count == 0;
                     var noProcess = lastRule.Process == null || lastRule.Process.Count == 0;
@@ -82,7 +82,7 @@ public partial class CoreConfigSingboxService
         if (simpleDnsItem.UseSystemHosts == true)
         {
             var systemHosts = Utils.GetSystemHosts();
-            if (systemHosts != null && systemHosts.Count > 0)
+            if (systemHosts is { Count: > 0 })
             {
                 foreach (var host in systemHosts)
                 {
@@ -137,12 +137,12 @@ public partial class CoreConfigSingboxService
         // fake ip
         if (simpleDnsItem.FakeIP == true)
         {
+            var fakeipRange = simpleDnsItem.FakeIPRange.IsNullOrEmpty() ? Global.FakeIPRanges.First() : simpleDnsItem.FakeIPRange;
             var fakeip = new Server4Sbox
             {
                 tag = Global.SingboxFakeDNSTag,
                 type = "fakeip",
-                inet4_range = "198.18.0.0/15",
-                inet6_range = "fc00::/18",
+                inet4_range = fakeipRange,
             };
             _coreConfig.dns.servers.Add(fakeip);
         }
@@ -171,7 +171,7 @@ public partial class CoreConfigSingboxService
             _coreConfig.dns.rules.Add(new()
             {
                 server = Global.SingboxDirectDNSTag,
-                strategy = Utils.DomainStrategy4Sbox(simpleDnsItem.Strategy4Freedom),
+                strategy = Utils.DomainStrategy4Sbox(simpleDnsItem.Strategy4ProxyDial),
                 domain = context.ProtectDomainList.ToList(),
             });
         }
@@ -182,13 +182,13 @@ public partial class CoreConfigSingboxService
             {
                 server = Global.SingboxRemoteDNSTag,
                 strategy = Utils.DomainStrategy4Sbox(simpleDnsItem.Strategy4Proxy),
-                clash_mode = ERuleMode.Global.ToString()
+                clash_mode = nameof(ERuleMode.Global)
             },
             new Rule4Sbox
             {
                 server = Global.SingboxDirectDNSTag,
                 strategy = Utils.DomainStrategy4Sbox(simpleDnsItem.Strategy4Freedom),
-                clash_mode = ERuleMode.Direct.ToString()
+                clash_mode = nameof(ERuleMode.Direct)
             }
         });
 
@@ -266,7 +266,7 @@ public partial class CoreConfigSingboxService
             });
         }
 
-        if (simpleDnsItem.FakeIP == true && simpleDnsItem.GlobalFakeIp == true)
+        if (simpleDnsItem.FakeIP == true && simpleDnsItem.GlobalFakeIp != false)
         {
             var fakeipFilterRule = JsonUtils.Deserialize<Rule4Sbox>(EmbedUtils.GetEmbedText(Global.SingboxFakeIPFilterFileName));
             fakeipFilterRule.invert = true;
@@ -454,12 +454,12 @@ public partial class CoreConfigSingboxService
         dns4Sbox.rules.Insert(0, new()
         {
             server = tag,
-            clash_mode = ERuleMode.Direct.ToString()
+            clash_mode = nameof(ERuleMode.Direct)
         });
         dns4Sbox.rules.Insert(0, new()
         {
             server = dns4Sbox.servers.Where(t => t.detour == Global.ProxyTag).Select(t => t.tag).FirstOrDefault() ?? "remote",
-            clash_mode = ERuleMode.Global.ToString()
+            clash_mode = nameof(ERuleMode.Global)
         });
 
         var finalDnsAddress = string.IsNullOrEmpty(dnsItem?.DomainDNSAddress) ? Global.DomainPureIPDNSAddress.FirstOrDefault() : dnsItem?.DomainDNSAddress;

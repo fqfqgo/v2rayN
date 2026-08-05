@@ -33,6 +33,13 @@
                 HorizontalAlignment="Left" />
 
             <Button
+                x:Name="btnCheckOnly"
+                Width="100"
+                Margin="{StaticResource Margin8}"
+                Content="{x:Static resx:ResUI.menuCheckOnly}"
+                Style="{StaticResource DefButton}" />
+
+            <Button
                 x:Name="btnCheckUpdate"
                 Width="100"
                 Margin="{StaticResource Margin8}"
@@ -77,7 +84,7 @@
                                 <TextBlock
                                     Grid.Column="1"
                                     Style="{StaticResource ListItemTitle}"
-                                    Text="{Binding CoreType}" />
+                                    Text="{Binding CoreTypeForStorage}" />
                                 <TextBlock
                                     Grid.Column="2"
                                     Style="{StaticResource ListItemSubTitle}"
