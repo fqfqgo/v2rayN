@@ -7,6 +7,25 @@ public partial class SubEditWindow
         InitializeComponent();
 
         Loaded += Window_Loaded;
+        pwdLoginPassword.PasswordChanged += (_, _) =>
+        {
+            if (ViewModel != null && pwdLoginPassword.Visibility == Visibility.Visible)
+            {
+                ViewModel.SelectedSource.LoginPassword = pwdLoginPassword.Password;
+            }
+        };
+        chkShowLoginPassword.Checked += (_, _) =>
+        {
+            txtLoginPassword.Text = pwdLoginPassword.Password;
+            pwdLoginPassword.Visibility = Visibility.Collapsed;
+            txtLoginPassword.Visibility = Visibility.Visible;
+        };
+        chkShowLoginPassword.Unchecked += (_, _) =>
+        {
+            pwdLoginPassword.Password = txtLoginPassword.Text ?? "";
+            txtLoginPassword.Visibility = Visibility.Collapsed;
+            pwdLoginPassword.Visibility = Visibility.Visible;
+        };
 
         cmbConvertTarget.ItemsSource = Global.SubConvertTargets;
 
@@ -25,16 +44,29 @@ public partial class SubEditWindow
             this.Bind(ViewModel, vm => vm.SelectedSource.NextProfile, v => v.txtNextProfile.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.PreSocksPort, v => v.txtPreSocksPort.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.Memo, v => v.txtMemo.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.SelectedSource.LoginPassword, v => v.txtLoginPassword.Text).DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.SelectPrevProfileCmd, v => v.btnSelectPrevProfile).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.SelectNextProfileCmd, v => v.btnSelectNextProfile).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.SaveCmd, v => v.btnSave).DisposeWith(disposables);
+
+            ViewModel.ShowMsgInteraction.RegisterHandler(interaction =>
+            {
+                UI.Show(interaction.Input);
+                interaction.SetOutput(Unit.Default);
+            }).DisposeWith(disposables);
         });
         WindowsUtils.SetDarkBorder(this, AppManager.Instance.Config.UiItem.CurrentTheme);
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
+        pwdLoginPassword.Password = ViewModel?.SelectedSource.LoginPassword ?? "";
+        if (ViewModel?.FocusLoginPassword == true)
+        {
+            pwdLoginPassword.Focus();
+            return;
+        }
         txtRemarks.Focus();
     }
 }

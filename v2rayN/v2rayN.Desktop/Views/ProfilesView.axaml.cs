@@ -9,6 +9,10 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
 {
     private static Config _config;
     private static readonly string _tag = "ProfilesView";
+    private Point _pressedPoint;
+    private PointerPressedEventArgs? _pressedEvent;
+    private ProfileItemModel? _pressedItem;
+    private bool _dragStarted;
 
     public ProfilesView()
     {
@@ -21,6 +25,7 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
         txtServerFilter.KeyDown += TxtServerFilter_KeyDown;
         lstProfiles.KeyDown += LstProfiles_KeyDown;
         lstProfiles.SelectionChanged += lstProfiles_SelectionChanged;
+        lstProfiles.Tapped += LstProfiles_Tapped;
         lstProfiles.DoubleTapped += LstProfiles_DoubleTapped;
         lstProfiles.LoadingRow += LstProfiles_LoadingRow;
         lstProfiles.Sorting += LstProfiles_Sorting;
@@ -29,6 +34,8 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
             lstProfiles.SetValue(DragDrop.AllowDropProperty, true);
 
             lstProfiles.AddHandler(PointerPressedEvent, LstProfiles_PointerPressed, RoutingStrategies.Bubble, true);
+            lstProfiles.AddHandler(PointerMovedEvent, LstProfiles_PointerMoved, RoutingStrategies.Bubble, true);
+            lstProfiles.AddHandler(PointerReleasedEvent, LstProfiles_PointerReleased, RoutingStrategies.Bubble, true);
             lstProfiles.AddHandler(DragDrop.DragOverEvent, LstProfiles_DragOver, RoutingStrategies.Bubble);
             lstProfiles.AddHandler(DragDrop.DropEvent, LstProfiles_Drop, RoutingStrategies.Bubble);
         }
@@ -67,7 +74,6 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
             this.BindCommand(ViewModel, vm => vm.MoveBottomCmd, v => v.menuMoveBottom).DisposeWith(disposables);
 
             //servers ping
-            this.BindCommand(ViewModel, vm => vm.MixedTestServerCmd, v => v.menuMixedTestServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.TcpingServerCmd, v => v.menuTcpingServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.RealPingServerCmd, v => v.menuRealPingServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.UdpTestServerCmd, v => v.menuUdpTestServer).DisposeWith(disposables);
@@ -197,6 +203,24 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
         }
     }
 
+    private void LstProfiles_Tapped(object? sender, TappedEventArgs e)
+    {
+        if (_dragStarted)
+        {
+            _dragStarted = false;
+            return;
+        }
+        if (e.Source is Visual source
+            && source.FindAncestorOfType<DataGridColumnHeader>(true) == null
+            && ViewModel?.SelectedProfile is { IsActive: false }
+            && !e.KeyModifiers.HasFlag(KeyModifiers.Control)
+            && !e.KeyModifiers.HasFlag(KeyModifiers.Shift)
+            && !e.KeyModifiers.HasFlag(KeyModifiers.Meta))
+        {
+            ViewModel.SetDefaultServer();
+        }
+    }
+
     private void LstProfiles_DoubleTapped(object? sender, Avalonia.Input.TappedEventArgs e)
     {
         var source = e.Source as Border;
@@ -271,9 +295,6 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
                     ViewModel?.ServerSpeedtest(ESpeedActionType.Speedtest);
                     break;
 
-                case Key.E:
-                    ViewModel?.ServerSpeedtest(ESpeedActionType.Mixedtest);
-                    break;
             }
         }
         else
@@ -439,33 +460,51 @@ public partial class ProfilesView : ReactiveUserControl<ProfilesViewModel>
     private static readonly DataFormat<object> LstProfilesRowFormat =
         DataFormat.CreateInProcessFormat<object>("LstProfilesRow");
 
-    private async void LstProfiles_PointerPressed(object? sender, PointerPressedEventArgs e)
+    private void LstProfiles_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
+        if (e.GetCurrentPoint(lstProfiles).Properties.IsLeftButtonPressed
+            && e.Source is Visual source
+            && source.FindAncestorOfType<DataGridRow>(true) is { DataContext: ProfileItemModel item })
+        {
+            _pressedPoint = e.GetPosition(lstProfiles);
+            _pressedEvent = e;
+            _pressedItem = item;
+            _dragStarted = false;
+        }
+    }
+
+    private async void LstProfiles_PointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (_pressedItem == null || _dragStarted || !e.GetCurrentPoint(lstProfiles).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        var point = e.GetPosition(lstProfiles);
+        if (Math.Abs(point.X - _pressedPoint.X) < 4 && Math.Abs(point.Y - _pressedPoint.Y) < 4)
+        {
+            return;
+        }
+
+        _dragStarted = true;
         try
         {
-            if (e.Source is not Visual visualSource)
-            {
-                return;
-            }
-
-            var row = visualSource.FindAncestorOfType<DataGridRow>(true);
-            if (row?.DataContext == null)
-            {
-                return;
-            }
-
-            if (e.GetCurrentPoint(row).Properties.IsLeftButtonPressed)
-            {
-                var dragData = new DataTransfer();
-                var item = DataTransferItem.Create(LstProfilesRowFormat, row.DataContext);
-                dragData.Add(item);
-                await DragDrop.DoDragDropAsync(e, dragData, DragDropEffects.Move);
-            }
+            var dragData = new DataTransfer();
+            dragData.Add(DataTransferItem.Create(LstProfilesRowFormat, _pressedItem));
+            await DragDrop.DoDragDropAsync(_pressedEvent!, dragData, DragDropEffects.Move);
         }
         catch
         {
-            // Ignore
+            _dragStarted = false;
         }
+        _pressedEvent = null;
+        _pressedItem = null;
+    }
+
+    private void LstProfiles_PointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        _pressedEvent = null;
+        _pressedItem = null;
     }
 
     private void LstProfiles_DragOver(object? sender, DragEventArgs e)

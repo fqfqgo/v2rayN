@@ -1,5 +1,6 @@
 using System.Reactive.Disposables;
 using Avalonia.Controls.Notifications;
+using Avalonia.Layout;
 using DialogHostAvalonia;
 using v2rayN.Desktop.Base;
 using v2rayN.Desktop.Common;
@@ -15,21 +16,29 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
     private CheckUpdateView? _checkUpdateView;
     private BackupAndRestoreView? _backupAndRestoreView;
     private bool _blCloseByUser = false;
+    private bool _logPanelVisible;
+    private double _defaultTopHeight = 1;
+    private double _defaultBottomHeight = 1;
 
     public MainWindow()
     {
         InitializeComponent();
 
         _config = AppManager.Instance.Config;
-        _manager = new WindowNotificationManager(TopLevel.GetTopLevel(this)) { MaxItems = 3, Position = NotificationPosition.TopRight };
+        _manager = new WindowNotificationManager(TopLevel.GetTopLevel(this))
+        {
+            MaxItems = 3,
+            Position = NotificationPosition.TopCenter,
+            VerticalAlignment = VerticalAlignment.Center
+        };
 
         KeyDown += MainWindow_KeyDown;
         menuSettingsSetUWP.Click += MenuSettingsSetUWP_Click;
-        menuPromotion.Click += MenuPromotion_Click;
         menuCheckUpdate.Click += MenuCheckUpdate_Click;
         btnNewUpdate.Click += MenuCheckUpdate_Click;
         menuBackupAndRestore.Click += MenuBackupAndRestore_Click;
         menuClose.Click += MenuClose_Click;
+        menuToggleLog.Click += (_, _) => SetLogPanelVisible(!_logPanelVisible);
 
         conTheme.Content ??= new ThemeSettingView();
 
@@ -76,6 +85,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
 
             this.BindCommand(ViewModel, vm => vm.ReloadCmd, v => v.menuReload).DisposeWith(disposables);
             this.OneWayBind(ViewModel, vm => vm.BlReloadEnabled, v => v.menuReload.IsEnabled).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.StartBrowserCmd, v => v.menuStartBrowser).DisposeWith(disposables);
             this.OneWayBind(ViewModel, vm => vm.BlNewUpdate, v => v.btnNewUpdate.IsVisible).DisposeWith(disposables);
 
             this.OneWayBind(ViewModel, vm => vm.StatusBarViewModel, v => v.contentStatusBarView.Content).DisposeWith(disposables);
@@ -145,7 +155,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         }
         else
         {
-            Title = $"{Utils.GetVersion()}";
+            Title = Utils.GetVersion();
             menuAddServerViaScan.IsVisible = false;
         }
 
@@ -235,11 +245,6 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
                 ViewModel?.Reload();
             }
         }
-    }
-
-    private void MenuPromotion_Click(object? sender, RoutedEventArgs e)
-    {
-        ProcUtils.ProcessStart($"{Utils.Base64Decode(Global.PromotionUrl)}?t={DateTime.Now.Ticks}");
     }
 
     private void MenuSettingsSetUWP_Click(object? sender, RoutedEventArgs e)
@@ -367,10 +372,14 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
             ShowHideWindow(false);
         }
         RestoreUI();
+        SetLogPanelVisible(false);
     }
 
     private void RestoreUI()
     {
+        _defaultTopHeight = _config.UiItem.MainGirdHeight1 > 0 ? _config.UiItem.MainGirdHeight1 : 1;
+        _defaultBottomHeight = _config.UiItem.MainGirdHeight2 > 0 ? _config.UiItem.MainGirdHeight2 : 1;
+
         if (_config.UiItem.MainGirdHeight1 > 0 && _config.UiItem.MainGirdHeight2 > 0)
         {
             if (_config.UiItem.MainGirdOrientation == EGirdOrientation.Horizontal)
@@ -386,6 +395,19 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         }
     }
 
+    private void SetLogPanelVisible(bool visible)
+    {
+        _logPanelVisible = visible;
+        if (_config.UiItem.MainGirdOrientation != EGirdOrientation.Vertical)
+        {
+            return;
+        }
+
+        gridMain1.RowDefinitions[0].Height = new GridLength(visible ? _defaultTopHeight : 1, GridUnitType.Star);
+        gridMain1.RowDefinitions[1].Height = new GridLength(visible ? 10 : 0);
+        gridMain1.RowDefinitions[2].Height = new GridLength(visible ? _defaultBottomHeight : 0, GridUnitType.Star);
+    }
+
     private void StorageUI()
     {
         ConfigHandler.SaveWindowSizeItem(_config, GetType().Name, Width, Height);
@@ -396,7 +418,10 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         }
         else if (_config.UiItem.MainGirdOrientation == EGirdOrientation.Vertical)
         {
-            ConfigHandler.SaveMainGirdHeight(_config, gridMain1.RowDefinitions[0].ActualHeight, gridMain1.RowDefinitions[2].ActualHeight);
+            ConfigHandler.SaveMainGirdHeight(
+                _config,
+                _logPanelVisible ? gridMain1.RowDefinitions[0].ActualHeight : _defaultTopHeight,
+                _logPanelVisible ? gridMain1.RowDefinitions[2].ActualHeight : _defaultBottomHeight);
         }
     }
 
@@ -446,6 +471,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         }
 
         RestoreUI();
+        SetLogPanelVisible(_logPanelVisible);
     }
 
     private void AddHelpMenuItem()
@@ -457,8 +483,10 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
         {
             var item = new MenuItem()
             {
-                Tag = it.Url?.Replace(@"/releases", ""),
-                Header = string.Format(ResUI.menuWebsiteItem, it.CoreType.ToString().Replace("_", " ")).UpperFirstChar()
+                Tag = it.CoreType == ECoreType.v2rayN ? Global.V2freeWebsiteUrl : it.Url?.Replace(@"/releases", ""),
+                Header = it.CoreType == ECoreType.v2rayN
+                    ? ResUI.menuWebsiteV2free
+                    : string.Format(ResUI.menuWebsiteItem, it.CoreType.ToString().Replace("_", " ")).UpperFirstChar()
             };
             item.Click += MenuItem_Click;
             menuHelp.Items.Add(item);

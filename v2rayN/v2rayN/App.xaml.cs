@@ -23,7 +23,7 @@ public partial class App
     /// <param name="e"></param>
     protected override void OnStartup(StartupEventArgs e)
     {
-        var exePathKey = Utils.GetMd5(Utils.GetExePath());
+        var exePathKey = Utils.GetSingleInstanceKernelObjectName();
 
         var rebootas = e.Args.Any(t => t == Global.RebootAs);
         ProgramStarted = new EventWaitHandle(false, EventResetMode.AutoReset, exePathKey, out var bCreatedNew);

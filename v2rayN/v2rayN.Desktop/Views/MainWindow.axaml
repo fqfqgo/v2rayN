@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:resx="clr-namespace:ServiceLib.Resx;assembly=ServiceLib"
     xmlns:vms="clr-namespace:ServiceLib.ViewModels;assembly=ServiceLib"
-    Title="v2rayN"
+    Title="v2rayN for V2free"
     Width="1200"
     Height="800"
     MinWidth="600"
@@ -96,7 +96,14 @@
 
                     <MenuItem x:Name="menuReload" Header="{x:Static resx:ResUI.menuReload}" />
 
-                    <MenuItem x:Name="menuPromotion" Header="{x:Static resx:ResUI.menuPromotion}" />
+                    <MenuItem x:Name="menuStartBrowser" Header="{x:Static resx:ResUI.menuStartBrowser}" />
+
+                    <MenuItem x:Name="menuToggleLog" Header="{x:Static resx:ResUI.menuLog}" />
+
+                    <MenuItem
+                        x:Name="menuPromotion"
+                        Header="{x:Static resx:ResUI.menuPromotion}"
+                        IsVisible="False" />
 
                     <MenuItem x:Name="menuClose" Header="{x:Static resx:ResUI.menuExit}" />
                 </Menu>

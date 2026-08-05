@@ -80,7 +80,36 @@ internal static partial class WindowsUtils
         return value == 0;
     }
 
+    public static void BringWindowToForeground(Window window)
+    {
+        try
+        {
+            var hWnd = new WindowInteropHelper(window).EnsureHandle();
+            if (IsIconic(hWnd))
+            {
+                ShowWindow(hWnd, 9);
+            }
+            SetForegroundWindow(hWnd);
+        }
+        catch (Exception ex)
+        {
+            Logging.SaveLog(_tag, ex);
+        }
+    }
+
     #region Windows API
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool SetForegroundWindow(nint hWnd);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool ShowWindow(nint hWnd, int nCmdShow);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool IsIconic(nint hWnd);
 
     [Flags]
     public enum DWMWINDOWATTRIBUTE : uint

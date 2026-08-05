@@ -1,4 +1,5 @@
 using v2rayN.Desktop.Base;
+using v2rayN.Desktop.Common;
 
 namespace v2rayN.Desktop.Views;
 
@@ -10,6 +11,12 @@ public partial class SubEditWindow : WindowBase<SubEditViewModel>
 
         Loaded += Window_Loaded;
         btnCancel.Click += (s, e) => Close();
+        chkShowLoginPassword.IsCheckedChanged += (_, _) =>
+        {
+            pwdLoginPassword.IsVisible = chkShowLoginPassword.IsChecked != true;
+            txtLoginPassword.IsVisible = !pwdLoginPassword.IsVisible;
+            (txtLoginPassword.IsVisible ? txtLoginPassword : pwdLoginPassword).Focus();
+        };
 
         cmbConvertTarget.ItemsSource = Global.SubConvertTargets;
 
@@ -28,15 +35,28 @@ public partial class SubEditWindow : WindowBase<SubEditViewModel>
             this.Bind(ViewModel, vm => vm.SelectedSource.NextProfile, v => v.txtNextProfile.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.PreSocksPort, v => v.txtPreSocksPort.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.Memo, v => v.txtMemo.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.SelectedSource.LoginPassword, v => v.pwdLoginPassword.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.SelectedSource.LoginPassword, v => v.txtLoginPassword.Text).DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.SelectPrevProfileCmd, v => v.btnSelectPrevProfile).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.SelectNextProfileCmd, v => v.btnSelectNextProfile).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.SaveCmd, v => v.btnSave).DisposeWith(disposables);
+
+            ViewModel.ShowMsgInteraction.RegisterHandler(async interaction =>
+            {
+                await UI.Show(interaction.Input);
+                interaction.SetOutput(Unit.Default);
+            }).DisposeWith(disposables);
         });
     }
 
     private void Window_Loaded(object? sender, RoutedEventArgs e)
     {
+        if (ViewModel?.FocusLoginPassword == true)
+        {
+            pwdLoginPassword.Focus();
+            return;
+        }
         txtRemarks.Focus();
     }
 }

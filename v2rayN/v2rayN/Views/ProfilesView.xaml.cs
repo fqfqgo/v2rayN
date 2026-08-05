@@ -23,6 +23,7 @@ public partial class ProfilesView
         txtServerFilter.PreviewKeyDown += TxtServerFilter_PreviewKeyDown;
         lstProfiles.PreviewKeyDown += LstProfiles_PreviewKeyDown;
         lstProfiles.SelectionChanged += LstProfiles_SelectionChanged;
+        lstProfiles.PreviewMouseLeftButtonUp += LstProfiles_MouseLeftButtonUp;
         lstProfiles.LoadingRow += LstProfiles_LoadingRow;
         menuSelectAll.Click += menuSelectAll_Click;
 
@@ -66,7 +67,6 @@ public partial class ProfilesView
             this.BindCommand(ViewModel, vm => vm.MoveBottomCmd, v => v.menuMoveBottom).DisposeWith(disposables);
 
             //servers ping
-            this.BindCommand(ViewModel, vm => vm.MixedTestServerCmd, v => v.menuMixedTestServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.TcpingServerCmd, v => v.menuTcpingServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.RealPingServerCmd, v => v.menuRealPingServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.UdpTestServerCmd, v => v.menuUdpTestServer).DisposeWith(disposables);
@@ -184,6 +184,17 @@ public partial class ProfilesView
         }
     }
 
+    private void LstProfiles_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (e.OriginalSource is DependencyObject source
+            && FindAncestor<DataGridRow>(source) != null
+            && ViewModel?.SelectedProfile is { IsActive: false }
+            && (Keyboard.Modifiers & (ModifierKeys.Control | ModifierKeys.Shift)) == ModifierKeys.None)
+        {
+            ViewModel.SetDefaultServer();
+        }
+    }
+
     private void LstProfiles_LoadingRow(object? sender, DataGridRowEventArgs e)
     {
         e.Row.Header = $" {e.Row.GetIndex() + 1}";
@@ -251,9 +262,6 @@ public partial class ProfilesView
                     ViewModel?.ServerSpeedtest(ESpeedActionType.Speedtest);
                     break;
 
-                case Key.E:
-                    ViewModel?.ServerSpeedtest(ESpeedActionType.Mixedtest);
-                    break;
             }
         }
         else

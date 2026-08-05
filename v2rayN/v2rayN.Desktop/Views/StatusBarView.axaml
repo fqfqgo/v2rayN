@@ -63,6 +63,17 @@
                     <ComboBoxItem Content="{x:Static resx:ResUI.menuSystemProxyPac}" />
                 </ComboBox>
 
+                <Button
+                    x:Name="btnStartConnection"
+                    MinWidth="110"
+                    Margin="{StaticResource MarginLr8}"
+                    Padding="14,8"
+                    VerticalAlignment="Center"
+                    FontSize="14"
+                    FontWeight="Bold"
+                    Classes="Accent"
+                    ToolTip.Tip="{Binding ConnectionButtonText}" />
+
                 <ComboBox
                     x:Name="cmbRoutings2"
                     Width="160"
