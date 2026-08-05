@@ -12,6 +12,14 @@ public class SubItem
 
     public string MoreUrl { get; set; }
 
+    private string? _loginPassword;
+
+    public string? LoginPassword
+    {
+        get => _loginPassword;
+        set => _loginPassword = value?.Trim();
+    }
+
     public bool Enabled { get; set; } = true;
 
     public string UserAgent { get; set; } = string.Empty;

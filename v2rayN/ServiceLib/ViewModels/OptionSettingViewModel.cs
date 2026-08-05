@@ -238,7 +238,7 @@ public class OptionSettingViewModel : MyReactiveObject, ICloseable
             _config.CoreTypeItem.Add(new CoreTypeItem()
             {
                 ConfigType = it,
-                CoreType = ECoreType.Xray
+                CoreType = it == EConfigType.Hysteria2 ? ECoreType.sing_box : ECoreType.Xray
             });
         }
         _config.CoreTypeItem.ForEach(it =>

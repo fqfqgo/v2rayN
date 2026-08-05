@@ -40,6 +40,34 @@ public class HttpClientHelper
         }
     }
 
+    public async Task<bool> CheckReachableAsync(string url, int timeoutSeconds = 15)
+    {
+        if (url.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        try
+        {
+            using var handler = new SocketsHttpHandler { UseCookies = false };
+            var certificateChainPolicy = CertPemManager.Instance.BuildCertificateChainPolicy();
+            if (certificateChainPolicy != null)
+            {
+                handler.SslOptions.CertificateChainPolicy = certificateChainPolicy;
+                handler.SslOptions.RemoteCertificateValidationCallback = null;
+            }
+            using var client = new HttpClient(handler);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public async Task<string?> GetAsync(string url)
     {
         if (url.IsNullOrEmpty())

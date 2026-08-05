@@ -16,6 +16,7 @@ public static class SysProxyHandler
         try
         {
             var port = AppManager.Instance.GetLocalPort(EInboundProtocol.socks);
+            bool? isProxySet = null;
             if (port <= 0)
             {
                 return false;
@@ -25,16 +26,19 @@ public static class SysProxyHandler
                 case ESysProxyType.ForcedChange when Utils.IsWindows():
                     var (strProxy, strExceptions) = GetWindowsProxyString(config, port);
                     ProxySettingWindows.SetProxy(strProxy, strExceptions, 2);
+                    isProxySet = ProxySettingWindows.IsProxySet(strProxy);
                     break;
 
                 case ESysProxyType.ForcedChange when Utils.IsLinux():
                     var exceptions = SanitizeExceptions(config);
                     await ProxySettingLinux.SetProxy(Global.Loopback, port, exceptions);
+                    isProxySet = await ProxySettingLinux.IsProxySet(Global.Loopback, port);
                     break;
 
                 case ESysProxyType.ForcedChange when Utils.IsMacOS():
                     var exceptions2 = SanitizeExceptions(config);
                     await ProxySettingOSX.SetProxy(Global.Loopback, port, exceptions2);
+                    isProxySet = await ProxySettingOSX.IsProxySet(Global.Loopback, port);
                     break;
 
                 case ESysProxyType.ForcedClear when Utils.IsWindows():
@@ -58,12 +62,13 @@ public static class SysProxyHandler
             {
                 PacManager.Instance.Stop();
             }
+            return isProxySet ?? true;
         }
         catch (Exception ex)
         {
             Logging.SaveLog(_tag, ex);
         }
-        return true;
+        return false;
     }
 
     private static string SanitizeExceptions(Config config)

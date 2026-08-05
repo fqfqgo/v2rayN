@@ -1,4 +1,5 @@
 using static ServiceLib.Handler.SysProxy.ProxySettingWindows.InternetConnectionOption;
+using Microsoft.Win32;
 
 namespace ServiceLib.Handler.SysProxy;
 
@@ -40,6 +41,21 @@ public static class ProxySettingWindows
     public static bool UnsetProxy()
     {
         return SetProxy(null, null, 1);
+    }
+
+    public static bool IsProxySet(string strProxy)
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(_regPath, false);
+            return key?.GetValue("ProxyEnable")?.ToString() == "1"
+                && string.Equals(key.GetValue("ProxyServer")?.ToString(), strProxy, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            Logging.SaveLog(nameof(IsProxySet), ex);
+            return false;
+        }
     }
 
     /// <summary>

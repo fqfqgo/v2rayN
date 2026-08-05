@@ -3,6 +3,8 @@ namespace ServiceLib;
 public class Global
 {
     public const string AppName = "v2rayN";
+    public const string AppDisplayName = "v2rayN for V2free";
+    public const string V2freeWebsiteUrl = "https://cdn.v2ai.top/auth/register?code=PLwV";
     public const string GithubUrl = "https://github.com";
     public const string GithubApiUrl = "https://api.github.com/repos";
     public const string GeoUrl = "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/{0}.dat";
@@ -645,7 +647,7 @@ public class Global
         { ECoreType.overtls, "ShadowsocksR-Live/overtls" },
         { ECoreType.shadowquic, "spongebob888/shadowquic" },
         { ECoreType.mieru, "enfein/mieru" },
-        { ECoreType.v2rayN, "2dust/v2rayN" },
+        { ECoreType.v2rayN, "fqfqgo/v2rayN" },
     };
 
     public static readonly List<string> OtherGeoUrls =

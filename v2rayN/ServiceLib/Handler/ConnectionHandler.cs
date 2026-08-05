@@ -84,13 +84,23 @@ public static class ConnectionHandler
             List<int> oneTime = [];
             for (var i = 0; i < 2; i++)
             {
-                var timer = Stopwatch.StartNew();
-                await client.GetAsync(url, cts.Token).ConfigureAwait(false);
-                timer.Stop();
-                oneTime.Add((int)timer.Elapsed.TotalMilliseconds);
+                try
+                {
+                    var timer = Stopwatch.StartNew();
+                    using var response = await client.GetAsync(url, cts.Token).ConfigureAwait(false);
+                    timer.Stop();
+                    if (response.IsSuccessStatusCode)
+                    {
+                        oneTime.Add((int)timer.Elapsed.TotalMilliseconds);
+                    }
+                }
+                catch
+                {
+                    // Continue with the remaining attempt.
+                }
                 await Task.Delay(100, cts.Token);
             }
-            responseTime = oneTime.Where(x => x > 0).OrderBy(x => x).FirstOrDefault();
+            responseTime = oneTime.Count > 0 ? oneTime.Min() : -1;
         }
         catch
         {

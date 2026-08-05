@@ -4,6 +4,7 @@ public static class AppEvents
 {
     public static readonly EventChannel<Unit> AddServerViaClipboardRequested = new();
     public static readonly EventChannel<bool> HasUpdateNotified = new();
+    public static readonly EventChannel<string> SubscriptionDecryptFailedRequested = new();
 
     public static readonly EventChannel<ServerSpeedItem> DispatcherStatisticsRequested = new();
 

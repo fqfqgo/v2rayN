@@ -121,7 +121,7 @@
     <value>匯出分享連結至剪貼簿成功</value>
   </data>
   <data name="CheckServerSettings" xml:space="preserve">
-    <value>配置項目無效，請檢查或重新選擇</value>
+    <value>請匯入並選擇節點</value>
   </data>
   <data name="ConfigurationFormatIncorrect" xml:space="preserve">
     <value>設定格式不正確</value>
@@ -265,7 +265,7 @@
     <value>請選擇協定</value>
   </data>
   <data name="PleaseSelectServer" xml:space="preserve">
-    <value>請先選擇設定</value>
+    <value>請先選擇節點</value>
   </data>
   <data name="RemoveDuplicateServerResult" xml:space="preserve">
     <value>去重完成。原數量: {0}，現數量: {1}。</value>
@@ -310,7 +310,19 @@
     <value>別名</value>
   </data>
   <data name="LvUrl" xml:space="preserve">
-    <value>可選位址 (URL)</value>
+    <value>訂閱連結</value>
+  </data>
+  <data name="LvLoginPassword" xml:space="preserve">
+    <value>網站登入密碼</value>
+  </data>
+  <data name="SubLoginPasswordTips" xml:space="preserve">
+    <value>請輸入網站登入密碼</value>
+  </data>
+  <data name="PleaseFillLoginPassword" xml:space="preserve">
+    <value>請輸入網站登入密碼</value>
+  </data>
+  <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
+    <value>訂閱解密失敗，請在訂閱分組設定中輸入你在訂閱網站的登入密碼</value>
   </data>
   <data name="LvCount" xml:space="preserve">
     <value>數量</value>
@@ -864,6 +876,9 @@
   <data name="SubUrlTips" xml:space="preserve">
     <value>普通分組此處請留空</value>
   </data>
+  <data name="SubUrlLinkHint" xml:space="preserve">
+    <value>此處填寫訂閱連結</value>
+  </data>
   <data name="TipChangeRouting" xml:space="preserve">
     <value>路由設定已改變</value>
   </data>
@@ -1334,6 +1349,12 @@
   </data>
   <data name="InsecureUrlProtocol" xml:space="preserve">
     <value>請不要使用不安全的 HTTP 協定訂閱位址</value>
+  </data>
+  <data name="InvalidSubUrlFormatTip" xml:space="preserve">
+    <value>訂閱連結格式不正確，必須為單行且以 http:// 或 https:// 開頭（不能是 vmess://、vless:// 等節點連結）</value>
+  </data>
+  <data name="SubUrlUnreachableTip" xml:space="preserve">
+    <value>該訂閱連結無法連線（網域無法解析或連線逾時）</value>
   </data>
   <data name="TbSettingsCurrentFontFamilyLinuxTip" xml:space="preserve">
     <value>安裝字體到系統中，選擇或填入字體名稱，重新啟動後生效</value>

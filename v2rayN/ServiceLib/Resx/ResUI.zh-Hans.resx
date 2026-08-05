@@ -121,7 +121,7 @@
     <value>导出分享链接至剪贴板成功</value>
   </data>
   <data name="CheckServerSettings" xml:space="preserve">
-    <value>配置项无效，请检查或重新选择</value>
+    <value>请导入并选择节点</value>
   </data>
   <data name="ConfigurationFormatIncorrect" xml:space="preserve">
     <value>配置格式不正确</value>
@@ -265,7 +265,7 @@
     <value>请选择协议</value>
   </data>
   <data name="PleaseSelectServer" xml:space="preserve">
-    <value>请先选择配置</value>
+    <value>请先选择节点</value>
   </data>
   <data name="RemoveDuplicateServerResult" xml:space="preserve">
     <value>配置去重完成。原数量: {0}，现数量: {1}。</value>
@@ -310,7 +310,19 @@
     <value>别名</value>
   </data>
   <data name="LvUrl" xml:space="preserve">
-    <value>可选地址 (Url)</value>
+    <value>订阅链接</value>
+  </data>
+  <data name="LvLoginPassword" xml:space="preserve">
+    <value>网站登录密码</value>
+  </data>
+  <data name="SubLoginPasswordTips" xml:space="preserve">
+    <value>请输入网站登录密码</value>
+  </data>
+  <data name="PleaseFillLoginPassword" xml:space="preserve">
+    <value>请输入网站登录密码</value>
+  </data>
+  <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
+    <value>订阅解密失败，请在订阅分组设置中输入你在订阅网站的登录密码</value>
   </data>
   <data name="LvCount" xml:space="preserve">
     <value>数量</value>
@@ -864,6 +876,9 @@
   <data name="SubUrlTips" xml:space="preserve">
     <value>普通分组此处请留空</value>
   </data>
+  <data name="SubUrlLinkHint" xml:space="preserve">
+    <value>此处填写订阅链接</value>
+  </data>
   <data name="TipChangeRouting" xml:space="preserve">
     <value>路由设置改变</value>
   </data>
@@ -1334,6 +1349,12 @@
   </data>
   <data name="InsecureUrlProtocol" xml:space="preserve">
     <value>请不要使用不安全的 HTTP 协议订阅地址</value>
+  </data>
+  <data name="InvalidSubUrlFormatTip" xml:space="preserve">
+    <value>订阅链接格式不正确，必须为单行且以 http:// 或 https:// 开头（不能是 vmess://、vless:// 等节点链接）</value>
+  </data>
+  <data name="SubUrlUnreachableTip" xml:space="preserve">
+    <value>该订阅链接无法连接（域名无法解析或连接超时）</value>
   </data>
   <data name="TbSettingsCurrentFontFamilyLinuxTip" xml:space="preserve">
     <value>安装字体到系统中，选择或填入字体名称，重启生效</value>
@@ -1848,5 +1869,29 @@
   </data>
   <data name="TbIpv4Address" xml:space="preserve">
     <value>Ipv4 地址</value>
+  </data>
+  <data name="menuStartBrowser" xml:space="preserve">
+    <value>启动浏览器</value>
+  </data>
+  <data name="menuLog" xml:space="preserve">
+    <value>日志</value>
+  </data>
+  <data name="menuWebsiteV2free" xml:space="preserve">
+    <value>V2free 官网</value>
+  </data>
+  <data name="BtnStartConnection" xml:space="preserve">
+    <value>启动连接</value>
+  </data>
+  <data name="BtnStopConnection" xml:space="preserve">
+    <value>停止连接</value>
+  </data>
+  <data name="SpeedtestingBatchWarning" xml:space="preserve">
+    <value>批量测速会消耗大量流量，单次可能消耗数 GB，是否继续？</value>
+  </data>
+  <data name="TipMixedListenPortAutoAdjusted" xml:space="preserve">
+    <value>Mixed 监听端口冲突，已从 {0} 自动调整为 {1}（配置已保存，正在重载核心）</value>
+  </data>
+  <data name="TipStartConnectionAfterSelectingNode" xml:space="preserve">
+    <value>已选择 {0}，请从底栏启动连接后使用该节点。</value>
   </data>
 </root>

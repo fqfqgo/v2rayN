@@ -228,6 +228,9 @@
   <data name="MsgSubscriptionDecodingFailed" xml:space="preserve">
     <value>محتوای اشتراک نامعتبر است</value>
   </data>
+  <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
+    <value>رمزگشایی اشتراک ناموفق بود. لطفاً در تنظیمات گروه اشتراک، رمز عبور ورود به سایت اشتراک را وارد کنید.</value>
+  </data>
   <data name="MsgUnpacking" xml:space="preserve">
     <value>باز کردن بسته بندی...</value>
   </data>

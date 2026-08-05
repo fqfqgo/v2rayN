@@ -24,33 +24,27 @@ public class SemanticVersion
                 major = 0;
                 minor = 0;
                 patch = 0;
+                this.version = "0.0.0";
                 return;
             }
-            this.version = version.RemovePrefix('v');
 
-            var parts = this.version.Split('.');
-            if (parts.Length == 2)
-            {
-                major = int.Parse(parts.First());
-                minor = int.Parse(parts.Last());
-                patch = 0;
-            }
-            else if (parts.Length is 3 or 4)
-            {
-                major = int.Parse(parts[0]);
-                minor = int.Parse(parts[1]);
-                patch = int.Parse(parts[2]);
-            }
-            else
+            var trimmed = version.RemovePrefix('v');
+            var match = Regex.Match(trimmed, @"^(?<major>\d+)\.(?<minor>\d+)(?:\.(?<patch>\d+))?(?:\.\d+)?(?:[-+].*)?$");
+            if (!match.Success)
             {
                 throw new ArgumentException("Invalid version string");
             }
+            major = int.Parse(match.Groups["major"].Value);
+            minor = int.Parse(match.Groups["minor"].Value);
+            patch = match.Groups["patch"].Success ? int.Parse(match.Groups["patch"].Value) : 0;
+            this.version = trimmed;
         }
         catch
         {
             major = 0;
             minor = 0;
             patch = 0;
+            this.version = "0.0.0";
         }
     }
 

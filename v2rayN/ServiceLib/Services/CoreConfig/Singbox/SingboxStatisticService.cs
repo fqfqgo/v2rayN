@@ -13,7 +13,7 @@ public partial class CoreConfigSingboxService
             };
         }
 
-        if (_config.CoreBasicItem.EnableCacheFile4Sbox)
+        if (_config.CoreBasicItem.EnableCacheFile4Sbox && !context.IsPreSocks)
         {
             _coreConfig.experimental ??= new Experimental4Sbox();
             _coreConfig.experimental.cache_file = new CacheFile4Sbox()

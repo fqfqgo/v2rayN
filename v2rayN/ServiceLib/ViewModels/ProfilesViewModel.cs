@@ -614,6 +614,10 @@ public class ProfilesViewModel : MyReactiveObject
         {
             await RefreshServers();
             Reload();
+            if (!StatusBarViewModel.Instance.BlConnectionOn)
+            {
+                NoticeManager.Instance.Enqueue(string.Format(ResUI.TipStartConnectionAfterSelectingNode, item.GetSummary()));
+            }
         }
     }
 
@@ -759,6 +763,13 @@ public class ProfilesViewModel : MyReactiveObject
             return;
         }
 
+        if (actionType == ESpeedActionType.Speedtest
+            && lstSelected.Count > 10
+            && await ShowYesNoInteraction.Handle(ResUI.SpeedtestingBatchWarning) == false)
+        {
+            return;
+        }
+
         _speedtestService ??= new SpeedtestService(_config, async (SpeedTestResult result) =>
         {
             RxSchedulers.MainThreadScheduler.Schedule(result, (scheduler, result) =>
@@ -900,7 +911,11 @@ public class ProfilesViewModel : MyReactiveObject
         SubItem item;
         if (blNew)
         {
-            item = new();
+            item = new()
+            {
+                Remarks = "v2free",
+                AutoUpdateInterval = 1688
+            };
         }
         else
         {

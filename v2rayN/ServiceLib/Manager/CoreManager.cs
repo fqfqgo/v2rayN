@@ -7,6 +7,8 @@ public class CoreManager
 {
     private static readonly Lazy<CoreManager> _instance = new(() => new());
     public static CoreManager Instance => _instance.Value;
+    public EventChannel<Unit> ReloadRequested { get; } = new();
+    public EventChannel<Unit> InboundDisplayRequested { get; } = new();
     private Config _config;
 
     [SupportedOSPlatform("windows")]
@@ -17,6 +19,8 @@ public class CoreManager
     private bool _linuxSudo = false;
     private Func<bool, string, Task>? _updateFunc;
     private const string _tag = "CoreHandler";
+    private bool HasRunningCoreProcess() =>
+        _processService is { HasExited: false } || _processPreService is { HasExited: false };
 
     public async Task Init(Config config, Func<bool, string, Task> updateFunc)
     {
@@ -60,6 +64,30 @@ public class CoreManager
         }
     }
 
+    public async Task PreparePrimaryMixedPort(bool allowPortBump)
+    {
+        if (!allowPortBump
+            || HasRunningCoreProcess()
+            || !MixedListenPortRecoveryHandler.TryBumpPrimaryMixedPortIfCurrentBusy(_config, out var oldPort, out var newPort))
+        {
+            return;
+        }
+
+        if (await ConfigHandler.SaveConfig(_config) != 0)
+        {
+            var inbound = _config.Inbound?.FirstOrDefault(t => t.Protocol == nameof(EInboundProtocol.socks));
+            if (inbound is not null)
+            {
+                inbound.LocalPort = oldPort;
+            }
+            return;
+        }
+
+        Logging.SaveLog($"{_tag}: primary mixed listen {oldPort} -> {newPort} (pre-start bind check)");
+        await UpdateFunc(true, string.Format(ResUI.TipMixedListenPortAutoAdjusted, oldPort, newPort));
+        InboundDisplayRequested.Publish();
+    }
+
     /// <param name="mainContext">Resolved main context (with pre-socks ports already merged if applicable).</param>
     /// <param name="preContext">Optional pre-socks context passed to <see cref="CoreStartPreService"/>.</param>
     public async Task LoadCore(CoreConfigContext? mainContext, CoreConfigContext? preContext)
@@ -83,7 +111,7 @@ public class CoreManager
         await UpdateFunc(false, $"{Utils.GetRuntimeInfo()}");
         await UpdateFunc(false, string.Format(ResUI.StartService, DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")));
         await CoreStop();
-        await Task.Delay(100);
+        await WaitForSingboxCacheUnlocked();
 
         if (Utils.IsWindows() && (mainContext?.IsTunEnabled == true || preContext?.IsTunEnabled == true))
         {
@@ -99,7 +127,7 @@ public class CoreManager
 
         if (_processService != null)
         {
-            await UpdateFunc(true, $"{node.GetSummary()}");
+            await UpdateFunc(false, $"{node.GetSummary()}");
         }
     }
 
@@ -174,6 +202,29 @@ public class CoreManager
         }
     }
 
+    private static async Task WaitForSingboxCacheUnlocked()
+    {
+        var path = Utils.GetBinPath("cache.db");
+        if (!File.Exists(path))
+        {
+            await Task.Delay(100);
+            return;
+        }
+
+        for (var i = 0; i < 20; i++)
+        {
+            try
+            {
+                await using var stream = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                return;
+            }
+            catch
+            {
+                await Task.Delay(100);
+            }
+        }
+    }
+
     #region Private
 
     private async Task CoreStart(CoreConfigContext context)
@@ -183,7 +234,7 @@ public class CoreManager
         var coreInfo = CoreInfoManager.Instance.GetCoreInfo(coreType);
 
         var displayLog = node.ConfigType != EConfigType.Custom || node.DisplayLog;
-        var proc = await RunProcess(coreInfo, Global.CoreConfigFileName, displayLog, true, context.IsTunEnabled);
+        var proc = await RunProcess(coreInfo, Global.CoreConfigFileName, displayLog, true, context.IsTunEnabled, true);
         if (proc is null)
         {
             return;
@@ -214,6 +265,16 @@ public class CoreManager
     private async Task UpdateFunc(bool notify, string msg)
     {
         await _updateFunc?.Invoke(notify, msg);
+    }
+
+    private async Task CoreLogUpdate(bool notify, string msg)
+    {
+        await UpdateFunc(notify, msg);
+        if (await MixedListenPortRecoveryHandler.RecoverFromCoreLog(_config, msg))
+        {
+            InboundDisplayRequested.Publish();
+            ReloadRequested.Publish();
+        }
     }
 
     private static async Task WaitForProxyPort(CoreConfigContext? preContext, int timeoutMs = 5000)
@@ -302,7 +363,8 @@ public class CoreManager
             && isNonWindows;
     }
 
-    private async Task<ProcessService?> RunProcess(CoreInfo? coreInfo, string configPath, bool displayLog, bool mayNeedSudo, bool isTunLaunch = false)
+    private async Task<ProcessService?> RunProcess(CoreInfo? coreInfo, string configPath, bool displayLog, bool mayNeedSudo,
+        bool isTunLaunch = false, bool recoverMixedPort = false)
     {
         var fileName = CoreInfoManager.Instance.GetCoreExecFile(coreInfo, out var msg);
         if (fileName.IsNullOrEmpty())
@@ -317,11 +379,12 @@ public class CoreManager
                 && ShouldRunAsSudo(isTunLaunch, coreInfo.CoreType, Utils.IsNonWindows()))
             {
                 _linuxSudo = true;
-                await CoreAdminManager.Instance.Init(_config, _updateFunc);
+                await CoreAdminManager.Instance.Init(_config, recoverMixedPort ? CoreLogUpdate : _updateFunc);
                 return await CoreAdminManager.Instance.RunProcessAsLinuxSudo(fileName, coreInfo, configPath);
             }
 
-            return await RunProcessNormal(fileName, coreInfo, configPath, displayLog);
+            return await RunProcessNormal(fileName, coreInfo, configPath, displayLog,
+                recoverMixedPort ? CoreLogUpdate : _updateFunc);
         }
         catch (Exception ex)
         {
@@ -331,7 +394,8 @@ public class CoreManager
         }
     }
 
-    private async Task<ProcessService?> RunProcessNormal(string fileName, CoreInfo? coreInfo, string configPath, bool displayLog)
+    private async Task<ProcessService?> RunProcessNormal(string fileName, CoreInfo? coreInfo, string configPath, bool displayLog,
+        Func<bool, string, Task>? updateFunc)
     {
         var environmentVars = new Dictionary<string, string>();
         foreach (var kv in coreInfo.Environment)
@@ -346,7 +410,7 @@ public class CoreManager
             displayLog: displayLog,
             redirectInput: false,
             environmentVars: environmentVars,
-            updateFunc: _updateFunc
+            updateFunc: updateFunc
         );
 
         await procService.StartAsync();

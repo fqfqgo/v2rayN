@@ -340,6 +340,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Invalid subscription URL format. 的本地化字符串。
+        /// </summary>
+        public static string InvalidSubUrlFormatTip {
+            get {
+                return ResourceManager.GetString("InvalidSubUrlFormatTip", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查找类似 Invalid address (URL) 的本地化字符串。
         /// </summary>
         public static string InvalidUrlTip {
@@ -654,6 +663,15 @@ namespace ServiceLib.Resx {
             }
         }
         
+        /// <summary>
+        ///   查找类似 Login password 的本地化字符串。
+        /// </summary>
+        public static string LvLoginPassword {
+            get {
+                return ResourceManager.GetString("LvLoginPassword", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   查找类似 URL (optional) 的本地化字符串。
         /// </summary>
@@ -2203,6 +2221,15 @@ namespace ServiceLib.Resx {
         }
         
         /// <summary>
+        ///   查找类似 Subscription decryption failed. 的本地化字符串。
+        /// </summary>
+        public static string MsgSubscriptionDecryptFailed {
+            get {
+                return ResourceManager.GetString("MsgSubscriptionDecryptFailed", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查找类似 Updates are not enabled, skip this subscription 的本地化字符串。
         /// </summary>
         public static string MsgSkipSubscriptionUpdate {
@@ -2391,6 +2418,15 @@ namespace ServiceLib.Resx {
             }
         }
         
+        /// <summary>
+        ///   查找类似 Please enter the website login password 的本地化字符串。
+        /// </summary>
+        public static string PleaseFillLoginPassword {
+            get {
+                return ResourceManager.GetString("PleaseFillLoginPassword", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   查找类似 Please fill Remarks 的本地化字符串。
         /// </summary>
@@ -2615,7 +2651,34 @@ namespace ServiceLib.Resx {
                 return ResourceManager.GetString("SubUrlTips", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   查找类似 Enter the subscription URL here 的本地化字符串。
+        /// </summary>
+        public static string SubUrlLinkHint {
+            get {
+                return ResourceManager.GetString("SubUrlLinkHint", resourceCulture);
+            }
+        }
         
+        /// <summary>
+        ///   查找类似 Please enter the website login password 的本地化字符串。
+        /// </summary>
+        public static string SubLoginPasswordTips {
+            get {
+                return ResourceManager.GetString("SubLoginPasswordTips", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 Unable to reach this subscription URL. 的本地化字符串。
+        /// </summary>
+        public static string SubUrlUnreachableTip {
+            get {
+                return ResourceManager.GetString("SubUrlUnreachableTip", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   查找类似 Configuration successful. {0} 的本地化字符串。
         /// </summary>
@@ -5235,6 +5298,54 @@ namespace ServiceLib.Resx {
         public static string TransportRequestHostTip5 {
             get {
                 return ResourceManager.GetString("TransportRequestHostTip5", resourceCulture);
+            }
+        }
+
+        public static string menuStartBrowser {
+            get {
+                return ResourceManager.GetString("menuStartBrowser", resourceCulture);
+            }
+        }
+
+        public static string menuLog {
+            get {
+                return ResourceManager.GetString("menuLog", resourceCulture);
+            }
+        }
+
+        public static string menuWebsiteV2free {
+            get {
+                return ResourceManager.GetString("menuWebsiteV2free", resourceCulture);
+            }
+        }
+
+        public static string BtnStartConnection {
+            get {
+                return ResourceManager.GetString("BtnStartConnection", resourceCulture);
+            }
+        }
+
+        public static string BtnStopConnection {
+            get {
+                return ResourceManager.GetString("BtnStopConnection", resourceCulture);
+            }
+        }
+
+        public static string SpeedtestingBatchWarning {
+            get {
+                return ResourceManager.GetString("SpeedtestingBatchWarning", resourceCulture);
+            }
+        }
+
+        public static string TipMixedListenPortAutoAdjusted {
+            get {
+                return ResourceManager.GetString("TipMixedListenPortAutoAdjusted", resourceCulture);
+            }
+        }
+
+        public static string TipStartConnectionAfterSelectingNode {
+            get {
+                return ResourceManager.GetString("TipStartConnectionAfterSelectingNode", resourceCulture);
             }
         }
         

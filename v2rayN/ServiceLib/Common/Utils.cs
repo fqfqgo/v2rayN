@@ -833,15 +833,15 @@ public class Utils
         try
         {
             return blFull
-                ? $"{Global.AppName} - V{GetVersionInfo()} - {RuntimeInformation.ProcessArchitecture}"
-                : $"{Global.AppName}/{GetVersionInfo()}";
+                ? $"{Global.AppDisplayName} - V{GetVersionInfo()} - {RuntimeInformation.ProcessArchitecture}"
+                : $"{Global.AppDisplayName}/{GetVersionInfo()}";
         }
         catch (Exception ex)
         {
             Logging.SaveLog(_tag, ex);
         }
 
-        return Global.AppName;
+        return Global.AppDisplayName;
     }
 
     public static string GetVersionInfo()
@@ -1078,6 +1078,14 @@ public class Utils
     public static string GetExePath()
     {
         return Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty;
+    }
+
+    public static string GetSingleInstanceKernelObjectName()
+    {
+        var path = GetExePath();
+        return Path.GetFileName(path).Equals("v2rayN.exe", StringComparison.OrdinalIgnoreCase)
+            ? "v2rayN_SingleInstance_ByExeName_8C4F2A1E"
+            : GetMd5(path);
     }
 
     public static string StartupPath()

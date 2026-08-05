@@ -16,6 +16,7 @@ public record CoreConfigContext
 
     // TUN Compatibility
     public bool IsTunEnabled { get; init; } = false;
+    public bool IsPreSocks { get; init; }
     public HashSet<string> ProtectDomainList { get; init; } = [];
     // Typically, it is the core of the outbound chain
     public HashSet<ECoreType> ProtectCoreTypeList { get; init; } = [];

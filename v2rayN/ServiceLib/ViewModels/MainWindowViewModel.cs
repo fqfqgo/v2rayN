@@ -68,6 +68,7 @@ public class MainWindowViewModel : MyReactiveObject
     public ReactiveCommand<Unit, Unit> RegionalPresetIranCmd { get; }
 
     public ReactiveCommand<Unit, Unit> ReloadCmd { get; }
+    public ReactiveCommand<Unit, Unit> StartBrowserCmd { get; }
 
     [Reactive]
     public bool BlReloadEnabled { get; set; }
@@ -229,8 +230,9 @@ public class MainWindowViewModel : MyReactiveObject
 
         ReloadCmd = ReactiveCommand.CreateFromTask(async () =>
         {
-            await Reload();
+            await Reload(false);
         });
+        StartBrowserCmd = ReactiveCommand.CreateFromTask(StartBrowser);
 
         RegionalPresetDefaultCmd = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -261,6 +263,11 @@ public class MainWindowViewModel : MyReactiveObject
             .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(async bl => BlNewUpdate = bl);
 
+        AppEvents.SubscriptionDecryptFailedRequested
+            .AsObservable()
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
+            .Subscribe(async id => await OpenSubscriptionPasswordAsync(id));
+
         #endregion AppEvents
 
         ProfilesViewModel.RefreshServersRequested
@@ -281,6 +288,11 @@ public class MainWindowViewModel : MyReactiveObject
                 .ObserveOn(RxSchedulers.MainThreadScheduler)
                 .Subscribe(async _ => await Reload());
         }
+
+        CoreManager.Instance.ReloadRequested
+            .AsObservable()
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
+            .Subscribe(async _ => await Reload(false));
 
         StatusBarViewModel.AddServerViaScanRequested
             .AsObservable()
@@ -546,7 +558,30 @@ public class MainWindowViewModel : MyReactiveObject
 
     public async Task UpdateSubscriptionProcess(string subId, bool blProxy)
     {
-        await Task.Run(async () => await SubscriptionHandler.UpdateProcess(_config, subId, blProxy, UpdateTaskHandler));
+        var decryptPromptShown = false;
+        await Task.Run(async () => await SubscriptionHandler.UpdateProcess(
+            _config,
+            subId,
+            blProxy,
+            UpdateTaskHandler,
+            item =>
+            {
+                if (!decryptPromptShown && item.Id.IsNotEmpty())
+                {
+                    decryptPromptShown = true;
+                    AppEvents.SubscriptionDecryptFailedRequested.Publish(item.Id);
+                }
+                return Task.CompletedTask;
+            }));
+    }
+
+    private static async Task OpenSubscriptionPasswordAsync(string id)
+    {
+        var item = await AppManager.Instance.GetSubItem(id);
+        if (item != null)
+        {
+            await AppManager.Instance.WindowDialog.ShowDialogAsync(new SubEditViewModel(item, true));
+        }
     }
 
     #endregion Subscription
@@ -627,19 +662,65 @@ public class MainWindowViewModel : MyReactiveObject
         await Task.CompletedTask;
     }
 
+    private async Task StartBrowser()
+    {
+        try
+        {
+            var startupPath = Utils.StartupPath();
+            var port = AppManager.Instance.GetLocalPort(EInboundProtocol.socks);
+            const string url = "https://www.google.com/";
+
+            if (Utils.IsWindows())
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "msedge.exe",
+                    Arguments = $"--user-data-dir=\"{Path.Combine(startupPath, "edge-data")}\" --proxy-server=127.0.0.1:{port} {url}",
+                    WorkingDirectory = startupPath,
+                    UseShellExecute = true
+                });
+            }
+            else if (Utils.IsLinux())
+            {
+                var args = $"--user-data-dir=\"{Path.Combine(startupPath, "chrome-data")}\" --proxy-server=127.0.0.1:{port} {url}";
+                if (ProcUtils.ProcessStart("google-chrome", args, startupPath) == null)
+                {
+                    ProcUtils.ProcessStart("chromium", args, startupPath);
+                }
+            }
+            else if (Utils.IsMacOS())
+            {
+                var args = $"--user-data-dir=\"{Path.Combine(startupPath, "chrome-data")}\" --proxy-server=127.0.0.1:{port} {url}";
+                ProcUtils.ProcessStart("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", args);
+            }
+            else
+            {
+                NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logging.SaveLog("StartBrowser", ex);
+            NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
+        }
+        await Task.CompletedTask;
+    }
+
     #endregion Setting
 
     #region core job
 
     private bool _hasNextReloadJob = false;
+    private bool _nextReloadAllowsPortBump;
     private readonly SemaphoreSlim _reloadSemaphore = new(1, 1);
 
-    public async Task Reload()
+    public async Task Reload(bool allowPreStartPortBump = true)
     {
         //If there are unfinished reload job, marked with next job.
         if (!await _reloadSemaphore.WaitAsync(0))
         {
             _hasNextReloadJob = true;
+            _nextReloadAllowsPortBump = allowPreStartPortBump;
             return;
         }
 
@@ -659,6 +740,7 @@ public class MainWindowViewModel : MyReactiveObject
                 NoticeManager.Instance.Enqueue(ResUI.CheckServerSettings);
                 return;
             }
+            await CoreManager.Instance.PreparePrimaryMixedPort(allowPreStartPortBump);
             var allResult = await CoreConfigContextBuilder.BuildAll(_config, profileItem);
             if (NoticeManager.Instance.NotifyValidatorResult(allResult.CombinedValidatorResult) && !allResult.Success)
             {
@@ -699,7 +781,9 @@ public class MainWindowViewModel : MyReactiveObject
             if (_hasNextReloadJob)
             {
                 _hasNextReloadJob = false;
-                await Reload();
+                var nextReloadAllowsPortBump = _nextReloadAllowsPortBump;
+                _nextReloadAllowsPortBump = false;
+                await Reload(nextReloadAllowsPortBump);
             }
         }
     }

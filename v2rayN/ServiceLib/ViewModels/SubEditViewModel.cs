@@ -4,6 +4,10 @@ public class SubEditViewModel : MyReactiveObject, ICloseable
 {
     public event EventHandler? RequestClose;
 
+    public Interaction<string, Unit> ShowMsgInteraction { get; } = new();
+
+    public bool FocusLoginPassword { get; }
+
     [Reactive]
     public SubItem SelectedSource { get; set; }
 
@@ -11,9 +15,10 @@ public class SubEditViewModel : MyReactiveObject, ICloseable
     public ReactiveCommand<Unit, Unit> SelectNextProfileCmd { get; }
     public ReactiveCommand<Unit, Unit> SaveCmd { get; }
 
-    public SubEditViewModel(SubItem subItem)
+    public SubEditViewModel(SubItem subItem, bool focusLoginPassword = false)
     {
         _config = AppManager.Instance.Config;
+        FocusLoginPassword = focusLoginPassword;
 
         SelectPrevProfileCmd = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -46,26 +51,39 @@ public class SubEditViewModel : MyReactiveObject, ICloseable
         var remarks = SelectedSource.Remarks;
         if (remarks.IsNullOrEmpty())
         {
-            NoticeManager.Instance.Enqueue(ResUI.PleaseFillRemarks);
+            await ShowMsgInteraction.Handle(ResUI.PleaseFillRemarks);
             return;
         }
 
-        var url = SelectedSource.Url;
+        var url = SelectedSource.Url?.Trim();
         if (url.IsNotEmpty())
         {
+            if (url.Any(c => c is '\r' or '\n')
+                || !(url.StartsWith(Global.HttpsProtocol, StringComparison.OrdinalIgnoreCase)
+                     || url.StartsWith(Global.HttpProtocol, StringComparison.OrdinalIgnoreCase)))
+            {
+                await ShowMsgInteraction.Handle(ResUI.InvalidSubUrlFormatTip);
+                return;
+            }
             var uri = Utils.TryUri(url);
             if (uri == null)
             {
-                NoticeManager.Instance.Enqueue(ResUI.InvalidUrlTip);
+                await ShowMsgInteraction.Handle(ResUI.InvalidUrlTip);
                 return;
             }
             //Do not allow http protocol
-            if (url.StartsWith(Global.HttpProtocol) && !Utils.IsPrivateNetwork(uri.IdnHost))
+            if (url.StartsWith(Global.HttpProtocol, StringComparison.OrdinalIgnoreCase) && !Utils.IsPrivateNetwork(uri.IdnHost))
             {
                 NoticeManager.Instance.Enqueue(ResUI.InsecureUrlProtocol);
                 //return;
             }
+            if (!await HttpClientHelper.Instance.CheckReachableAsync(url))
+            {
+                await ShowMsgInteraction.Handle(ResUI.SubUrlUnreachableTip);
+                return;
+            }
         }
+        SelectedSource.Url = url;
 
         if (await ConfigHandler.AddSubItem(_config, SelectedSource) == 0)
         {

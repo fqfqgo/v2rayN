@@ -312,6 +312,18 @@
   <data name="LvUrl" xml:space="preserve">
     <value>URL (optional)</value>
   </data>
+  <data name="LvLoginPassword" xml:space="preserve">
+    <value>Login password</value>
+  </data>
+  <data name="SubLoginPasswordTips" xml:space="preserve">
+    <value>Please enter the website login password</value>
+  </data>
+  <data name="PleaseFillLoginPassword" xml:space="preserve">
+    <value>Please enter the website login password</value>
+  </data>
+  <data name="MsgSubscriptionDecryptFailed" xml:space="preserve">
+    <value>Subscription decryption failed. Please enter your subscription website login password in Subscription Group Settings.</value>
+  </data>
   <data name="LvCount" xml:space="preserve">
     <value>Count</value>
   </data>
@@ -864,6 +876,9 @@
   <data name="SubUrlTips" xml:space="preserve">
     <value>For group please leave blank here</value>
   </data>
+  <data name="SubUrlLinkHint" xml:space="preserve">
+    <value>Enter the subscription URL here</value>
+  </data>
   <data name="TipChangeRouting" xml:space="preserve">
     <value>Routing setting has changed</value>
   </data>
@@ -1337,6 +1352,12 @@
   </data>
   <data name="InsecureUrlProtocol" xml:space="preserve">
     <value>Please do not use the insecure HTTP protocol subscription address</value>
+  </data>
+  <data name="InvalidSubUrlFormatTip" xml:space="preserve">
+    <value>Invalid subscription URL format. It must be a single line starting with http:// or https:// (node links such as vmess:// or vless:// are not allowed).</value>
+  </data>
+  <data name="SubUrlUnreachableTip" xml:space="preserve">
+    <value>Unable to reach this subscription URL (DNS resolution failed or connection timed out).</value>
   </data>
   <data name="TbSettingsCurrentFontFamilyLinuxTip" xml:space="preserve">
     <value>Install the font to the system, select or fill in the font name, restart the settings</value>
@@ -1847,5 +1868,29 @@ The "Get Certificate" action may fail if a self-signed certificate is used or if
   </data>
   <data name="TbIpv4Address" xml:space="preserve">
     <value>Ipv4 Address</value>
+  </data>
+  <data name="menuStartBrowser" xml:space="preserve">
+    <value>Start Browser</value>
+  </data>
+  <data name="menuLog" xml:space="preserve">
+    <value>Log</value>
+  </data>
+  <data name="menuWebsiteV2free" xml:space="preserve">
+    <value>V2free Website</value>
+  </data>
+  <data name="BtnStartConnection" xml:space="preserve">
+    <value>Start connection</value>
+  </data>
+  <data name="BtnStopConnection" xml:space="preserve">
+    <value>Stop connection</value>
+  </data>
+  <data name="SpeedtestingBatchWarning" xml:space="preserve">
+    <value>Batch speed testing consumes a lot of traffic and may use several GB each run. Continue?</value>
+  </data>
+  <data name="TipMixedListenPortAutoAdjusted" xml:space="preserve">
+    <value>Mixed listen port changed from {0} to {1} due to conflict (saved; reloading core)</value>
+  </data>
+  <data name="TipStartConnectionAfterSelectingNode" xml:space="preserve">
+    <value>Selected {0}. Start the connection from the status bar to use this node.</value>
   </data>
 </root>

@@ -201,6 +201,7 @@ public class CoreConfigContextBuilder
             {
                 Context = preSocksResult.Context with
                 {
+                    IsPreSocks = true,
                     ProtectDomainList =
                     [.. nodeContext.ProtectDomainList ?? [], .. preSocksResult.Context.ProtectDomainList ?? []],
                     ProtectCoreTypeList = protectCoreTypeList,

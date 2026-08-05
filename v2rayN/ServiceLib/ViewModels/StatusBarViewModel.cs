@@ -101,6 +101,17 @@ public class StatusBarViewModel : MyReactiveObject
     [Reactive]
     public bool BlIsNonWindows { get; set; }
 
+    [Reactive]
+    public bool BlConnectionOn { get; set; }
+
+    [Reactive]
+    public string ConnectionButtonText { get; set; } = string.Empty;
+
+    [Reactive]
+    public bool BlStartConnectionEnabled { get; set; } = true;
+
+    public ReactiveCommand<Unit, Unit> StartConnectionCmd { get; }
+
     #endregion UI
 
     public StatusBarViewModel()
@@ -111,6 +122,7 @@ public class StatusBarViewModel : MyReactiveObject
         RunningServerToolTipText = GetRunningServerToolTipText("-");
         BlSystemProxyPacVisible = Utils.IsWindows();
         BlIsNonWindows = Utils.IsNonWindows();
+        ConnectionButtonText = ResUI.BtnStartConnection;
 
         if (_config.TunModeItem.EnableTun && AllowEnableTun())
         {
@@ -139,10 +151,31 @@ public class StatusBarViewModel : MyReactiveObject
                 y => y >= 0)
             .Subscribe(async c => await DoSystemProxySelected(c));
 
+        this.WhenAnyValue(x => x.EnableTun)
+            .Subscribe(async c => await DoEnableTun(c));
+
         this.WhenAnyValue(
                 x => x.EnableTun,
-                y => y == true)
-            .Subscribe(async c => await DoEnableTun(c));
+                x => x.BlSystemProxySet,
+                x => x.BlSystemProxyPac)
+            .Subscribe(state =>
+            {
+                BlConnectionOn = state.Item1 || state.Item2 || state.Item3;
+                ConnectionButtonText = BlConnectionOn ? ResUI.BtnStopConnection : ResUI.BtnStartConnection;
+            });
+
+        StartConnectionCmd = ReactiveCommand.CreateFromTask(async () =>
+        {
+            if (BlConnectionOn)
+            {
+                await DoStopConnection();
+            }
+            else if (!await SetListenerType(ESysProxyType.ForcedChange))
+            {
+                await SetListenerType(ESysProxyType.ForcedClear);
+                await SetTunEnabled(true);
+            }
+        });
 
         CopyProxyCmdToClipboardCmd = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -213,6 +246,11 @@ public class StatusBarViewModel : MyReactiveObject
             .AsObservable()
             .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(async result => await SetListenerType(result));
+
+        CoreManager.Instance.InboundDisplayRequested
+            .AsObservable()
+            .ObserveOn(RxSchedulers.MainThreadScheduler)
+            .Subscribe(async _ => await InboundDisplayStatus());
 
         #endregion AppEvents
 
@@ -365,26 +403,33 @@ public class StatusBarViewModel : MyReactiveObject
 
     #region System proxy and Routings
 
-    private async Task SetListenerType(ESysProxyType type)
+    private async Task<bool> SetListenerType(ESysProxyType type)
     {
         if (_config.SystemProxyItem.SysProxyType == type)
         {
-            return;
+            return await ChangeSystemProxyAsync(type, true);
         }
         _config.SystemProxyItem.SysProxyType = type;
-        await ChangeSystemProxyAsync(type, true);
+        var success = await ChangeSystemProxyAsync(type, true);
         NoticeManager.Instance.SendMessageEx($"{ResUI.TipChangeSystemProxy} - {_config.SystemProxyItem.SysProxyType}");
 
         SystemProxySelected = (int)_config.SystemProxyItem.SysProxyType;
         await ConfigHandler.SaveConfig(_config);
+        return success;
     }
 
-    public async Task ChangeSystemProxyAsync(ESysProxyType type, bool blChange)
+    private async Task DoStopConnection()
     {
-        await SysProxyHandler.UpdateSysProxy(_config, false);
+        await SetListenerType(ESysProxyType.ForcedClear);
+        await SetTunEnabled(false);
+    }
+
+    public async Task<bool> ChangeSystemProxyAsync(ESysProxyType type, bool blChange)
+    {
+        var success = await SysProxyHandler.UpdateSysProxy(_config, false);
 
         BlSystemProxyClear = type == ESysProxyType.ForcedClear;
-        BlSystemProxySet = type == ESysProxyType.ForcedChange;
+        BlSystemProxySet = type == ESysProxyType.ForcedChange && success;
         BlSystemProxyNothing = type == ESysProxyType.Unchanged;
         BlSystemProxyPac = type == ESysProxyType.Pac;
 
@@ -399,6 +444,7 @@ public class StatusBarViewModel : MyReactiveObject
                 // Ignore
             }
         }
+        return success;
     }
 
     public async Task RefreshRoutingsMenu()
@@ -452,19 +498,30 @@ public class StatusBarViewModel : MyReactiveObject
 
     private async Task DoEnableTun(bool c)
     {
-        if (_config.TunModeItem.EnableTun == EnableTun)
+        await SetTunEnabled(c);
+    }
+
+    private async Task SetTunEnabled(bool enabled)
+    {
+        if (_config.TunModeItem.EnableTun == enabled)
         {
+            EnableTun = enabled;
             return;
         }
 
-        _config.TunModeItem.EnableTun = EnableTun;
+        _config.TunModeItem.EnableTun = enabled;
 
-        if (EnableTun && AllowEnableTun() == false)
+        if (enabled && AllowEnableTun() == false)
         {
             // When running as a non-administrator, reboot to administrator mode
             if (Utils.IsWindows())
             {
-                _config.TunModeItem.EnableTun = false;
+                if (await ConfigHandler.SaveConfig(_config) != 0)
+                {
+                    _config.TunModeItem.EnableTun = EnableTun = false;
+                    return;
+                }
+                EnableTun = true;
                 await AppManager.Instance.RebootAsAdmin();
                 return;
             }
@@ -473,7 +530,7 @@ public class StatusBarViewModel : MyReactiveObject
                 var password = await PasswordInputInteraction.Handle(Unit.Default);
                 if (password.IsNullOrEmpty())
                 {
-                    _config.TunModeItem.EnableTun = false;
+                    _config.TunModeItem.EnableTun = EnableTun = false;
                     return;
                 }
             }
@@ -481,6 +538,7 @@ public class StatusBarViewModel : MyReactiveObject
 
         await ConfigHandler.SaveConfig(_config);
         ReloadRequested.Publish();
+        EnableTun = enabled;
     }
 
     private bool AllowEnableTun()

@@ -716,7 +716,7 @@ public static class ConfigHandler
     /// <summary>
     /// Add or edit a Hysteria2 server
     /// Validates and processes Hysteria2-specific settings
-    /// Sets the core type to sing_box as required by Hysteria2
+    /// Defaults plain Hysteria2 profiles to sing_box
     /// </summary>
     /// <param name="config">Current configuration</param>
     /// <param name="profileItem">Hysteria2 profile to add</param>
@@ -784,6 +784,10 @@ public static class ConfigHandler
                 GeckoMinPacketSize = minPacketSize.ToString(),
                 GeckoMaxPacketSize = maxPacketSize.ToString(),
             });
+        }
+        if (profileItem.CoreType is null && protocolExtra.Hy2RealmUrl.IsNullOrEmpty() && !isGecko)
+        {
+            profileItem.CoreType = ECoreType.sing_box;
         }
 
         await AddServerCommon(config, profileItem, toFile);
@@ -1877,7 +1881,6 @@ public static class ConfigHandler
         {
             lstOriSub = await AppManager.Instance.ProfileItems(subid);
             activeProfile = lstOriSub?.FirstOrDefault(t => t.IndexId == config.IndexId);
-            await RemoveServersViaSubid(config, subid, true);
         }
 
         var counter = 0;
@@ -1935,6 +1938,14 @@ public static class ConfigHandler
         if (counter < 1)
         {
             counter = await AddBatchServers4Custom(config, strData, subid, isSub);
+        }
+
+        if (counter > 0 && lstOriSub is { Count: > 0 })
+        {
+            foreach (var item in lstOriSub)
+            {
+                await RemoveProfileItem(config, item.IndexId);
+            }
         }
 
         //Select active node
@@ -2027,6 +2038,7 @@ public static class ConfigHandler
             item.Remarks = subItem.Remarks;
             item.Url = subItem.Url;
             item.MoreUrl = subItem.MoreUrl;
+            item.LoginPassword = subItem.LoginPassword;
             item.Enabled = subItem.Enabled;
             item.AutoUpdateInterval = subItem.AutoUpdateInterval;
             item.UserAgent = subItem.UserAgent;

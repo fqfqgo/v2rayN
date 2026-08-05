@@ -88,7 +88,7 @@ public class DownloadService
         }
         using var client = new HttpClient(webRequestHandler);
 
-        var response = await client.GetAsync(url);
+        using var response = await client.GetAsync(url);
         if (response.StatusCode == HttpStatusCode.Redirect && response.Headers.Location is not null)
         {
             return response.Headers.Location.ToString();
@@ -106,8 +106,13 @@ public class DownloadService
     /// </summary>
     public async Task<string?> TryDownloadString(string url, bool blProxy, string userAgent)
     {
+        return await TryDownloadString(url, await GetWebProxy(blProxy), userAgent);
+    }
+
+    public async Task<(string? Content, HttpHeaders? ResponseHeaders)> TryDownloadStringWithHeaders(string url, bool blProxy, string userAgent)
+    {
         var webProxy = await GetWebProxy(blProxy);
-        return await TryDownloadString(url, webProxy, userAgent);
+        return await TryDownloadStringWithHeaders(url, webProxy, userAgent);
     }
 
     /// <summary>
@@ -115,50 +120,21 @@ public class DownloadService
     /// </summary>
     public async Task<string?> TryDownloadString(string url, IWebProxy? webProxy, string userAgent)
     {
-        var timeout = 15;
-        try
-        {
-            var result1 = await DownloadStringAsync(url, webProxy, userAgent, timeout);
-            if (result1.IsNotEmpty())
-            {
-                return result1;
-            }
-        }
-        catch (Exception ex)
-        {
-            Logging.SaveLog(_tag, ex);
-            Error?.Invoke(this, new ErrorEventArgs(ex));
-            if (ex.InnerException != null)
-            {
-                Error?.Invoke(this, new ErrorEventArgs(ex.InnerException));
-            }
-        }
+        var (content, _) = await TryDownloadStringWithHeaders(url, webProxy, userAgent);
+        return content.IsNotEmpty()
+            ? content
+            : await DownloadStringViaDownloader(url, webProxy, userAgent, 15);
+    }
 
-        try
-        {
-            var result2 = await DownloadStringViaDownloader(url, webProxy, userAgent, timeout);
-            if (result2.IsNotEmpty())
-            {
-                return result2;
-            }
-        }
-        catch (Exception ex)
-        {
-            Logging.SaveLog(_tag, ex);
-            Error?.Invoke(this, new ErrorEventArgs(ex));
-            if (ex.InnerException != null)
-            {
-                Error?.Invoke(this, new ErrorEventArgs(ex.InnerException));
-            }
-        }
-
-        return null;
+    public async Task<(string? Content, HttpHeaders? ResponseHeaders)> TryDownloadStringWithHeaders(string url, IWebProxy? webProxy, string userAgent)
+    {
+        return await DownloadStringWithHeadersAsync(url, webProxy, userAgent, 15);
     }
 
     /// <summary>
     /// Downloads string content via HttpClient.
     /// </summary>
-    private async Task<string?> DownloadStringAsync(string url, IWebProxy? webProxy, string userAgent, int timeout)
+    private async Task<(string? Content, HttpHeaders? ResponseHeaders)> DownloadStringWithHeadersAsync(string url, IWebProxy? webProxy, string userAgent, int timeout)
     {
         try
         {
@@ -197,7 +173,9 @@ public class DownloadService
             using var cts = new CancellationTokenSource();
             cts.CancelAfter(TimeSpan.FromSeconds(timeout));
 
-            return await client.GetStringAsync(url, cts.Token);
+            using var response = await client.GetAsync(url, cts.Token);
+            response.EnsureSuccessStatusCode();
+            return (await response.Content.ReadAsStringAsync(cts.Token), response.Headers);
         }
         catch (Exception ex)
         {
@@ -209,7 +187,7 @@ public class DownloadService
             }
         }
 
-        return null;
+        return (null, null);
     }
 
     /// <summary>

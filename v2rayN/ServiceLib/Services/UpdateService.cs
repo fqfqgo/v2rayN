@@ -186,14 +186,20 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
         }
         else
         {
-            var url = Path.Combine(coreInfo.Url, "latest");
+            var url = $"{coreInfo.Url.TrimEnd('/')}/latest";
             var lastUrl = await downloadHandle.UrlRedirectAsync(url, true);
-            if (lastUrl == null)
+            if (lastUrl == null
+                || !Uri.TryCreate(lastUrl, UriKind.Absolute, out var releaseUri)
+                || !releaseUri.AbsolutePath.Contains("/tag/", StringComparison.Ordinal))
             {
                 return new UpdateResult(false, "");
             }
 
-            tagName = lastUrl?.Split("/tag/").LastOrDefault();
+            tagName = releaseUri.AbsolutePath.Split("/tag/").LastOrDefault();
+        }
+        if (!Regex.IsMatch(tagName ?? "", @"^v?\d+\.\d+(?:\.\d+){0,2}(?:[-+][0-9A-Za-z.-]+)?$"))
+        {
+            return new UpdateResult(false, "");
         }
         return new UpdateResult(true, new SemanticVersion(tagName));
     }
@@ -301,7 +307,13 @@ public class UpdateService(Config config, Func<bool, string, Task> updateFunc)
                 return new UpdateResult(false, message);
             }
 
-            result.Url = url;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var downloadUri)
+                || downloadUri.Scheme != Uri.UriSchemeHttps
+                || !downloadUri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase))
+            {
+                return new UpdateResult(false, "");
+            }
+            result.Url = downloadUri.ToString();
             return result;
         }
         catch (Exception ex)
