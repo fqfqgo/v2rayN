@@ -43,11 +43,4 @@ gpg --verify v2rayN-windows-64.zip.sig v2rayN-windows-64.zip
 | Linux | ✅ | - | ✅ | ✅ | ✅ |
 | macOS | ✅ | - | ✅ | - | - |
 
-本 fork 不自动发布 WinGet，也不生成 Linux RPM riscv64；其他 riscv64/loong64 资产是否提供以对应发布页为准。
 
-## 文档与来源
-
-- 上游项目：https://github.com/2dust/v2rayN
-- 使用文档：https://github.com/2dust/v2rayN/wiki
-- 支持的核心：https://github.com/2dust/v2rayN/wiki/List-of-supported-cores
-- Android 客户端：https://github.com/2dust/v2rayNG
