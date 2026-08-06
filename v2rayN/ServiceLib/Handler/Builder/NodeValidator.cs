@@ -124,34 +124,9 @@ public class NodeValidator
         // TLS & Security
         if (item.StreamSecurity == Global.StreamSecurity)
         {
-            var isCertProvided = !item.Cert.IsNullOrEmpty();
             if (!item.Cert.IsNullOrEmpty() && CertPemManager.ParsePemChain(item.Cert).Count == 0)
             {
                 v.Error(string.Format(ResUI.MsgInvalidProperty, ResUI.TbFullCertTips));
-                isCertProvided = false;
-            }
-
-            // Anytls 常依赖 allowInsecure，不弹 TLS 跳过证书警告
-            if (item.ConfigType != EConfigType.Anytls)
-            {
-                // Check for deprecated allowInsecure property when TLS is enabled
-                if (item.GetAllowInsecure()
-                    && item.Cert.IsNullOrEmpty()
-                    && item.CertSha.IsNullOrEmpty())
-                {
-                    v.Warning(ResUI.MsgAllowInsecureDeprecated);
-                }
-
-                if ((coreType == ECoreType.Xray
-                    && item.GetAllowInsecure()
-                    && !isCertProvided
-                    && item.CertSha.IsNullOrEmpty())
-                    || (coreType == ECoreType.sing_box
-                        && item.GetAllowInsecure()
-                        && !isCertProvided))
-                {
-                    v.Warning(ResUI.MsgInsecureConfiguration);
-                }
             }
         }
 
