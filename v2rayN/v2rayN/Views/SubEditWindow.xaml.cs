@@ -28,6 +28,7 @@ public partial class SubEditWindow
         };
 
         cmbConvertTarget.ItemsSource = Global.SubConvertTargets;
+        cmbCustomCoreType.ItemsSource = Utils.GetEnumNames<ECoreType>().Where(t => t != nameof(ECoreType.v2rayN)).ToList().AppendEmpty();
 
         this.WhenActivated(disposables =>
         {
@@ -45,6 +46,7 @@ public partial class SubEditWindow
             this.Bind(ViewModel, vm => vm.SelectedSource.PreSocksPort, v => v.txtPreSocksPort.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.Memo, v => v.txtMemo.Text).DisposeWith(disposables);
             this.Bind(ViewModel, vm => vm.SelectedSource.LoginPassword, v => v.txtLoginPassword.Text).DisposeWith(disposables);
+            this.Bind(ViewModel, vm => vm.CustomCoreType, v => v.cmbCustomCoreType.Text).DisposeWith(disposables);
 
             this.BindCommand(ViewModel, vm => vm.SelectPrevProfileCmd, v => v.btnSelectPrevProfile).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.SelectNextProfileCmd, v => v.btnSelectNextProfile).DisposeWith(disposables);
@@ -53,7 +55,7 @@ public partial class SubEditWindow
             ViewModel.ShowMsgInteraction.RegisterHandler(interaction =>
             {
                 UI.Show(interaction.Input);
-                interaction.SetOutput(Unit.Default);
+                interaction.SetOutput(RxVoid.Default);
             }).DisposeWith(disposables);
         });
         WindowsUtils.SetDarkBorder(this, AppManager.Instance.Config.UiItem.CurrentTheme);

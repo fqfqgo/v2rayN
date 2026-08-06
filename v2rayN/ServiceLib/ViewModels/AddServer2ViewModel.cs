@@ -1,20 +1,23 @@
 namespace ServiceLib.ViewModels;
 
-public class AddServer2ViewModel : MyReactiveObject, ICloseable
+public partial class AddServer2ViewModel : MyReactiveObject, ICloseable
 {
     public event EventHandler? RequestClose;
 
-    public Interaction<Unit, string?> BrowseConfigFileInteraction { get; } = new();
+    public Interaction<RxVoid, string?> BrowseConfigFileInteraction { get; } = new();
 
     [Reactive]
-    public ProfileItem SelectedSource { get; set; }
+    public partial ProfileItem SelectedSource { get; set; }
 
     [Reactive]
-    public string? CoreType { get; set; }
+    public partial string? CoreType { get; set; }
 
-    public ReactiveCommand<Unit, Unit> BrowseServerCmd { get; }
-    public ReactiveCommand<Unit, Unit> EditServerCmd { get; }
-    public ReactiveCommand<Unit, Unit> SaveServerCmd { get; }
+    [Reactive]
+    public partial bool IsSingboxEndpoint { get; set; }
+
+    public ReactiveCommand<RxVoid, RxVoid> BrowseServerCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> EditServerCmd { get; }
+    public ReactiveCommand<RxVoid, RxVoid> SaveServerCmd { get; }
     public bool IsModified { get; set; }
 
     public AddServer2ViewModel(ProfileItem profileItem)
@@ -23,7 +26,7 @@ public class AddServer2ViewModel : MyReactiveObject, ICloseable
 
         BrowseServerCmd = ReactiveCommand.CreateFromTask(async () =>
         {
-            var fileName = await BrowseConfigFileInteraction.Handle(Unit.Default);
+            var fileName = await BrowseConfigFileInteraction.Handle(RxVoid.Default);
             if (fileName.IsNullOrEmpty())
             {
                 return;
@@ -40,7 +43,10 @@ public class AddServer2ViewModel : MyReactiveObject, ICloseable
         });
 
         SelectedSource = profileItem.IndexId.IsNullOrEmpty() ? profileItem : JsonUtils.DeepCopy(profileItem);
-        CoreType = SelectedSource?.CoreType?.ToString();
+        var coreStr = SelectedSource?.CoreType?.ToString();
+        coreStr = coreStr.IsNullOrEmpty() ? Global.CoreTypes.FirstOrDefault() : coreStr;
+        CoreType = coreStr;
+        IsSingboxEndpoint = SelectedSource?.GetProtocolExtra()?.IsSingboxEndpoint ?? false;
     }
 
     private async Task SaveServerAsync()
@@ -58,6 +64,10 @@ public class AddServer2ViewModel : MyReactiveObject, ICloseable
             return;
         }
         SelectedSource.CoreType = CoreType.IsNullOrEmpty() ? null : Enum.Parse<ECoreType>(CoreType);
+        SelectedSource.SetProtocolExtra(SelectedSource?.GetProtocolExtra() with
+        {
+            IsSingboxEndpoint = IsSingboxEndpoint ? true : null,
+        });
 
         if (await ConfigHandler.EditCustomServer(_config, SelectedSource) == 0)
         {
@@ -80,7 +90,8 @@ public class AddServer2ViewModel : MyReactiveObject, ICloseable
         var item = await AppManager.Instance.GetProfileItem(SelectedSource.IndexId);
         item ??= SelectedSource;
         item.Address = fileName;
-        if (await ConfigHandler.AddCustomServer(_config, item, false) == 0)
+        var result = item.ConfigType == EConfigType.Outbound ? await ConfigHandler.AddCustomOutboundServer(_config, item, false) : await ConfigHandler.AddCustomServer(_config, item, false);
+        if (result == 0)
         {
             NoticeManager.Instance.Enqueue(ResUI.SuccessfullyImportedCustomServer);
             if (item.IndexId.IsNotEmpty())

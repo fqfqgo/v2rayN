@@ -7,8 +7,8 @@ public class CoreManager
 {
     private static readonly Lazy<CoreManager> _instance = new(() => new());
     public static CoreManager Instance => _instance.Value;
-    public EventChannel<Unit> ReloadRequested { get; } = new();
-    public EventChannel<Unit> InboundDisplayRequested { get; } = new();
+    public EventChannel<RxVoid> ReloadRequested { get; } = new();
+    public EventChannel<RxVoid> InboundDisplayRequested { get; } = new();
     private Config _config;
 
     [SupportedOSPlatform("windows")]

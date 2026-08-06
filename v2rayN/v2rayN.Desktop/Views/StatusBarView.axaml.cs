@@ -38,7 +38,7 @@ public partial class StatusBarView : ReactiveUserControl<StatusBarViewModel>
             {
                 var strData = interaction.Input;
                 await AvaUtils.SetClipboardData(this, strData);
-                interaction.SetOutput(Unit.Default);
+                interaction.SetOutput(RxVoid.Default);
             }).DisposeWith(disposables);
 
             ViewModel.PasswordInputInteraction.RegisterHandler(async interaction =>
@@ -50,7 +50,7 @@ public partial class StatusBarView : ReactiveUserControl<StatusBarViewModel>
             ViewModel.DispatcherRefreshIconInteraction.RegisterHandler(interaction =>
             {
                 Dispatcher.UIThread.Post(RefreshIcon, DispatcherPriority.Default);
-                interaction.SetOutput(Unit.Default);
+                interaction.SetOutput(RxVoid.Default);
             }).DisposeWith(disposables);
         });
 

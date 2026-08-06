@@ -1,4 +1,3 @@
-using System.Reactive.Disposables;
 using System.Windows.Controls;
 using System.Windows.Media;
 using MaterialDesignThemes.Wpf;
@@ -10,7 +9,7 @@ namespace v2rayN.Views;
 public partial class MainWindow
 {
     private static Config _config;
-    private readonly SerialDisposable _layoutBindingsDisposable = new();
+    private readonly SingleReplaceableDisposable _layoutBindingsDisposable = new();
     private CheckUpdateView? _checkUpdateView;
     private BackupAndRestoreView? _backupAndRestoreView;
     private bool _logPanelVisible;
@@ -51,6 +50,7 @@ public partial class MainWindow
             this.BindCommand(ViewModel, vm => vm.AddAnytlsServerCmd, v => v.menuAddAnytlsServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddNaiveServerCmd, v => v.menuAddNaiveServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddCustomServerCmd, v => v.menuAddCustomServer).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.AddCustomOutboundServerCmd, v => v.menuAddCustomOutboundServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddPolicyGroupServerCmd, v => v.menuAddPolicyGroupServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddProxyChainServerCmd, v => v.menuAddProxyChainServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddServerViaClipboardCmd, v => v.menuAddServerViaClipboard).DisposeWith(disposables);
@@ -124,7 +124,7 @@ public partial class MainWindow
             ViewModel.ShowHideWindowInteraction.RegisterHandler(interaction =>
             {
                 ShowHideWindow(interaction.Input);
-                interaction.SetOutput(Unit.Default);
+                interaction.SetOutput(RxVoid.Default);
             }).DisposeWith(disposables);
 
             AppEvents.SendSnackMsgRequested
@@ -378,8 +378,8 @@ public partial class MainWindow
 
     private void UpdateLayout(EGirdOrientation orientation)
     {
-        var currentLayoutDisposables = new CompositeDisposable();
-        _layoutBindingsDisposable.Disposable = currentLayoutDisposables;
+        var currentLayoutDisposables = new MultipleDisposable();
+        _layoutBindingsDisposable.Create(currentLayoutDisposables);
 
         gridMain.Visibility = orientation == EGirdOrientation.Horizontal ? Visibility.Visible : Visibility.Collapsed;
         gridMain1.Visibility = orientation == EGirdOrientation.Vertical ? Visibility.Visible : Visibility.Collapsed;

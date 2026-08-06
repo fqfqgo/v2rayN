@@ -1,4 +1,3 @@
-using System.Reactive.Disposables;
 using Avalonia.Controls.Notifications;
 using Avalonia.Layout;
 using DialogHostAvalonia;
@@ -11,7 +10,7 @@ namespace v2rayN.Desktop.Views;
 public partial class MainWindow : WindowBase<MainWindowViewModel>
 {
     private static Config _config;
-    private readonly SerialDisposable _layoutBindingsDisposable = new();
+    private readonly SingleReplaceableDisposable _layoutBindingsDisposable = new();
     private readonly WindowNotificationManager? _manager;
     private CheckUpdateView? _checkUpdateView;
     private BackupAndRestoreView? _backupAndRestoreView;
@@ -57,6 +56,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
             this.BindCommand(ViewModel, vm => vm.AddAnytlsServerCmd, v => v.menuAddAnytlsServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddNaiveServerCmd, v => v.menuAddNaiveServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddCustomServerCmd, v => v.menuAddCustomServer).DisposeWith(disposables);
+            this.BindCommand(ViewModel, vm => vm.AddCustomOutboundServerCmd, v => v.menuAddCustomOutboundServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddPolicyGroupServerCmd, v => v.menuAddPolicyGroupServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddProxyChainServerCmd, v => v.menuAddProxyChainServer).DisposeWith(disposables);
             this.BindCommand(ViewModel, vm => vm.AddServerViaClipboardCmd, v => v.menuAddServerViaClipboard).DisposeWith(disposables);
@@ -121,7 +121,7 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
             ViewModel.ShowHideWindowInteraction.RegisterHandler(interaction =>
             {
                 ShowHideWindow(interaction.Input);
-                interaction.SetOutput(Unit.Default);
+                interaction.SetOutput(RxVoid.Default);
             }).DisposeWith(disposables);
 
             AppEvents.SendSnackMsgRequested
@@ -427,8 +427,8 @@ public partial class MainWindow : WindowBase<MainWindowViewModel>
 
     private void UpdateLayout(EGirdOrientation orientation)
     {
-        var currentLayoutDisposables = new CompositeDisposable();
-        _layoutBindingsDisposable.Disposable = currentLayoutDisposables;
+        var currentLayoutDisposables = new MultipleDisposable();
+        _layoutBindingsDisposable.Create(currentLayoutDisposables);
 
         gridMain.IsVisible = orientation == EGirdOrientation.Horizontal;
         gridMain1.IsVisible = orientation == EGirdOrientation.Vertical;
