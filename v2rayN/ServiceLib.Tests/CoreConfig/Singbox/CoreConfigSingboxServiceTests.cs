@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using AwesomeAssertions;
 using ServiceLib.Common;
 using ServiceLib.Enums;
@@ -591,6 +592,94 @@ public class CoreConfigSingboxServiceTests
         proxy.realm.realm_id.Should().Be("my-realm-id");
         proxy.realm.stun_servers.Should().Contain("turn.cloudflare.com:3478");
         proxy.server.Should().BeNull();
+        proxy.tls.Should().NotBeNull();
+        proxy.tls!.enabled.Should().BeTrue();
+        proxy.tls.server_name.Should().Be("cloudflare.com");
+        node.CertSha.Should().Be("xxx");
+        proxy.tls.certificate_public_key_sha256.Should().BeNull();
+    }
+
+    [Fact]
+    public void GenerateClientConfigContent_Hysteria2_ShouldEmitPublicKeyPinFromPem()
+    {
+        using var rsa = RSA.Create(2048);
+        var req = new CertificateRequest("CN=hy2-test", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        using var cert = req.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(30));
+        var pem = cert.ExportCertificatePem();
+        var expectedPin = CertPemManager.GetCertPublicKeySha256Base64(pem);
+
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.sing_box);
+        config.CoreTypeItem =
+        [
+            new CoreTypeItem { ConfigType = EConfigType.Hysteria2, CoreType = ECoreType.sing_box }
+        ];
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+
+        var node = new ProfileItem
+        {
+            IndexId = "hy2-pem",
+            ConfigType = EConfigType.Hysteria2,
+            CoreType = ECoreType.sing_box,
+            Remarks = "hy2-pem",
+            Address = "example.com",
+            Port = 443,
+            Password = "pwd",
+            StreamSecurity = string.Empty,
+            Sni = "www.bing.com",
+            Cert = pem,
+        };
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.sing_box);
+
+        var result = new CoreConfigSingboxService(context).GenerateClientConfigContent();
+
+        result.Success.Should().BeTrue($"ret msg: {result.Msg}");
+        var json = result.Data!.ToString();
+        json.Should().Contain("certificate_public_key_sha256");
+        json.Should().Contain(expectedPin);
+
+        var cfg = JsonUtils.Deserialize<SingboxConfig>(json)!;
+        var proxy = cfg.outbounds.First(o => o.tag == Global.ProxyTag);
+        proxy.type.Should().Be("hysteria2");
+        proxy.tls.Should().NotBeNull();
+        proxy.tls!.enabled.Should().BeTrue();
+        proxy.tls.server_name.Should().Be("www.bing.com");
+        proxy.tls.certificate.Should().BeNull();
+        proxy.tls.certificate_public_key_sha256.Should().Equal(expectedPin);
+    }
+
+    [Fact]
+    public void GenerateClientConfigContent_Hysteria2_ShouldEmitPublicKeyPinFromCertSha()
+    {
+        const string pin = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.sing_box);
+        config.CoreTypeItem =
+        [
+            new CoreTypeItem { ConfigType = EConfigType.Hysteria2, CoreType = ECoreType.sing_box }
+        ];
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+
+        var node = new ProfileItem
+        {
+            IndexId = "hy2-spki",
+            ConfigType = EConfigType.Hysteria2,
+            CoreType = ECoreType.sing_box,
+            Remarks = "hy2-spki",
+            Address = "example.com",
+            Port = 443,
+            Password = "pwd",
+            StreamSecurity = Global.StreamSecurity,
+            Sni = "www.bing.com",
+            CertSha = pin,
+        };
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.sing_box);
+
+        var result = new CoreConfigSingboxService(context).GenerateClientConfigContent();
+
+        result.Success.Should().BeTrue($"ret msg: {result.Msg}");
+        var cfg = JsonUtils.Deserialize<SingboxConfig>(result.Data!.ToString())!;
+        var proxy = cfg.outbounds.First(o => o.tag == Global.ProxyTag);
+        proxy.tls.Should().NotBeNull();
+        proxy.tls!.certificate_public_key_sha256.Should().Equal(pin);
     }
 
     [Fact]

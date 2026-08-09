@@ -82,8 +82,10 @@ public class HyRealmTests
         var str = "hysteria2+realm://public@realm.hy2.io/my-realm-id?auth=uuid&stun=turn.cloudflare.com%3A3478&sni=cloudflare.com&pinSHA256=xxx#Realm-Test";
         var resolved = Hysteria2Fmt.ResolveRealm(str, out _);
         resolved.Should().NotBeNull();
+        resolved!.StreamSecurity.Should().Be(Global.StreamSecurity);
+        resolved.CertSha.Should().Be("xxx");
 
-        HyRealm.TryParse(resolved!.GetProtocolExtra().Hy2RealmUrl, out var realm).Should().BeTrue();
+        HyRealm.TryParse(resolved.GetProtocolExtra().Hy2RealmUrl, out var realm).Should().BeTrue();
         realm!.ToServerUrl().Should().StartWith("https://");
         realm.ToServerUrl().Should().Contain("realm.hy2.io");
         realm.StunList.Should().Contain("turn.cloudflare.com:3478");

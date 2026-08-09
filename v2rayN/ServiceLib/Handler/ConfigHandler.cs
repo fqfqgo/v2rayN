@@ -833,7 +833,7 @@ public static class ConfigHandler
         }
         if (profileItem.CoreType is null && protocolExtra.Hy2RealmUrl.IsNullOrEmpty() && !isGecko)
         {
-            profileItem.CoreType = ECoreType.sing_box;
+            profileItem.CoreType = profileItem.CertSha.IsNullOrEmpty() ? ECoreType.sing_box : ECoreType.Xray;
         }
 
         await AddServerCommon(config, profileItem, toFile);

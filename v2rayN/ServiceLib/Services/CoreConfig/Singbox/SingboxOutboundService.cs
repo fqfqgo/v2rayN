@@ -406,7 +406,8 @@ public partial class CoreConfigSingboxService
     {
         try
         {
-            if (_node.StreamSecurity is not (Global.StreamSecurityReality or Global.StreamSecurity))
+            var useTls = _node.StreamSecurity == Global.StreamSecurity || _node.ConfigType == EConfigType.Hysteria2;
+            if (!useTls && _node.StreamSecurity != Global.StreamSecurityReality)
             {
                 return;
             }
@@ -452,13 +453,32 @@ public partial class CoreConfigSingboxService
                     fingerprint = _node.Fingerprint.IsNullOrEmpty() ? _config.CoreBasicItem.DefFingerprint : _node.Fingerprint
                 };
             }
-            if (_node.StreamSecurity == Global.StreamSecurity)
+            if (useTls)
             {
                 var certs = CertPemManager.ParsePemChain(_node.Cert);
                 if (certs.Count > 0)
                 {
-                    tls.certificate = certs;
-                    tls.insecure = false;
+                    var pins = certs
+                        .Select(CertPemManager.GetCertPublicKeySha256Base64)
+                        .Where(s => s.IsNotEmpty())
+                        .ToList();
+                    if (pins.Count > 0 && _node.ConfigType == EConfigType.Hysteria2)
+                    {
+                        tls.certificate_public_key_sha256 = pins;
+                    }
+                    else
+                    {
+                        tls.certificate = certs;
+                        tls.insecure = false;
+                    }
+                }
+                else
+                {
+                    var pins = TryParseSingboxPublicKeyPins(_node.CertSha);
+                    if (pins is not null)
+                    {
+                        tls.certificate_public_key_sha256 = pins;
+                    }
                 }
             }
             else if (_node.StreamSecurity == Global.StreamSecurityReality)
@@ -482,6 +502,37 @@ public partial class CoreConfigSingboxService
         {
             Logging.SaveLog(_tag, ex);
         }
+    }
+
+    private static List<string>? TryParseSingboxPublicKeyPins(string? certSha)
+    {
+        if (certSha.IsNullOrEmpty())
+        {
+            return null;
+        }
+        List<string>? pins = null;
+        foreach (var part in certSha.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var hex = part.Replace(":", "").Replace(" ", "");
+            if (hex.Length == 64 && hex.All(static c => char.IsAsciiHexDigit(c)))
+            {
+                continue;
+            }
+            try
+            {
+                if (Convert.FromBase64String(part).Length != 32)
+                {
+                    continue;
+                }
+            }
+            catch
+            {
+                continue;
+            }
+            pins ??= [];
+            pins.Add(part);
+        }
+        return pins;
     }
 
     private void FillOutboundTransport(Outbound4Sbox outbound)

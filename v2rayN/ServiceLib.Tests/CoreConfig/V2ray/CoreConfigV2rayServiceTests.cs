@@ -631,4 +631,48 @@ public class CoreConfigV2rayServiceTests
         proxyOutbound!.protocol.Should().Be("shadowsocks");
         proxyOutbound.settings.servers.Should().NotBeNull();
     }
+
+    [Fact]
+    public void GenerateClientConfigContent_Hysteria2_ShouldEmitPinnedPeerCertSha256()
+    {
+        const string pin = "8ce2b8084f7762cdd8aa22c740a1e0b85f4f1082cd25410b99015ca180dce2d7";
+        var config = CoreConfigTestFactory.CreateConfig(ECoreType.Xray);
+        config.CoreTypeItem =
+        [
+            new CoreTypeItem { ConfigType = EConfigType.Hysteria2, CoreType = ECoreType.Xray }
+        ];
+        CoreConfigTestFactory.BindAppManagerConfig(config);
+
+        var node = new ProfileItem
+        {
+            IndexId = "hy2-pin",
+            ConfigType = EConfigType.Hysteria2,
+            CoreType = ECoreType.Xray,
+            Remarks = "hy2-pin",
+            Address = "example.com",
+            Port = 443,
+            Password = "pwd",
+            StreamSecurity = string.Empty,
+            Sni = "www.bing.com",
+            CertSha = pin,
+            AllowInsecure = Global.StringTrue,
+        };
+        var context = CoreConfigTestFactory.CreateContext(config, node, ECoreType.Xray);
+
+        var result = new CoreConfigV2rayService(context).GenerateClientConfigContent();
+
+        result.Success.Should().BeTrue($"ret msg: {result.Msg}");
+        var json = result.Data!.ToString();
+        json.Should().Contain("pinnedPeerCertSha256");
+        json.Should().Contain(pin);
+
+        var cfg = JsonUtils.Deserialize<V2rayConfig>(json)!;
+        var outbound = cfg.outbounds.First(o => o.tag == Global.ProxyTag);
+        outbound.protocol.Should().Be("hysteria");
+        outbound.streamSettings.security.Should().Be(Global.StreamSecurity);
+        outbound.streamSettings.tlsSettings.Should().NotBeNull();
+        outbound.streamSettings.tlsSettings!.pinnedPeerCertSha256.Should().Be(pin);
+        outbound.streamSettings.tlsSettings.serverName.Should().Be("www.bing.com");
+        outbound.streamSettings.tlsSettings.allowInsecure.Should().BeTrue();
+    }
 }

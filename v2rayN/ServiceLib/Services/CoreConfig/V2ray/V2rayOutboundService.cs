@@ -404,9 +404,9 @@ public partial class CoreConfigV2rayService
             var useragent = _config.CoreBasicItem.DefUserAgent ?? string.Empty;
 
             //if tls
-            if (_node.StreamSecurity == Global.StreamSecurity)
+            if (_node.StreamSecurity == Global.StreamSecurity || _node.ConfigType == EConfigType.Hysteria2)
             {
-                streamSettings.security = _node.StreamSecurity;
+                streamSettings.security = Global.StreamSecurity;
 
                 TlsSettings4Ray tlsSettings = new()
                 {
@@ -449,7 +449,6 @@ public partial class CoreConfigV2rayService
                 else if (!_node.CertSha.IsNullOrEmpty())
                 {
                     tlsSettings.pinnedPeerCertSha256 = _node.CertSha;
-                    tlsSettings.allowInsecure = false;
                 }
                 streamSettings.tlsSettings = tlsSettings;
             }

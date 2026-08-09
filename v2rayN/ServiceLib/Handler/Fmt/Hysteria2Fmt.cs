@@ -162,6 +162,10 @@ public class Hysteria2Fmt : BaseFmt
 
     private static void ResolveHy2UriQuery(NameValueCollection query, ref ProfileItem item)
     {
+        if (item.StreamSecurity.IsNullOrEmpty())
+        {
+            item.StreamSecurity = Global.StreamSecurity;
+        }
         if (GetQueryValue(query, "insecure") == "1")
         {
             item.AllowInsecure = Global.StringTrue;

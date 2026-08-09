@@ -281,6 +281,19 @@ public class CertPemManager
         }
     }
 
+    public static string GetCertPublicKeySha256Base64(string pemCert)
+    {
+        try
+        {
+            var cert = X509Certificate2.CreateFromPem(pemCert);
+            return Convert.ToBase64String(SHA256.HashData(cert.PublicKey.ExportSubjectPublicKeyInfo()));
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
     private static readonly Lazy<X509Certificate2Collection> _chromeRootCerts = new(() =>
     {
         var pemText = EmbedUtils.GetEmbedText(Global.ChromeRootCertFileName);
