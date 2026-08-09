@@ -673,6 +673,7 @@ public class CoreConfigV2rayServiceTests
         outbound.streamSettings.tlsSettings.Should().NotBeNull();
         outbound.streamSettings.tlsSettings!.pinnedPeerCertSha256.Should().Be(pin);
         outbound.streamSettings.tlsSettings.serverName.Should().Be("www.bing.com");
-        outbound.streamSettings.tlsSettings.allowInsecure.Should().BeTrue();
+        outbound.streamSettings.tlsSettings.allowInsecure.Should().BeNull();
+        json.Should().NotContain("allowInsecure");
     }
 }

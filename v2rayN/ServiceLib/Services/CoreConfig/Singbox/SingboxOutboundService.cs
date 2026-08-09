@@ -437,7 +437,6 @@ public partial class CoreConfigSingboxService
             {
                 enabled = true,
                 server_name = serverName,
-                insecure = _node.GetAllowInsecure(),
                 alpn = _node.GetAlpn(),
             };
             if (_config.CoreBasicItem.EnableFragment == true)
@@ -469,7 +468,6 @@ public partial class CoreConfigSingboxService
                     else
                     {
                         tls.certificate = certs;
-                        tls.insecure = false;
                     }
                 }
                 else
@@ -478,6 +476,10 @@ public partial class CoreConfigSingboxService
                     if (pins is not null)
                     {
                         tls.certificate_public_key_sha256 = pins;
+                    }
+                    else if (_node.GetAllowInsecure())
+                    {
+                        tls.insecure = true;
                     }
                 }
             }
@@ -489,7 +491,6 @@ public partial class CoreConfigSingboxService
                     public_key = _node.PublicKey,
                     short_id = _node.ShortId
                 };
-                tls.insecure = false;
             }
             var (ech, _) = ParseEchParam(_node.EchConfigList);
             if (ech is not null)
