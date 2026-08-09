@@ -7,7 +7,7 @@
 [![GPG Signed](https://img.shields.io/badge/GPG-signed-4B32C3?logo=gnuprivacyguard)](https://github.com/fqfqgo/v2rayN/releases)
 
 > [!IMPORTANT]
-> 当前维护基线固定为 **7.24.4**。这是紧急安全更新基线，请勿从本仓库的旧版构建降级；下载后应同时校验对应的 GPG 签名。
+> 当前维护基线固定为 **7.24.6**。这是紧急安全更新基线，请勿从本仓库的旧版构建降级；下载后应同时校验对应的 GPG 签名。
 
 ## 下载
 
@@ -42,6 +42,8 @@ gpg --verify v2rayN-windows-64.zip.sig v2rayN-windows-64.zip
 | Windows | ✅ | ✅ | ✅ | - | - |
 | Linux | ✅ | - | ✅ | ✅ | ✅ |
 | macOS | ✅ | - | ✅ | - | - |
+
+最低系统要求：[发布文件介绍](https://github.com/2dust/v2rayN/wiki/Release-files-introduction)
 
 本 fork 不自动发布 WinGet，也不生成 Linux RPM riscv64；其他 riscv64/loong64 资产是否提供以对应发布页为准。
 
