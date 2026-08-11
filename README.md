@@ -17,7 +17,7 @@ https://github.com/fqfqgo/v2rayN/releases
 
 每个发布资产都应同时提供同名 `.sig` 文件，发布页还应包含 `v2rayN-public-key.asc`。不要只校验压缩包能否解压，也不要信任第三方镜像重新打包的文件。
 
-Windows 用户若不方便解压 zip，可下载同版本的 `*-Setup.exe`：它会解压到当前用户目录 `%LocalAppData%\Programs\v2rayN`，并创建桌面快捷方式；不写注册表，也不写入系统目录。
+Windows 用户若不方便解压 zip，可下载同版本的 `*-Setup.exe`：它会解压到当前用户目录 `%LocalAppData%\Programs\v2rayN`，创建桌面快捷方式，并登记当前用户卸载信息；不写入系统目录。
 
 ## GPG 与资产校验
 

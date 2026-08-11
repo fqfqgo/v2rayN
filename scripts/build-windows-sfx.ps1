@@ -25,26 +25,20 @@ $sevenZip = $sevenZipCmd.Source
 
 $rootDir = Split-Path -Parent $PSScriptRoot
 $sfxDir = Join-Path $rootDir 'scripts\windows-sfx'
+$sfxModule = Join-Path $sfxDir '7zSD-v2rayN.sfx'
+if (-not (Test-Path -LiteralPath $sfxModule)) {
+    throw "missing branded SFX module: $sfxModule"
+}
+
 $workDir = Join-Path ([System.IO.Path]::GetTempPath()) ("v2rayn-sfx-" + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $workDir | Out-Null
 try {
-    $sdkVer = '2501'
-    $sdkUrl = "https://www.7-zip.org/a/lzma${sdkVer}.7z"
-    $sdkArchive = Join-Path $workDir 'lzma-sdk.7z'
-    Write-Host "Downloading LZMA SDK $sdkVer..."
-    Invoke-WebRequest -Uri $sdkUrl -OutFile $sdkArchive
-
-    & $sevenZip e -y "-o$workDir" $sdkArchive 'bin\7zSD.sfx' | Out-Null
-    $sfxModule = Join-Path $workDir '7zSD.sfx'
-    if (-not (Test-Path -LiteralPath $sfxModule)) {
-        throw 'bin/7zSD.sfx not found in LZMA SDK package'
-    }
-
     $payloadCopy = Join-Path $workDir 'payload'
     New-Item -ItemType Directory -Path $payloadCopy | Out-Null
     Copy-Item -Path (Join-Path $PayloadDir '*') -Destination $payloadCopy -Recurse -Force
     Copy-Item -Path (Join-Path $sfxDir 'install.ps1') -Destination (Join-Path $payloadCopy 'install.ps1') -Force
     Copy-Item -Path (Join-Path $sfxDir 'install.cmd') -Destination (Join-Path $payloadCopy 'install.cmd') -Force
+    Copy-Item -Path (Join-Path $sfxDir 'uninstall.ps1') -Destination (Join-Path $payloadCopy 'uninstall.ps1') -Force
 
     $payload7z = Join-Path $workDir 'payload.7z'
     Push-Location $payloadCopy
