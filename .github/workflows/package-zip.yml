@@ -69,8 +69,22 @@ jobs:
         if [ "${{ inputs.target }}" = "windows-desktop" ]; then
           suffix="-desktop"
         fi
+        zip_name="v2rayN-$Target-$Arch${suffix}.zip"
+        # Setup payload must match the release zip (includes core-bin / bin/*).
+        rm -rf sfx-staging
+        mkdir -p sfx-staging
+        7z x -y "$zip_name" "-osfx-staging"
+        payload_dir="sfx-staging/v2rayN-$Target-$Arch"
+        if [ ! -f "$payload_dir/v2rayN.exe" ]; then
+          echo "expected $payload_dir/v2rayN.exe after extracting $zip_name" >&2
+          find sfx-staging -maxdepth 3 -type f | head -n 50 >&2 || true
+          exit 1
+        fi
+        if [ ! -d "$payload_dir/bin" ]; then
+          echo "warning: $payload_dir/bin missing; Setup.exe may lack cores" >&2
+        fi
         ./scripts/build-windows-sfx.sh \
-          "v2rayN-$Target-$Arch" \
+          "$payload_dir" \
           "v2rayN-$Target-$Arch${suffix}-Setup.exe"
     
     - name: Upload zip artifact

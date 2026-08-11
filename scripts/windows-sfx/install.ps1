@@ -4,6 +4,25 @@ $ErrorActionPreference = 'Stop'
 
 $src = Split-Path -Parent $MyInvocation.MyCommand.Path
 $dest = Join-Path $env:LOCALAPPDATA 'Programs\v2rayN'
+
+Add-Type -AssemblyName System.Windows.Forms
+$prompt = @"
+将安装到：
+$dest
+
+并创建桌面快捷方式。
+不写入注册表，不修改系统目录。
+是否继续？
+"@
+$answer = [System.Windows.Forms.MessageBox]::Show(
+    $prompt,
+    'v2rayN',
+    [System.Windows.Forms.MessageBoxButtons]::YesNo,
+    [System.Windows.Forms.MessageBoxIcon]::Question)
+if ($answer -ne [System.Windows.Forms.DialogResult]::Yes) {
+    exit 1
+}
+
 New-Item -ItemType Directory -Path $dest -Force | Out-Null
 
 $skip = [System.Collections.Generic.HashSet[string]]::new(
