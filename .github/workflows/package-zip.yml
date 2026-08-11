@@ -59,12 +59,36 @@ jobs:
     - name: Rename windows-desktop 
       if: inputs.target == 'windows-desktop'
       run: mv "v2rayN-$Target-$Arch.zip" "v2rayN-$Target-$Arch-desktop.zip"
+
+    - name: Build Windows Setup.exe
+      if: inputs.target == 'windows' || inputs.target == 'windows-desktop'
+      run: |
+        set -euo pipefail
+        chmod +x scripts/build-windows-sfx.sh
+        suffix=
+        if [ "${{ inputs.target }}" = "windows-desktop" ]; then
+          suffix="-desktop"
+        fi
+        ./scripts/build-windows-sfx.sh \
+          "v2rayN-$Target-$Arch" \
+          "v2rayN-$Target-$Arch${suffix}-Setup.exe"
     
     - name: Upload zip artifact
+      if: inputs.target != 'windows' && inputs.target != 'windows-desktop'
       uses: actions/upload-artifact@v7
       with:
         name: release-${{ inputs.target }}-${{ matrix.arch }}
         path: v2rayN*.zip
+        if-no-files-found: error
+
+    - name: Upload zip and Setup.exe artifact
+      if: inputs.target == 'windows' || inputs.target == 'windows-desktop'
+      uses: actions/upload-artifact@v7
+      with:
+        name: release-${{ inputs.target }}-${{ matrix.arch }}
+        path: |
+          v2rayN*.zip
+          v2rayN*-Setup.exe
         if-no-files-found: error
 
   release:
@@ -79,5 +103,21 @@ jobs:
       release_tag: ${{ inputs.release_tag }}
       artifact_name: release-${{ inputs.target }}-${{ matrix.arch }}
       file_pattern: '*.zip'
+    secrets:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+  release-setup:
+    name: sign and upload Setup.exe x64 arm64
+    if: inputs.target == 'windows' || inputs.target == 'windows-desktop'
+    needs: package
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ x64, arm64 ]
+    uses: ./.github/workflows/upload-sign.yml
+    with:
+      release_tag: ${{ inputs.release_tag }}
+      artifact_name: release-${{ inputs.target }}-${{ matrix.arch }}
+      file_pattern: '*-Setup.exe'
     secrets:
       GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}

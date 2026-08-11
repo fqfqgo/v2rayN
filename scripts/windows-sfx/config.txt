@@ -1,0 +1,5 @@
+;!@Install@!UTF-8!
+Title="v2rayN"
+BeginPrompt="将安装到当前用户目录（%LocalAppData%\Programs\v2rayN），并创建桌面快捷方式。不写入注册表，不修改系统目录。是否继续？"
+RunProgram="install.cmd"
+;!@InstallEnd@!

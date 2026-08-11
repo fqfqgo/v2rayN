@@ -226,11 +226,28 @@ jobs:
             -DestinationPath "${{ matrix.zip_name }}" `
             -Force
 
+      - name: Build Windows Setup.exe
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $setupName = "${{ matrix.zip_name }}".Replace('.zip', '-Setup.exe')
+          # Install 7-Zip CLI if missing
+          if (-not (Get-Command 7z -ErrorAction SilentlyContinue)) {
+            choco install 7zip.install -y --no-progress
+            $env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' +
+              [System.Environment]::GetEnvironmentVariable('Path', 'User')
+          }
+          & .\scripts\build-windows-sfx.ps1 `
+            -PayloadDir "publish/${{ matrix.flavor }}" `
+            -OutputExe $setupName
+
       - name: Upload zip artifact
         uses: actions/upload-artifact@v7
         with:
           name: release-windows-x86-${{ matrix.flavor }}
-          path: ${{ matrix.zip_name }}
+          path: |
+            ${{ matrix.zip_name }}
+            *-Setup.exe
           if-no-files-found: error
 
   release-x86:
@@ -246,5 +263,21 @@ jobs:
       release_tag: ${{ case(inputs.release_tag != '', inputs.release_tag, github.ref_name) }}
       artifact_name: release-windows-x86-${{ matrix.flavor }}
       file_pattern: '*.zip'
+    secrets:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+  release-x86-setup:
+    name: sign and upload windows x86 Setup.exe
+    if: inputs.release_tag != '' || startsWith(github.ref, 'refs/tags/')
+    needs: package-x86
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [ wpf, desktop ]
+    uses: ./.github/workflows/upload-sign.yml
+    with:
+      release_tag: ${{ case(inputs.release_tag != '', inputs.release_tag, github.ref_name) }}
+      artifact_name: release-windows-x86-${{ matrix.flavor }}
+      file_pattern: '*-Setup.exe'
     secrets:
       GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
