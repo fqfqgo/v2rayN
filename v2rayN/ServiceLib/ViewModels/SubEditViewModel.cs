@@ -86,7 +86,7 @@ public partial class SubEditViewModel : MyReactiveObject, ICloseable
                 NoticeManager.Instance.Enqueue(ResUI.InsecureUrlProtocol);
                 //return;
             }
-            if (!await HttpClientHelper.Instance.CheckReachableAsync(url))
+            if (!await SubscriptionHandler.IsUrlDownloadableAsync(url, SelectedSource.UserAgent))
             {
                 await ShowMsgInteraction.Handle(ResUI.SubUrlUnreachableTip);
                 return;

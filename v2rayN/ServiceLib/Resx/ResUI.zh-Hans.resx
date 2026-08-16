@@ -1354,7 +1354,8 @@
     <value>订阅链接格式不正确，必须为单行且以 http:// 或 https:// 开头（不能是 vmess://、vless:// 等节点链接）</value>
   </data>
   <data name="SubUrlUnreachableTip" xml:space="preserve">
-    <value>该订阅链接无法连接（域名无法解析或连接超时）</value>
+    <value>该订阅链接无法连接（域名无法解析或连接超时）。
+请先使用备用方法导入：在网站用户中心点「节点URL」，再点「拷贝全部节点URL」；然后点 v2rayN 左上角「配置项」→「从剪贴板导入分享链接」(Ctrl+V)，再延迟测试并选择节点，然后再试订阅链接导入。</value>
   </data>
   <data name="TbSettingsCurrentFontFamilyLinuxTip" xml:space="preserve">
     <value>安装字体到系统中，选择或填入字体名称，重启生效</value>

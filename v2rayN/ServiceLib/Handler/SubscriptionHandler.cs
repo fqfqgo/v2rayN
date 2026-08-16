@@ -125,6 +125,19 @@ public static class SubscriptionHandler
         return (result ?? string.Empty, headers);
     }
 
+    public static async Task<bool> IsUrlDownloadableAsync(string url, string? userAgent)
+    {
+        url = Utils.GetPunycode(url.TrimEx());
+        if (url.IsNullOrEmpty())
+        {
+            return false;
+        }
+
+        var downloadHandle = new DownloadService();
+        var (result, _) = await DownloadSubscriptionContent(downloadHandle, url, true, userAgent ?? string.Empty);
+        return result.IsNotEmpty();
+    }
+
     private static async Task<(string Result, bool DecryptFailed)> DownloadAllSubscriptions(Config config, SubItem item, bool blProxy, DownloadService downloadHandle)
     {
         // Download main subscription content

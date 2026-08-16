@@ -1354,7 +1354,8 @@
     <value>訂閱連結格式不正確，必須為單行且以 http:// 或 https:// 開頭（不能是 vmess://、vless:// 等節點連結）</value>
   </data>
   <data name="SubUrlUnreachableTip" xml:space="preserve">
-    <value>該訂閱連結無法連線（網域無法解析或連線逾時）</value>
+    <value>該訂閱連結無法連線（網域無法解析或連線逾時）。
+請先使用備用方法匯入：在網站用戶中心點「節點URL」，再點「拷貝全部節點URL」；然後點 v2rayN 左上角「設定檔」→「從剪貼簿匯入分享連結」(Ctrl+V)，再延遲測試並選擇節點，然後再試訂閱連結匯入。</value>
   </data>
   <data name="TbSettingsCurrentFontFamilyLinuxTip" xml:space="preserve">
     <value>安裝字體到系統中，選擇或填入字體名稱，重新啟動後生效</value>
