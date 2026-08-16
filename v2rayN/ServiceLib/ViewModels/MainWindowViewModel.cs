@@ -87,8 +87,6 @@ public partial class MainWindowViewModel : MyReactiveObject
 
     #endregion Menu
 
-    private readonly SynchronizationContext _uiContext = SynchronizationContext.Current;
-
     #region Init
 
     public MainWindowViewModel()
@@ -315,7 +313,7 @@ public partial class MainWindowViewModel : MyReactiveObject
             .ObserveOn(RxSchedulers.MainThreadScheduler)
             .Subscribe(async blShow =>
             {
-                await ShowHideWindowInteraction.Handle(blShow);
+                await ShowHideWindowInteraction.HandleSafe(blShow);
             });
 
         StatusBarViewModel.SetDefaultServerRequested
@@ -426,14 +424,25 @@ public partial class MainWindowViewModel : MyReactiveObject
     private async Task RefreshServersDispatcherAsync()
     {
         //await Observable.Start(async () => await RefreshServers(), RxSchedulers.MainThreadScheduler);
-        _uiContext?.Post(_ => _ = RefreshServers(), null);
+        await Signal.FromAsync(async () =>
+            {
+                await RefreshServers();
+                return RxVoid.Default;
+            })
+            .SubscribeOn(RxSchedulers.MainThreadScheduler)
+            .ToTask();
     }
 
     private async Task RefreshSubscriptions()
     {
         //await Observable.Start(async () => await ProfilesViewModel.RefreshSubscriptions(), RxSchedulers.MainThreadScheduler);
-
-        _uiContext?.Post(_ => _ = ProfilesViewModel.RefreshSubscriptions(), null);
+        await Signal.FromAsync(async () =>
+            {
+                await ProfilesViewModel.RefreshSubscriptions();
+                return RxVoid.Default;
+            })
+            .SubscribeOn(RxSchedulers.MainThreadScheduler)
+            .ToTask();
     }
 
     #endregion Servers && Groups
@@ -480,7 +489,7 @@ public partial class MainWindowViewModel : MyReactiveObject
         var stringData = clipboardData;
         if (clipboardData == null)
         {
-            var result = await ReadTextFromClipboardInteraction.Handle(RxVoid.Default);
+            var result = await ReadTextFromClipboardInteraction.HandleSafe(RxVoid.Default);
             if (result.IsNullOrEmpty())
             {
                 NoticeManager.Instance.Enqueue(ResUI.OperationFailed);
@@ -503,7 +512,7 @@ public partial class MainWindowViewModel : MyReactiveObject
 
     public async Task AddServerViaScanAsync()
     {
-        var result = await ScanScreenInteraction.Handle(RxVoid.Default);
+        var result = await ScanScreenInteraction.HandleSafe(RxVoid.Default);
         await ScanScreenResult(result);
     }
 
@@ -515,7 +524,7 @@ public partial class MainWindowViewModel : MyReactiveObject
 
     public async Task AddServerViaImageAsync()
     {
-        var imageFileName = await BrowseImageFileInteraction.Handle(RxVoid.Default);
+        var imageFileName = await BrowseImageFileInteraction.HandleSafe(RxVoid.Default);
         await AddScanResultAsync(imageFileName);
     }
 
@@ -774,10 +783,12 @@ public partial class MainWindowViewModel : MyReactiveObject
                 //{
                 //    await ClashProxiesViewModel.ProxiesReload();
                 //}, RxSchedulers.MainThreadScheduler);
-                RxSchedulers.MainThreadScheduler.Schedule(async () =>
-                {
-                    await ClashProxiesViewModel.ProxiesReload();
-                });
+                await Signal.FromAsync(async () =>
+                    {
+                        await ClashProxiesViewModel.ProxiesReload();
+                        return RxVoid.Default;
+                    }).SubscribeOn(RxSchedulers.MainThreadScheduler)
+                    .ToTask();
             }
 
             ReloadResult(showClashUI);
