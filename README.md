@@ -7,7 +7,7 @@
 [![GPG Signed](https://img.shields.io/badge/GPG-signed-4B32C3?logo=gnuprivacyguard)](https://github.com/fqfqgo/v2rayN/releases)
 
 > [!IMPORTANT]
-> 当前维护基线固定为 **7.24.6**。这是紧急安全更新基线，请勿从本仓库的旧版构建降级；下载后应同时校验对应的 GPG 签名。
+> 当前维护基线固定为 **7.24.7**。这是紧急安全更新基线，请勿从本仓库的旧版构建降级；下载后应同时校验对应的 GPG 签名。
 
 ## 下载
 
