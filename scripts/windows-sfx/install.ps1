@@ -26,6 +26,18 @@ if ($answer -ne [System.Windows.Forms.DialogResult]::Yes) {
     exit 1
 }
 
+Get-Process -Name 'v2rayN' -ErrorAction SilentlyContinue | Stop-Process -Force
+if (Test-Path -LiteralPath $dest) {
+    $prefix = [IO.Path]::GetFullPath($dest).TrimEnd('\') + '\'
+    Get-Process -ErrorAction SilentlyContinue | Where-Object {
+        $_.Path -and $_.Path.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase)
+    } | Stop-Process -Force
+}
+$until = [datetime]::UtcNow.AddSeconds(5)
+while ([datetime]::UtcNow -lt $until -and (Get-Process -Name 'v2rayN' -ErrorAction SilentlyContinue)) {
+    Start-Sleep -Milliseconds 200
+}
+
 New-Item -ItemType Directory -Path $dest -Force | Out-Null
 
 $skip = [System.Collections.Generic.HashSet[string]]::new(
