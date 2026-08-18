@@ -813,7 +813,7 @@ public partial class MainWindowViewModel : MyReactiveObject
         RxSchedulers.MainThreadScheduler.Schedule(() =>
         {
             ShowClashUI = showClashUI;
-            TabMainSelectedIndex = showClashUI ? TabMainSelectedIndex : 0;
+            TabMainSelectedIndex = showClashUI && TabMainSelectedIndex >= 0 ? TabMainSelectedIndex : 0;
         });
     }
 

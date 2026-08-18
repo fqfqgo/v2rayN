@@ -31,7 +31,7 @@ public partial class MainWindow
         menuCheckUpdate.Click += MenuCheckUpdate_Click;
         btnNewUpdate.Click += MenuCheckUpdate_Click;
         menuBackupAndRestore.Click += MenuBackupAndRestore_Click;
-        menuToggleLog.Click += (_, _) => SetLogPanelVisible(!_logPanelVisible);
+        menuToggleLog.Click += (_, _) => SetLogPanelVisible(!_logPanelVisible, selectMsgTab: !_logPanelVisible);
 
         pbTheme.Content ??= new ThemeSettingView();
 
@@ -346,9 +346,13 @@ public partial class MainWindow
         }
     }
 
-    private void SetLogPanelVisible(bool visible)
+    private void SetLogPanelVisible(bool visible, bool selectMsgTab = false)
     {
         _logPanelVisible = visible;
+        if (selectMsgTab && ViewModel is not null)
+        {
+            ViewModel.TabMainSelectedIndex = _config.UiItem.MainGirdOrientation == EGirdOrientation.Tab ? 1 : 0;
+        }
         if (_config.UiItem.MainGirdOrientation != EGirdOrientation.Vertical)
         {
             return;
@@ -400,7 +404,6 @@ public partial class MainWindow
                 this.WhenAnyValue(v => v.ViewModel.ClashConnectionsViewModel)
                     .Subscribe(vm => ViewHost.Show(tabClashConnections, vm))
                     .DisposeWith(currentLayoutDisposables);
-                this.OneWayBind(ViewModel, vm => vm.ShowClashUI, v => v.tabMsgView.Visibility).DisposeWith(currentLayoutDisposables);
                 this.OneWayBind(ViewModel, vm => vm.ShowClashUI, v => v.tabClashProxies.Visibility).DisposeWith(currentLayoutDisposables);
                 this.OneWayBind(ViewModel, vm => vm.ShowClashUI, v => v.tabClashConnections.Visibility).DisposeWith(currentLayoutDisposables);
                 this.Bind(ViewModel, vm => vm.TabMainSelectedIndex, v => v.tabMain.SelectedIndex).DisposeWith(currentLayoutDisposables);
@@ -419,7 +422,6 @@ public partial class MainWindow
                 this.WhenAnyValue(v => v.ViewModel.ClashConnectionsViewModel)
                     .Subscribe(vm => ViewHost.Show(tabClashConnections1, vm))
                     .DisposeWith(currentLayoutDisposables);
-                this.OneWayBind(ViewModel, vm => vm.ShowClashUI, v => v.tabMsgView1.Visibility).DisposeWith(currentLayoutDisposables);
                 this.OneWayBind(ViewModel, vm => vm.ShowClashUI, v => v.tabClashProxies1.Visibility).DisposeWith(currentLayoutDisposables);
                 this.OneWayBind(ViewModel, vm => vm.ShowClashUI, v => v.tabClashConnections1.Visibility).DisposeWith(currentLayoutDisposables);
                 this.Bind(ViewModel, vm => vm.TabMainSelectedIndex, v => v.tabMain1.SelectedIndex).DisposeWith(currentLayoutDisposables);

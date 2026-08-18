@@ -74,7 +74,7 @@ public partial class MsgViewModel : MyReactiveObject
             {
                 try
                 {
-                    await DispatcherShowMsgInteraction.HandleSafe(sb.ToString());
+                    await DispatcherShowMsgInteraction.Handle(sb.ToString());
                 }
                 catch (Exception)
                 {
